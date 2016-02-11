@@ -23,7 +23,23 @@ using namespace std;
 
 int main(int argc , char* argv[]){
 
-	omp_set_num_threads(std::stoi(argv[5]));
+	size_t carg_i = 1;
+	while(carg_i<=argc){
+
+		//Command line argument setting the number of threads
+		if(argv[carg_i] == "-threads"){
+			omp_set_num_threads(std::stoi(argv[++carg_i]));
+		}
+
+		//Command line to redirect the standard output to a file
+		if(argv[carg_i] == "-stdout_f"){
+			freopen(argv[++carg_i],"a+",stdout);
+		}
+
+		//Read the next command line argument
+		++carg_i;
+	}
+
 
 	//I/O stream to ask the directory for sequences,output etc
 		//I/O stream to ask the output file name
