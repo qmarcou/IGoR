@@ -1,6 +1,7 @@
 # Ignore the compiled object files
 *.o
 *.gcno
+*.d
 # Ignore compiled static library
 *.a
 *.gcda
