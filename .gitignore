@@ -1,0 +1,8 @@
+# Ignore the compiled object files
+*.o
+*.gcno
+# Ignore compiled static library
+*.a
+*.gcda
+
+
