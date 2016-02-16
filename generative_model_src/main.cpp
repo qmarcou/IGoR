@@ -246,7 +246,7 @@ int main(int argc , char* argv[]){
 
 
 	else{
-		//Write your custom model/alignments/etc here
+		//Write your custom procedure here
 	}
 
 

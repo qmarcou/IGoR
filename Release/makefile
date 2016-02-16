@@ -48,13 +48,13 @@ generative: $(OBJS) $(USER_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-
-generative-no-jemalloc: $(OBJS) $(USER_OBJS)
-        @echo 'Building target: $@'
-        @echo 'Invoking: GCC C++ Linker'
-        g++ -fopenmp -o "generative" $(OBJS) $(USER_OBJS) $(LIBS)
-        @echo 'Finished building target: $@'
-        @echo ' '
+#Tool invocation without jemalloc
+generative_no_jemalloc: $(OBJS) $(USER_OBJS)
+	@echo 'Building target: $@'
+	@echo 'Invoking: GCC C++ Linker'
+	g++ -fopenmp -o "generative" $(OBJS) $(USER_OBJS) $(LIBS)
+	@echo 'Finished building target: $@'
+	@echo ' '
 
 # Other Targets
 clean:
