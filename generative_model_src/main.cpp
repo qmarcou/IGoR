@@ -77,24 +77,24 @@ int main(int argc , char* argv[]){
 		 */
 
 		//Path to the working folder
-		string path (argv[1]);
+/*		string path (argv[1]);
 		if (path[path.size()-1] != '/'){
 			path+="/";
-		}
+		}*/
 
 		cout<<"Reading genomic templates"<<endl;
 
-		vector<pair<string,string>> v_genomic = read_genomic_fasta(path + string("genomicVs_with_primers.fasta"));
+		vector<pair<string,string>> v_genomic = read_genomic_fasta( string("../demo/genomicVs_with_primers.fasta"));
 
-		vector<pair<string,string>> d_genomic = read_genomic_fasta(path + string("genomicDs.fasta"));
+		vector<pair<string,string>> d_genomic = read_genomic_fasta( string("../demo/genomicDs.fasta"));
 
-		vector<pair<string,string>> j_genomic = read_genomic_fasta(path + string("genomicJs_all_curated.fasta"));
+		vector<pair<string,string>> j_genomic = read_genomic_fasta( string("../demo/genomicJs_all_curated.fasta"));
 
 		//Declare substitution matrix used for alignments(nuc44 here)
 		double nuc44_vect [] = {5,-14,-14,-14 , -14 ,5,-14,-14 , -14,-14,5,-14 , -14,-14,-14,5};
 		Matrix<double> nuc44_sub_matrix(4,4,nuc44_vect);
 
-		//Instantiate aligner with substitution matrix and gap penalty
+		//Instantiate aligner with substitution matrix declared above and gap penalty of 50
 		Aligner v_aligner = Aligner(nuc44_sub_matrix , 50 , V_gene);
 		v_aligner.set_genomic_sequences(v_genomic);
 
@@ -105,16 +105,16 @@ int main(int argc , char* argv[]){
 		j_aligner.set_genomic_sequences(j_genomic);
 
 		cout<<"Reading sequences and aligning"<<endl;
-		vector<pair<const int, const string>> indexed_seqlist = read_txt(path + string(argv[2]) + ".txt"); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
+		vector<pair<const int, const string>> indexed_seqlist = read_txt( string("../demo/murugan_naive1_noncoding_demo_seqs.txt") ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
 
 
-		v_aligner.align_seqs(path + string(argv[2]) + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
+		v_aligner.align_seqs( string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
 		//v_aligner.write_alignments_seq_csv(path + string("alignments_V.csv") , v_alignments);
 
-		d_aligner.align_seqs(path + string(argv[2]) + string("_alignments_D.csv"),indexed_seqlist,0,false);
+		d_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"),indexed_seqlist,0,false);
 		//d_aligner.write_alignments_seq_csv(path + string("alignments_D.csv") , d_alignments);
 
-		j_aligner.align_seqs(path + string(argv[2]) + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
+		j_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
 
 
 
@@ -122,7 +122,7 @@ int main(int argc , char* argv[]){
 		//j_aligner.write_alignments_seq_csv(path + string("alignments_J.csv") , j_alignments);
 
 
-		write_indexed_seq_csv(path + string(argv[2])  + string("indexed_seq.csv") , indexed_seqlist);
+		write_indexed_seq_csv(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_indexed_seq.csv") , indexed_seqlist);
 
 
 
@@ -200,25 +200,25 @@ int main(int argc , char* argv[]){
 		model_marginals.uniform_initialize(parms); //Can also start with a random prior using random_initialize()
 
 		//Instantiate an error rate
-		Single_error_rate error_rate(stod(string(argv[3])));
+		Single_error_rate error_rate(0.001);
 
 		parms.set_error_ratep(&error_rate);
 
 		cout<<"Write and read back the model"<<endl;
 		//Write the model_parms into a file
-		parms.write_model_parms(path + "demo_write_model_parms.txt");
+		parms.write_model_parms(string("../demo/demo_write_model_parms.txt"));
 
 		//Write the marginals into a file
-		model_marginals.write2txt(path + "demo_write_model_marginals.txt",parms);
+		model_marginals.write2txt(string("../demo/demo_write_model_marginals.txt"),parms);
 
 		//Read a model and marginal pair
 		Model_Parms read_model_parms;
-		read_model_parms.read_model_parms(path + "demo_write_model_parms.txt");
+		read_model_parms.read_model_parms(string("../demo/demo_write_model_parms.txt"));
 		Model_marginals read_model_marginals(read_model_parms);
-		read_model_marginals.txt2marginals(path + "demo_write_model_marginals.txt",read_model_parms);
+		read_model_marginals.txt2marginals(string("../demo/demo_write_model_marginals.txt"),read_model_parms);
 
 		//Instantiate the high level GenModel class
-		//This class allows to make most useful high level operations(model inference/Pgen calculation , sequence generation)
+		//This class allows to make most useful high level operations(model inference/Pgen computation , sequence generation)
 		GenModel gen_model(read_model_parms,read_model_marginals);
 
 
@@ -226,21 +226,21 @@ int main(int argc , char* argv[]){
 
 		//Read alignments
 		//vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(path+ string(argv[2]) + string("indexed_seq.csv"));
-		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path+ string(argv[2]) + string("_alignments_V.csv"), V_gene , 55 , false , indexed_seqlist  );//40//35
-		sorted_alignments = read_alignments_seq_csv_score_range(path+ string(argv[2]) + string("_alignments_D.csv"), D_gene , 35 , false , indexed_seqlist , sorted_alignments);//30//15
-		sorted_alignments = read_alignments_seq_csv_score_range(path+ string(argv[2]) + string("_alignments_J.csv"), J_gene , 10 , false , indexed_seqlist , sorted_alignments);//30//20
+		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"), V_gene , 55 , false , indexed_seqlist  );//40//35
+		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"), D_gene , 35 , false , indexed_seqlist , sorted_alignments);//30//15
+		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"), J_gene , 10 , false , indexed_seqlist , sorted_alignments);//30//20
 
 		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
 		//Infer the model
 		cout<<"Infer model"<<endl;
-		gen_model.infer_model(sorted_alignments_vec , 10 , path+ string(argv[4]) + string("/"),1e-35,0.001);
+		gen_model.infer_model(sorted_alignments_vec , 10 , string("../demo/run_demo/") ,1e-35,0.001);
 
 
 		//Generate sequences
 		cout<<"Generate sequences"<<endl;
 		auto generated_seq =  gen_model.generate_sequences(100,false);//Without errors
-		gen_model.write_seq_real2txt(path + "generated_seqs_indexed_demo.csv", path + "generated_seqs_realizations_demo.csv" , generated_seq);//Member function will be changed
+		gen_model.write_seq_real2txt(string("../demo/generated_seqs_indexed_demo.csv"), string("../demo/generated_seqs_realizations_demo.csv") , generated_seq);//Member function will be changed
 
 	}
 
