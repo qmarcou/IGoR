@@ -26,6 +26,8 @@ int main(int argc , char* argv[]){
 	size_t carg_i = 1;
 	cout<<argv[argc-1]<<endl;
 	bool run_demo = false;
+	bool align = false;
+	bool infer = false;
 
 	while(carg_i<argc){
 
@@ -43,6 +45,16 @@ int main(int argc , char* argv[]){
 
 		if(string(argv[carg_i]) == "-run_demo"){
 			run_demo = true;
+		}
+
+		if(string(argv[carg_i]) == "-align"){
+			//Provide a boolean for aligning
+			align = true;
+		}
+
+		if(string(argv[carg_i]) == "-infer"){
+			//Provide a boolean for infering
+			infer = true;
 		}
 
 		//Read the next command line argument
