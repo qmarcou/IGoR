@@ -288,13 +288,26 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	//Declare parallel loop using OpenMP 3.1 standards
 	#pragma omp parallel for schedule(dynamic) shared(processed_seq_number , alignment_map) //num_threads(1)
 	for(vector<pair<const int , const string>>::const_iterator seq_it = sequence_list.begin() ; seq_it < sequence_list.end() ; seq_it++){
-		forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , min_offset , max_offset);
-		#pragma omp critical(emplace_seq_alignments)
-		{
-			write_single_seq_alignment(outfile , (*seq_it).first , seq_alignments );
-			//cout<<"Seq "<<processed_seq_number<<" processed"<<endl;
-			++processed_seq_number;
+		try{
+			forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , min_offset , max_offset);
+
+			#pragma omp critical(emplace_seq_alignments)
+			{
+				write_single_seq_alignment(outfile , (*seq_it).first , seq_alignments );
+				//cout<<"Seq "<<processed_seq_number<<" processed"<<endl;
+				++processed_seq_number;
+			}
 		}
+		catch(exception& except){
+			cout<<"Exception caught calling align_seq() on sequence:"<<endl;
+			cout<<(*seq_it).first<<";"<<(*seq_it).second<<endl;
+			cout<<endl;
+			cout<<"Throwing exception now..."<<endl<<endl;
+			cout<<except.what()<<endl;
+			throw;
+		}
+
+
 	}
 
 }
