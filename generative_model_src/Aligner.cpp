@@ -936,7 +936,7 @@ list<pair<int,Alignment_data>> Aligner::sw_align(const string& int_data_sequence
 					size_t n_ins = distance(insertions.begin(),insertions.end());
 					if(neg_offset){
 						gen_seq = int_genomic_sequence.substr(-offset,string::npos);
-						dat_seq = int_data_sequence.substr(0,gen_seq.size());
+						dat_seq = int_data_sequence.substr(0,gen_seq.size()+n_ins);
 					}
 					else{
 						dat_seq = int_data_sequence.substr(offset,string::npos);
