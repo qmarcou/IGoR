@@ -12,9 +12,11 @@
 
 class Hypermutation_global_errorrate: public Error_rate {
 	friend Gene_choice; //Grant friendship to access current gene realization and offset
+	friend Deletion;//Grant friendship to access the current number of deletion
 
 public:
-	Hypermutation_global_errorrate();
+	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double);
+	//Hypermutation_global_errorrate(size_t,Gene_class,Gene_class, ??); Constructor to read or copy the error rate
 	virtual ~Hypermutation_global_errorrate();
 	double compare_sequences_error_prob( double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>&  , Mismatch_vectors_map& , double& , double& );
 	void update();
@@ -42,8 +44,20 @@ private:
 	std::map<int,double> Nmer_background_proba_count;
 	std::map<int,double> Nmer_SHM_proba_count;
 
-	std::map<int,double*> gene_nucleotide_coverage_map;
-	std::map<int,double*> gene_per_nucleotide_error;
+	std::map<int,double*> v_gene_nucleotide_coverage_map;
+	std::map<int,double*> v_gene_per_nucleotide_error;
+	std::map<int,double*> d_gene_nucleotide_coverage_map;
+	std::map<int,double*> d_gene_per_nucleotide_error;
+	std::map<int,double*> j_gene_nucleotide_coverage_map;
+	std::map<int,double*> j_gene_per_nucleotide_error;
+
+	bool apply_to_v;
+	bool apply_to_d;
+	bool apply_to_j;
+
+	bool learn_on_v;
+	bool learn_on_d;
+	bool learn_on_j;
 
 	int*& vgene_offset_p;
 	int*& dgene_offset_p;

@@ -9,13 +9,42 @@
 
 using namespace std;
 
-Hypermutation_global_errorrate::Hypermutation_global_errorrate() {
-	// TODO Auto-generated constructor stub
+Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value){
+	//Initialize booleans
+	if(apply_to == V_gene | apply_to == VJ_genes | apply_to == VD_genes | apply_to == VDJ_genes){
+		apply_to_v = true;
+	}
+	else apply_to_v = false;
 
+	if(apply_to == D_gene | apply_to == DJ_genes | apply_to == VD_genes | apply_to == VDJ_genes){
+		apply_to_d = true;
+	}
+	else apply_to_d = false;
+
+	if(apply_to == J_gene | apply_to == VJ_genes | apply_to == DJ_genes | apply_to == VDJ_genes){
+		apply_to_j = true;
+	}
+	else apply_to_j = false;
+
+	if(learn_on == V_gene | learn_on == VJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
+		learn_on_v = true;
+	}
+	else learn_on_v = false;
+
+	if(learn_on == D_gene | learn_on == DJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
+		learn_on_d = true;
+	}
+	else learn_on_d = false;
+
+	if(learn_on == J_gene | learn_on == VJ_genes | learn_on == DJ_genes | learn_on == VDJ_genes){
+		learn_on_j = true;
+	}
+	else learn_on_j = false;
 }
 
 Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
 	// TODO Auto-generated destructor stub
+	//Make a clean destructor and delete all the double* contained in maps
 }
 
 Error_rate* Hypermutation_global_errorrate::copy()const{
@@ -31,6 +60,46 @@ double Hypermutation_global_errorrate::get_err_rate_upper_bound() const{
 }
 
 double Hypermutation_global_errorrate::compare_sequences_error_prob (double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
+	//TODO Take into account the order of mutations
+
+	string& v_gene_seq = (*constructed_sequences[V_gene_seq]);
+	string& d_gene_seq = (*constructed_sequences[D_gene_seq]);
+	string& j_gene_seq = (*constructed_sequences[J_gene_seq]);
+
+	//V gene
+	if(apply_to_v){
+
+	}
+
+
+	//D gene
+	if(apply_to_d){
+
+	}
+
+
+	//J gene
+	if(apply_to_j){
+
+	}
+
+	//Record genomic nucleotides coverage and errors
+
+	if(learn_on_v){
+		//Get the coverage
+
+
+		//Get the mismatches positions on the gene
+
+	}
+
+	if(learn_on_d){
+
+	}
+
+	if(learn_on_j){
+
+	}
 
 }
 
@@ -52,6 +121,13 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			vgene_offset_p = v_gene_event_p->alignment_offset_p;
 			vgene_real_index_p = v_gene_event_p->current_realization_index;
 
+			//Initialize gene counters
+			const unordered_map<string , Event_realization>& v_realizations = v_gene_event_p->get_realizations_map();
+			for(unordered_map<string , Event_realization>::const_iterator iter = v_realizations.begin() ; iter != v_realizations.end() ; iter++){
+				v_gene_nucleotide_coverage_map.emplace(pair<int,double*>((*iter).second.index,new double [(*iter).second.value_str_int.size()]));
+				v_gene_per_nucleotide_error.emplace(pair<int,double*>((*iter).second.index,new double [(*iter).second.value_str_int.size()]));
+			}
+
 		}
 		catch(exception& except){
 			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
@@ -68,6 +144,8 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			Gene_choice* d_gene_event_p = dynamic_cast<Gene_choice*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
 			dgene_offset_p = d_gene_event_p->alignment_offset_p;
 			dgene_real_index_p = d_gene_event_p->current_realization_index;
+			//Initialize gene counters
+
 		}
 		catch(exception& except){
 			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
@@ -84,6 +162,8 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			Gene_choice* j_gene_event_p = dynamic_cast<Gene_choice*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
 			jgene_offset_p = j_gene_event_p->alignment_offset_p;
 			jgene_real_index_p = j_gene_event_p->current_realization_index;
+			//Initialize gene counters
+
 		}
 		catch(exception& except){
 			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
@@ -92,6 +172,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			throw except;
 		}
 	}
+
 }
 
 void Hypermutation_global_errorrate::add_to_norm_counter(){
