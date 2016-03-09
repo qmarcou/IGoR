@@ -166,7 +166,11 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				(*first_init_event).set_viterbi_run(viterbi_like);
 			}
 
+
+			//Initialize error rate
+			single_thread_err_rate->initialize(events_map);
 			single_thread_err_rate->set_viterbi_run(viterbi_like);
+
 
 			//Initialize Counters
 			for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
