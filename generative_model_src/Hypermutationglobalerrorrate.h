@@ -11,6 +11,8 @@
 #include "Errorrate.h"
 
 class Hypermutation_global_errorrate: public Error_rate {
+	friend Gene_choice; //Grant friendship to access current gene realization and offset
+
 public:
 	Hypermutation_global_errorrate();
 	virtual ~Hypermutation_global_errorrate();
@@ -28,6 +30,12 @@ public:
 
 private:
 	int number_seq; //FIXME check if need to remove this from here and from singleerrorrate and transfer it to errorrate
+
+	std::map<int,double> Nmer_background_proba;
+	std::map<int,double> Nmer_SHM_proba;
+
+
+
 };
 
 #endif /* HYPERMUTATIONGLOBALERRORRATE_H_ */

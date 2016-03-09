@@ -103,6 +103,7 @@ private:
 	std::vector<int>::const_reverse_iterator rev_mism_iter;
 	size_t endogeneous_mismatches;
 
+
 	//Constants
 		//Memory Layers
 		int memory_layer_cs;
