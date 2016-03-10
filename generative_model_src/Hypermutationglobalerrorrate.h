@@ -47,6 +47,10 @@ private:
 	std::map<int,double> Nmer_SHM_proba_count;
 
 	//Normalized coverage and error counters
+	//# V D and J possible realizations
+	size_t n_v_real;
+	size_t n_d_real;
+	size_t n_j_real;
 	//Use C arrays (faster than maps)
 	//size_t is the length of the sequence
 	//double* is the pointer to the array for coverage/error per nucleotide
@@ -92,6 +96,7 @@ private:
 
 	//Utility speed variables
 	int i;//iteration utility
+	int j;
 	int v_3_del_value_corr;//Corrected value for deletion numbers to avoid taking into account negative deletions
 	int d_5_del_value_corr;
 	int d_3_del_value_corr;

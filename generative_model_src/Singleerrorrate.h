@@ -43,7 +43,6 @@ private:
 
 	double model_rate;
 	double normalized_counter;
-	int number_seq;
 	long double seq_weighted_er;
 	int number_errors;
 	int genomic_nucl;

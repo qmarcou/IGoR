@@ -147,11 +147,13 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 
 			//Initialize gene counters
 			const unordered_map<string , Event_realization>& v_realizations = v_gene_event_p->get_realizations_map();
+			//Get the number of realizations
+			n_v_real = v_realizations.size();
 			//Create arrays
-			v_gene_nucleotide_coverage_p = new pair<size_t,double*>[v_realizations.size()];
-			v_gene_per_nucleotide_error_p = new pair<size_t,double*>[v_realizations.size()];
-			v_gene_nucleotide_coverage_seq_p = new pair<size_t,double*>[v_realizations.size()];
-			v_gene_per_nucleotide_error_seq_p = new pair<size_t,double*>[v_realizations.size()];
+			v_gene_nucleotide_coverage_p = new pair<size_t,double*>[n_v_real];
+			v_gene_per_nucleotide_error_p = new pair<size_t,double*>[n_v_real];
+			v_gene_nucleotide_coverage_seq_p = new pair<size_t,double*>[n_v_real];
+			v_gene_per_nucleotide_error_seq_p = new pair<size_t,double*>[n_v_real];
 
 			for(unordered_map<string , Event_realization>::const_iterator iter = v_realizations.begin() ; iter != v_realizations.end() ; iter++){
 
@@ -240,11 +242,84 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 }
 
 void Hypermutation_global_errorrate::add_to_norm_counter(){
+	if(seq_likelihood!=0){
 
+		if(learn_on_v){
+			for(i = 0 ; i!=n_v_real ; ++i){
+				//Get the length of the gene and a pointer to the right array to write on
+				tmp_corr_len = v_gene_nucleotide_coverage_seq_p[i].first;
+				tmp_cov_p = v_gene_nucleotide_coverage_seq_p[i].second;
+				tmp_err_p = v_gene_per_nucleotide_error_seq_p[i].second;
+
+				double* tmp_cov_mod_p = v_gene_nucleotide_coverage_p[i].second;
+				double* tmp_err_mod_p = v_gene_nucleotide_coverage_p[i].second;
+
+				for(j = 0 ; j!= tmp_corr_len ; j++){
+					//Add to normalize counter and reset coverage
+					tmp_cov_mod_p[j] += tmp_cov_p[j]/seq_likelihood;
+					tmp_cov_p[j] = 0;
+
+					//Same for errors
+					tmp_err_mod_p[j] += tmp_err_p[j]/seq_likelihood;
+					tmp_err_p[j] = 0;
+				}
+			}
+
+		}
+
+		if(learn_on_d){
+
+		}
+
+		if(learn_on_j){
+
+		}
+
+		model_log_likelihood+=log10(seq_likelihood);
+		number_seq+=1;
+	}
+
+	seq_mean_error_number = 0;
+	seq_likelihood = 0;
+	seq_probability = 0;
+	debug_number_scenarios=0;
 }
 
 void Hypermutation_global_errorrate::clean_seq_counters(){
+	if(seq_likelihood!=0){
 
+			if(learn_on_v){
+				for(i = 0 ; i!=n_v_real ; ++i){
+					//Get the length of the gene and a pointer to the right array to write on
+					tmp_corr_len = v_gene_nucleotide_coverage_seq_p[i].first;
+					tmp_cov_p = v_gene_nucleotide_coverage_seq_p[i].second;
+					tmp_err_p = v_gene_per_nucleotide_error_seq_p[i].second;
+
+					for(j = 0 ; j!= tmp_corr_len ; j++){
+						//reset coverage
+						tmp_cov_p[j] = 0;
+
+						//Same for errors
+						tmp_err_p[j] = 0;
+					}
+				}
+
+			}
+
+			if(learn_on_d){
+
+			}
+
+			if(learn_on_j){
+
+			}
+	}
+
+
+	seq_mean_error_number = 0;
+	seq_likelihood = 0;
+	seq_probability = 0;
+	debug_number_scenarios=0;
 }
 
 void Hypermutation_global_errorrate::write2txt(ofstream& outfile){

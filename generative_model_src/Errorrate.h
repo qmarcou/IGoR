@@ -57,6 +57,7 @@ public:
 protected:
 	bool updated;
 	long double model_log_likelihood;
+	int number_seq;
 	long double seq_likelihood;
 	double seq_mean_error_number;
 	long double scenario_new_proba;//TODO rename this guy
