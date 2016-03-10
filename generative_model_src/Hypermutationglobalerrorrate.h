@@ -48,6 +48,8 @@ private:
 
 	//Normalized coverage and error counters
 	//Use C arrays (faster than maps)
+	//size_t is the length of the sequence
+	//double* is the pointer to the array for coverage/error per nucleotide
 	std::pair<size_t,double*>* v_gene_nucleotide_coverage_p;
 	std::pair<size_t,double*>* v_gene_per_nucleotide_error_p;
 	std::pair<size_t,double*>* d_gene_nucleotide_coverage_p;
@@ -88,12 +90,17 @@ private:
 	int* j_5_del_value_p;
 	int no_del_buffer = 0; //buffer used in case of no deletion event
 
-	//Utility variables
+	//Utility speed variables
 	int i;//iteration utility
 	int v_3_del_value_corr;//Corrected value for deletion numbers to avoid taking into account negative deletions
 	int d_5_del_value_corr;
 	int d_3_del_value_corr;
 	int j_5_del_value_corr;
+	double* tmp_cov_p;
+	double* tmp_err_p;
+	int tmp_corr_len;
+	int tmp_len_util;
+	double scenario_new_proba;
 
 
 

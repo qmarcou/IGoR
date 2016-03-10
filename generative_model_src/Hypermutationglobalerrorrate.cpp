@@ -66,6 +66,13 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	string& d_gene_seq = (*constructed_sequences[D_gene_seq]);
 	string& j_gene_seq = (*constructed_sequences[J_gene_seq]);
 
+	vector<int>& v_mismatch_list = *mismatches_lists[V_gene_seq];
+	if(mismatches_lists.exist(D_gene_seq)){ //Remove check? ensured by initialization
+		vector<int>& d_mismatch_list = *mismatches_lists[D_gene_seq];
+	}
+
+	vector<int>& j_mismatch_list = *mismatches_lists[J_gene_seq];
+
 	//First compute the contribution of the errors to the sequence likelihood
 	//V gene
 	if(apply_to_v){
@@ -87,19 +94,26 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	//Record genomic nucleotides coverage and errors
 
 	if(learn_on_v){
+
 		//Get the coverage
 		//Get the length of the gene and a pointer to the right array to write on
+		tmp_corr_len = v_gene_nucleotide_coverage_seq_p[*vgene_real_index_p].first;
+		tmp_cov_p = v_gene_nucleotide_coverage_seq_p[*vgene_real_index_p].second;
+		tmp_err_p = v_gene_per_nucleotide_error_seq_p[*vgene_real_index_p].second;
 
+		//Get the corrected number of deletions(no negative deletion)
+		tmp_corr_len -= max(0,*v_3_del_value_p);
 
-		//Get the corrected number of deletions
-		v_3_del_value_corr = max(0,*v_3_del_value_p);
+		// Compute the coverage
+		for( i = max(0,-(*vgene_offset_p)) ; i != tmp_corr_len ; ++i ){
+			tmp_cov_p[i]+=scenario_new_proba;
+		}
 
-		// Compute the coverage and nucleotide errors
-		//for( i = max(0,-(*vgene_offset_p)) ; i !=  ){
-
-		//}
-
-		//Get the mismatches positions on the gene
+		//Compute the error per nucleotide on the gene
+		tmp_len_util = v_mismatch_list.size();
+		for( i = 0 ; i != tmp_len_util ; ++i){
+			tmp_err_p[v_mismatch_list[i]-(*vgene_offset_p)]+=scenario_new_proba;
+		}
 
 	}
 
