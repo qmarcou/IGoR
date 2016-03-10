@@ -9,6 +9,8 @@
 #define HYPERMUTATIONGLOBALERRORRATE_H_
 
 #include "Errorrate.h"
+#include <algorithm>
+#include <array>
 
 class Hypermutation_global_errorrate: public Error_rate {
 	friend Gene_choice; //Grant friendship to access current gene realization and offset
@@ -44,12 +46,23 @@ private:
 	std::map<int,double> Nmer_background_proba_count;
 	std::map<int,double> Nmer_SHM_proba_count;
 
-	std::map<int,double*> v_gene_nucleotide_coverage_map;
-	std::map<int,double*> v_gene_per_nucleotide_error;
-	std::map<int,double*> d_gene_nucleotide_coverage_map;
-	std::map<int,double*> d_gene_per_nucleotide_error;
-	std::map<int,double*> j_gene_nucleotide_coverage_map;
-	std::map<int,double*> j_gene_per_nucleotide_error;
+	//Normalized coverage and error counters
+	//Use C arrays (faster than maps)
+	std::pair<size_t,double*>* v_gene_nucleotide_coverage_p;
+	std::pair<size_t,double*>* v_gene_per_nucleotide_error_p;
+	std::pair<size_t,double*>* d_gene_nucleotide_coverage_p;
+	std::pair<size_t,double*>* d_gene_per_nucleotide_error_p;
+	std::pair<size_t,double*>* j_gene_nucleotide_coverage_p;
+	std::pair<size_t,double*>* j_gene_per_nucleotide_error_p;
+
+	//One seq coverage and error counters
+	std::pair<size_t,double*>* v_gene_nucleotide_coverage_seq_p;
+	std::pair<size_t,double*>* v_gene_per_nucleotide_error_seq_p;
+	std::pair<size_t,double*>* d_gene_nucleotide_coverage_seq_p;
+	std::pair<size_t,double*>* d_gene_per_nucleotide_error_seq_p;
+	std::pair<size_t,double*>* j_gene_nucleotide_coverage_seq_p;
+	std::pair<size_t,double*>* j_gene_per_nucleotide_error_seq_p;
+
 
 	bool apply_to_v;
 	bool apply_to_d;
@@ -75,6 +88,12 @@ private:
 	int* j_5_del_value_p;
 	int no_del_buffer = 0; //buffer used in case of no deletion event
 
+	//Utility variables
+	int i;//iteration utility
+	int v_3_del_value_corr;//Corrected value for deletion numbers to avoid taking into account negative deletions
+	int d_5_del_value_corr;
+	int d_3_del_value_corr;
+	int j_5_del_value_corr;
 
 
 

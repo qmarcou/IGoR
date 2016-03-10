@@ -66,6 +66,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	string& d_gene_seq = (*constructed_sequences[D_gene_seq]);
 	string& j_gene_seq = (*constructed_sequences[J_gene_seq]);
 
+	//First compute the contribution of the errors to the sequence likelihood
 	//V gene
 	if(apply_to_v){
 
@@ -87,7 +88,16 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 	if(learn_on_v){
 		//Get the coverage
+		//Get the length of the gene and a pointer to the right array to write on
 
+
+		//Get the corrected number of deletions
+		v_3_del_value_corr = max(0,*v_3_del_value_p);
+
+		// Compute the coverage and nucleotide errors
+		//for( i = max(0,-(*vgene_offset_p)) ; i !=  ){
+
+		//}
 
 		//Get the mismatches positions on the gene
 
@@ -123,9 +133,21 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 
 			//Initialize gene counters
 			const unordered_map<string , Event_realization>& v_realizations = v_gene_event_p->get_realizations_map();
+			//Create arrays
+			v_gene_nucleotide_coverage_p = new pair<size_t,double*>[v_realizations.size()];
+			v_gene_per_nucleotide_error_p = new pair<size_t,double*>[v_realizations.size()];
+			v_gene_nucleotide_coverage_seq_p = new pair<size_t,double*>[v_realizations.size()];
+			v_gene_per_nucleotide_error_seq_p = new pair<size_t,double*>[v_realizations.size()];
+
 			for(unordered_map<string , Event_realization>::const_iterator iter = v_realizations.begin() ; iter != v_realizations.end() ; iter++){
-				v_gene_nucleotide_coverage_map.emplace(pair<int,double*>((*iter).second.index,new double [(*iter).second.value_str_int.size()]));
-				v_gene_per_nucleotide_error.emplace(pair<int,double*>((*iter).second.index,new double [(*iter).second.value_str_int.size()]));
+
+				//Initialize normalized counters
+				v_gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				v_gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+
+				//Initialize sequence counters
+				v_gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				v_gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
 			}
 
 		}
