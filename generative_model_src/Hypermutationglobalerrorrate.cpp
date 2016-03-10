@@ -136,6 +136,13 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			throw except;
 		}
 
+		//Get deletion value pointer for V 3' deletions if it exists
+		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)) != 0){
+			const Deletion* v_3_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)));
+			v_3_del_value_p = &(v_3_del_event_p->deletion_value);
+		}
+		else{v_3_del_value_p = &no_del_buffer;}
+
 	}
 
 	//Get the right pointers for the D gene
@@ -153,6 +160,20 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			cout<<endl<<"throwing exception now..."<<endl;
 			throw except;
 		}
+
+		//Get deletion value pointer for D 5' deletions if it exists
+		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)) != 0){
+			const Deletion* d_5_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)));
+			d_5_del_value_p = &(d_5_del_event_p->deletion_value);
+		}
+		else{d_5_del_value_p = &no_del_buffer;}
+
+		//Get deletion value pointer for D 3' deletions if it exists
+		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)) != 0){
+			const Deletion* d_3_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)));
+			d_3_del_value_p = &(d_3_del_event_p->deletion_value);
+		}
+		else{d_3_del_value_p = &no_del_buffer;}
 
 	}
 
@@ -172,6 +193,13 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			throw except;
 		}
 	}
+
+	//Get deletion value pointer for J 5' deletions if it exists
+	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)) != 0){
+		const Deletion* j_5_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)));
+		j_5_del_value_p = &(j_5_del_event_p->deletion_value);
+	}
+	else{j_5_del_value_p = &no_del_buffer;}
 
 }
 

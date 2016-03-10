@@ -67,6 +67,14 @@ private:
 	int*& dgene_real_index_p;
 	int*& jgene_real_index_p;
 
+	//Get deletion values
+	//TODO need to change this in order to handle multiple models
+	int* v_3_del_value_p;
+	int* d_5_del_value_p;
+	int* d_3_del_value_p;
+	int* j_5_del_value_p;
+	int no_del_buffer = 0; //buffer used in case of no deletion event
+
 
 
 

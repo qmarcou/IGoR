@@ -137,7 +137,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 			for(forward_list<Event_realization>::const_iterator iter=(*this).int_value_and_index.begin() ; iter != (*this).int_value_and_index.end() ; ++iter){
 				if((int)previous_str.size()>(*iter).value_int){ //Do not allow for deletion of the entire V
-					//What about deletions going outside the read?
+					//TODO What about deletions going outside the read?
 					//unordered_set<Event_safety> safety_set_copy = safety_set;
 
 					v_3_new_offset = v_3_offset - (*iter).value_int;
@@ -184,8 +184,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					deletion_value = (*iter).value_int;
 
 					current_realizations_index_vec[0] = (*iter).index;
-					new_index = base_index + (*iter).index;
-
+					new_index = base_index + current_realizations_index_vec[0];
 					new_scenario_proba = scenario_proba;
 					//new_tmp_err_w_proba = tmp_err_w_proba;
 					proba_contribution =1;
