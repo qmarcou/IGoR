@@ -11,6 +11,7 @@
 #include "Errorrate.h"
 #include <algorithm>
 #include <array>
+#include <math.h>
 
 class Hypermutation_global_errorrate: public Error_rate {
 	friend Gene_choice; //Grant friendship to access current gene realization and offset
@@ -34,6 +35,7 @@ public:
 	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
 
 private:
+	void update_Nmers_proba(int,int,double);
 	int number_seq; //FIXME check if need to remove this from here and from singleerrorrate and transfer it to errorrate
 
 	Gene_class learn_on;
@@ -41,10 +43,12 @@ private:
 	size_t mutation_Nmer_size;
 	double* ei_nucleotide_contributions;
 	double Z;
-	std::map<int,double> Nmer_background_proba;
+	//std::map<int,double> Nmer_background_proba;
+	double* Nmer_mutation_proba;
 
-	std::map<int,double> Nmer_background_proba_count;
-	std::map<int,double> Nmer_SHM_proba_count;
+	//std::map<int,double> Nmer_background_proba_count;
+	//std::map<int,double> Nmer_SHM_proba_count;
+
 
 	//Normalized coverage and error counters
 	//# V D and J possible realizations
@@ -106,6 +110,14 @@ private:
 	int tmp_corr_len;
 	int tmp_len_util;
 	double scenario_new_proba;
+	std::string scenario_resulting_sequence;
+
+	std::vector<size_t> adressing_vector;
+	std::queue<size_t> current_Nmer;
+	size_t largest_nuc_adress;
+	int tmp_int_nt;
+	int Nmer_index;
+	std::vector<int>::const_iterator current_mismatch;
 
 
 

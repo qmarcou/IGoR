@@ -56,7 +56,13 @@ Error_rate* Hypermutation_global_errorrate::add_checked(Error_rate* err_r){
 }
 
 double Hypermutation_global_errorrate::get_err_rate_upper_bound() const{
-
+	double max_proba = 0;
+	for(i=0 ; i!=pow(4,mutation_Nmer_size);i++){
+		if(Nmer_mutation_proba[i]>max_proba){
+			max_proba = Nmer_mutation_proba[i];
+		}
+	}
+	return max_proba;
 }
 
 double Hypermutation_global_errorrate::compare_sequences_error_prob (double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
@@ -65,6 +71,11 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	string& v_gene_seq = (*constructed_sequences[V_gene_seq]);
 	string& d_gene_seq = (*constructed_sequences[D_gene_seq]);
 	string& j_gene_seq = (*constructed_sequences[J_gene_seq]);
+	string& vd_ins_seq = (*constructed_sequences[VD_ins_seq]);
+	string& vj_ins_seq = (*constructed_sequences[VJ_ins_seq]);
+	string& dj_ins_seq = (*constructed_sequences[DJ_ins_seq]);
+
+	scenario_resulting_sequence = v_gene_seq + vd_ins_seq + d_gene_seq + dj_ins_seq + vj_ins_seq + j_gene_seq; //Will this work?
 
 	vector<int>& v_mismatch_list = *mismatches_lists[V_gene_seq];
 	if(mismatches_lists.exist(D_gene_seq)){ //Remove check? ensured by initialization
@@ -73,9 +84,67 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 	vector<int>& j_mismatch_list = *mismatches_lists[J_gene_seq];
 
+	scenario_new_proba = scenario_probability;
+
 	//First compute the contribution of the errors to the sequence likelihood
-	//V gene
+
+	//Check that the sequence is at least the Nmer size
+	tmp_len_util = scenario_resulting_sequence.size();
+	if(tmp_len_util>=mutation_Nmer_size){
+		current_mismatch = v_mismatch_list.begin();
+
+		//TODO Need to get the previous V nucleotides and last J ones
+
+		//Get the adress of the first Nmer
+		Nmer_index = 0;
+		for(i=0 ; i!=Nmer_mutation_proba ; i++){
+			tmp_int_nt = stoi(v_gene_seq.substr(i,1));
+			current_Nmer.push(tmp_int_nt);
+			Nmer_index+=adressing_vector[i]*tmp_int_nt;
+		}
+		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
+
+		//Check if there's an error and apply the cost accordingly
+		if(current_mismatch==(mutation_Nmer_size-1)/2+1){
+			scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
+			current_mismatch++;
+		}
+		else{
+			scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+		}
+
+		//Look at all Nmers in the scenario_resulting_sequence by sliding window
+		//Removing the contribution of the first
+		for( i = (mutation_Nmer_size+1)/2 ; i!=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2 ; i++){
+
+			//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+			Nmer_index-=current_Nmer.front()*adressing_vector[mutation_Nmer_size-1];
+			current_Nmer.pop();
+			//Shift the index
+			Nmer_index*=mutation_Nmer_size;
+			//Add the contribution of the new nucleotide
+			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+			Nmer_index+=tmp_int_nt;
+			current_Nmer.push(tmp_int_nt);
+
+			//Apply the error cost
+			if(current_mismatch==00000){
+				scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
+				current_mismatch++;
+			}
+			else{
+				scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+			}
+
+		}
+
+	}
+
+
+/*	In order to be self consistent the error rate should be applied everywhere
+ * //V gene
 	if(apply_to_v){
+
 
 	}
 
@@ -89,7 +158,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	//J gene
 	if(apply_to_j){
 
-	}
+	}*/
 
 	//Record genomic nucleotides coverage and errors
 
@@ -133,7 +202,10 @@ queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq
 
 void Hypermutation_global_errorrate::update(){
 
-	//Update the error rate by gradient descent
+	//Update the error rate by maximizing the likelihood of the error model
+
+	//Compute the mutation probabilities for the full Nmers
+
 
 }
 
@@ -158,12 +230,12 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			for(unordered_map<string , Event_realization>::const_iterator iter = v_realizations.begin() ; iter != v_realizations.end() ; iter++){
 
 				//Initialize normalized counters
-				v_gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-				v_gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				v_gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				v_gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
 
 				//Initialize sequence counters
-				v_gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-				v_gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				v_gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				v_gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
 			}
 
 		}
@@ -264,7 +336,6 @@ void Hypermutation_global_errorrate::add_to_norm_counter(){
 					tmp_err_p[j] = 0;
 				}
 			}
-
 		}
 
 		if(learn_on_d){
@@ -303,7 +374,6 @@ void Hypermutation_global_errorrate::clean_seq_counters(){
 						tmp_err_p[j] = 0;
 					}
 				}
-
 			}
 
 			if(learn_on_d){
@@ -324,4 +394,18 @@ void Hypermutation_global_errorrate::clean_seq_counters(){
 
 void Hypermutation_global_errorrate::write2txt(ofstream& outfile){
 
+}
+
+void Hypermutation_global_errorrate::update_Nmers_proba(int current_pos , int current_index,double current_score){
+	//Iterate through possible nucleotides at this position
+	for(i=0;i!=4;i++){
+		int new_index = current_index + i*adressing_vector[current_pos];
+		double new_score = current_score*exp(ei_nucleotide_contributions[current_pos*4 +i]);
+		if(current_pos!=mutation_Nmer_size-1){
+			update_Nmers_proba(current_pos+1,new_index,new_score);
+		}
+		else{
+			this->Nmer_mutation_proba[new_index]= new_score/Z;
+		}
+	}
 }
