@@ -33,18 +33,18 @@ public:
 	virtual ~Insertion();
 
 	//virtual methods
-	Rec_Event* copy();
-	inline void iterate(double&, double&, const std::string& , const std::string& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const Rec_Event*,int>>>& , std::queue<Rec_Event*>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& , Error_rate*&  , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>&  , Safety_bool_map& , Mismatch_vectors_map&  , double& , double&);
+	std::shared_ptr<Rec_Event> copy();
+	inline void iterate(double&, double&, const std::string& , const std::string& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const std::shared_ptr<Rec_Event>,int>>>& , std::queue<std::shared_ptr<Rec_Event>>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& , Error_rate*&  , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Safety_bool_map& , Mismatch_vectors_map&  , double& , double&);
 	//bool add_realization(Event_realization&);
 	bool add_realization(int);
-	std::queue<int> draw_random_realization( const Marginal_array_p , std::unordered_map<Rec_Event_name,int>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const Rec_Event*,int>>>& , std::unordered_map<Seq_type , std::string>& , std::default_random_engine&)const ;
+	std::queue<int> draw_random_realization( const Marginal_array_p , std::unordered_map<Rec_Event_name,int>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const std::shared_ptr<Rec_Event>,int>>>& , std::unordered_map<Seq_type , std::string>& , std::default_random_engine&)const ;
 	void write2txt(std::ofstream&);
 	void add_to_marginals(long double , Marginal_array_p) const;
 	void set_upper_bound_proba(size_t , size_t , Marginal_array_p) ;
-	void initialize_scenario_proba_bound(double& , std::forward_list<double*>& ,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>&);
+	void initialize_scenario_proba_bound(double& , std::forward_list<double*>& ,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&);
 
 private:
-	inline double iterate_common(double , int , int , Index_map& ,const std::unordered_map<Rec_Event_name,std::vector<std::pair<const Rec_Event*,int>>>& ,const Marginal_array_p);
+	inline double iterate_common(double , int , int , Index_map& ,const std::unordered_map<Rec_Event_name,std::vector<std::pair<const std::shared_ptr<Rec_Event>,int>>>& ,const Marginal_array_p);
 
 	std::map<int,Event_realization> ordered_realization_map;
 
