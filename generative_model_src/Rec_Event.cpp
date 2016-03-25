@@ -137,13 +137,13 @@ inline void Rec_Event::iterate_wrap_up(double& scenario_proba , double& tmp_err_
 }
 */
 
-void Rec_Event::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
+void Rec_Event::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
 	//No action performed on the event by default if the method is not overloaded
 	//Need to call Rec_Event::initialize_event() to apply these common actions when the method is overloaded
 
 	if(offset_map.count(this->get_name()) != 0){
-		const vector<pair<const Rec_Event*,int>>& offset_vector = offset_map.at(this->get_name());
-		for(vector<pair<const Rec_Event*,int>>::const_iterator iter = offset_vector.begin() ; iter != offset_vector.end() ; ++iter){
+		const vector<pair<const shared_ptr<Rec_Event>,int>>& offset_vector = offset_map.at(this->get_name());
+		for(vector<pair<const shared_ptr<Rec_Event>,int>>::const_iterator iter = offset_vector.begin() ; iter != offset_vector.end() ; ++iter){
 			//Request memory layer
 			int event_identitfier = (*iter).first->get_event_identifier();
 			index_map.request_memory_layer(event_identitfier);
@@ -188,7 +188,7 @@ void Rec_Event::set_upper_bound_proba(double proba){
  * The point is to compute the upper bound probability (given the model) of the scenario for each event
  * This allows to discard scenarios with too low probability at early stages
  */
-void Rec_Event::initialize_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map){
+void Rec_Event::initialize_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
 	this->scenario_downstream_upper_bound_proba = downstream_proba_bound;
 	this->updated_proba_bounds_list = updated_proba_list;
 	if(!this->is_updated()){
@@ -198,7 +198,9 @@ void Rec_Event::initialize_scenario_proba_bound(double& downstream_proba_bound ,
 		throw logic_error("Updated events should overload Rec_event::initialize_scenario_proba_bound()");
 	}
 }
-
+/*
+ * Description??
+ */
 double* Rec_Event::get_updated_ptr(){
 	throw logic_error("Updated events should overload Rec_event::get_updated_ptr()");
 }
