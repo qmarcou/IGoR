@@ -84,10 +84,13 @@ Model_Parms::Model_Parms(const Model_Parms& other){
 
 
 /*
- *
+ * Avoid memory leaks by deleting all events
  */
 Model_Parms::~Model_Parms() {
-	// TODO Auto-generated destructor stub
+/*	for(list<Rec_Event*>::iterator iter = events.begin() ; iter != events.end() ; iter++){
+		delete (*iter);
+	}
+	delete error_rate;*/
 }
 
 

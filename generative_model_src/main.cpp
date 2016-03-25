@@ -44,6 +44,7 @@ int main(int argc , char* argv[]){
 		}
 
 		if(string(argv[carg_i]) == "-run_demo"){
+			cout<<"running demo code"<<endl;
 			run_demo = true;
 		}
 
