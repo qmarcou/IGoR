@@ -182,7 +182,7 @@ protected:
 
 //bool compare_events(const Rec_Event*&, const Rec_Event*&);
 struct Event_comparator {
-	 bool operator()(const Rec_Event* event_p1 , const Rec_Event* event_p2 ){
+	 bool operator()(const std::shared_ptr<Rec_Event> event_p1 , const std::shared_ptr<Rec_Event> event_p2 ){
 		 return event_p1->get_priority() > event_p2->get_priority();
 	 }
 };
