@@ -30,9 +30,9 @@ Dinucl_markov::~Dinucl_markov() {
 	delete updated_upper_bound_proba;
 }
 
-Rec_Event* Dinucl_markov::copy(){
+shared_ptr<Rec_Event> Dinucl_markov::copy(){
 	//TODO rewrite this by invoking a copy constructor?
-	Dinucl_markov* new_dinucl_markov_p = new Dinucl_markov(this->event_class);
+	shared_ptr<Dinucl_markov> new_dinucl_markov_p = shared_ptr<Dinucl_markov> (new Dinucl_markov(this->event_class));
 	new_dinucl_markov_p->priority = this->priority;
 	new_dinucl_markov_p->nickname = this->nickname;
 	new_dinucl_markov_p->fixed = this->fixed;
@@ -46,7 +46,7 @@ int Dinucl_markov::size()const{
 }
 
 
-void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map , queue<Rec_Event*>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,Error_rate*& error_rate_p , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,Error_rate*& error_rate_p , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 	new_scenario_proba = scenario_proba;
 	proba_contribution = 1;
@@ -126,7 +126,7 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 
 }
 
-queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
 
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	bool correct_class=0;
@@ -312,23 +312,23 @@ void Dinucl_markov::ind_normalize(Marginal_array_p marginal_array_p , size_t bas
 	}
 }
 
-void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list,Seq_offsets_map& seq_offsets , Index_map& index_map){
+void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list,Seq_offsets_map& seq_offsets , Index_map& index_map){
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side))!=0){
-		const Rec_Event* ins_vd_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side));
+		const shared_ptr<Rec_Event> ins_vd_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side));
 		max_vd_ins=ins_vd_p->get_len_max();
 	}
 	else{
 		max_vd_ins = 0;
 	}
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VJ_genes,Undefined_side))!=0){
-		const Rec_Event* ins_vj_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VJ_genes,Undefined_side));
+		const shared_ptr<Rec_Event> ins_vj_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VJ_genes,Undefined_side));
 		max_vj_ins=ins_vj_p->get_len_max();
 	}
 	else{
 		max_vj_ins=0;
 	}
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,DJ_genes,Undefined_side))!=0){
-		const Rec_Event* ins_dj_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,DJ_genes,Undefined_side));
+		const shared_ptr<Rec_Event> ins_dj_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,DJ_genes,Undefined_side));
 		max_dj_ins = ins_dj_p->get_len_max();
 	}
 	else{
@@ -363,7 +363,7 @@ double* Dinucl_markov::get_updated_ptr(){
 	return updated_upper_bound_proba;
 }
 
-void Dinucl_markov::initialize_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map){
+void Dinucl_markov::initialize_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
 	this->scenario_downstream_upper_bound_proba = downstream_proba_bound;
 	this->updated_proba_bounds_list = updated_proba_list;
 	updated_proba_list.push_front(this->updated_upper_bound_proba);
