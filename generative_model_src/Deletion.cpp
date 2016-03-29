@@ -43,8 +43,8 @@ Deletion::~Deletion() {
 	// TODO Auto-generated destructor stub
 }
 
-Rec_Event* Deletion::copy(){
-	Deletion* new_deletion_p = new Deletion(this->event_class,this->event_side,this->event_realizations);//FIXME remove this new for all events and for the error rates
+shared_ptr<Rec_Event> Deletion::copy(){
+	shared_ptr<Deletion> new_deletion_p = shared_ptr<Deletion> (new Deletion(this->event_class,this->event_side,this->event_realizations));//FIXME remove this new for all events and for the error rates
 	new_deletion_p->priority = this->priority;
 	new_deletion_p->nickname = this->nickname;
 	new_deletion_p->fixed = this->is_fixed();
@@ -55,7 +55,7 @@ Rec_Event* Deletion::copy(){
 
 
 void Deletion::add_realization(int del_number){
-	this->Rec_Event::add_realization(*(new Event_realization(to_string(del_number) , del_number , "" , "" , this->size())));
+	this->Rec_Event::add_realization(*(new Event_realization(to_string(del_number) , del_number , "" , "" , this->size())));//FIXME nonsense new
 	if(del_number > (-this->len_min)){this->len_min = (-del_number);}
 	else if (del_number < (-this->len_max)){this->len_max = (-del_number);}
 	this->update_event_name();
@@ -67,7 +67,7 @@ void Deletion::add_realization(int del_number){
  * -First check whether any of these number of deletions is possible given the current position and number of deletions on other genes
  * -Loop over # of deletions in decreasing order
  */
-void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map , queue<Rec_Event*>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , Error_rate*& error_rate_p, const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , Error_rate*& error_rate_p, const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
 
 	base_index = base_index_map.at(this->event_index);
 	//constructed_sequences_copy = constructed_sequences;
@@ -929,7 +929,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 /*
  * This short method performs the iterate operations common to all Rec_event (modify index map and fetch realization probability)
  */
- void Deletion::iterate_common(forward_list<Event_realization>::const_iterator& iter , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map ,const Marginal_array_p& model_parameters_point){
+ void Deletion::iterate_common(forward_list<Event_realization>::const_iterator& iter , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map ,const Marginal_array_p& model_parameters_point){
 	 //realization_event_index  =
 
 	 	/*if (offset_map.count(this->name)!=0){
@@ -953,7 +953,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 	 proba_contribution = (model_parameters_point[base_index+(*iter).index]);
  }
 
- queue<int> Deletion::draw_random_realization( const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+ queue<int> Deletion::draw_random_realization( const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
 
 	 uniform_real_distribution<double> distribution(0.0,1.0);
 	 double rand = distribution(generator);
@@ -1036,7 +1036,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 			}
 			realization_queue.push((*iter).second.index);
 			if(offset_map.count(this->get_name()) != 0){
-				for (vector<pair<const Rec_Event*,int>>::const_iterator jiter = offset_map.at(this->get_name()).begin() ; jiter!= offset_map.at(this->get_name()).end() ; ++jiter){
+				for (vector<pair<const shared_ptr<Rec_Event>,int>>::const_iterator jiter = offset_map.at(this->get_name()).begin() ; jiter!= offset_map.at(this->get_name()).end() ; ++jiter){
 					index_map.at((*jiter).first->get_name()) += (*iter).second.index*(*jiter).second;
 				}
 			}
@@ -1046,6 +1046,8 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 	}
 	return realization_queue;
 }
+
+
  void Deletion::write2txt(ofstream& outfile){
  	outfile<<"#Deletion;"<<event_class<<";"<<event_side<<";"<<priority<<";"<<nickname<<endl;
  	for(unordered_map<string,Event_realization>::const_iterator iter=event_realizations.begin() ; iter!= event_realizations.end() ; ++iter){
@@ -1053,7 +1055,8 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
  	}
  }
 
- void Deletion::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , const unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
+
+ void Deletion::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
 
 
 	 err_rate_upper_bound = error_rate_p->get_err_rate_upper_bound();
@@ -1069,7 +1072,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 	 //Check V choice
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side))!=0){
-		const Rec_Event* v_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side));
+		const shared_ptr<Rec_Event> v_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side));
 		if(processed_events.count(v_choice_p->get_name())!=0){v_chosen = true;}
 		else{v_chosen=false;}
 	}
@@ -1077,7 +1080,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 	//Check D choice
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side))!=0){
-		const Rec_Event* d_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side));
+		const shared_ptr<Rec_Event> d_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side));
 		if(processed_events.count(d_choice_p->get_name())!=0){d_chosen = true;}
 		else{d_chosen=false;}
 	}
@@ -1085,7 +1088,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 	//Check J choice
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side))!=0){
-		const Rec_Event* j_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side));
+		const shared_ptr<Rec_Event> j_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side));
 		if(processed_events.count(j_choice_p->get_name())!=0){j_chosen = true;}
 		else{j_chosen=false;}
 	}
@@ -1129,7 +1132,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 							//cout<<"d_del_1: "<<memory_layer_safety_1<<endl;
 						}
 						if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)) != 0){
-							const Rec_Event* del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime));
+							const shared_ptr<Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime));
 							if(processed_events.count(del_d_p->get_name())!=0){
 								d_del_opposite_side_processed = true;
 							}
@@ -1151,7 +1154,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 							//cout<<"d_del_2: "<<memory_layer_safety_2<<endl;
 						}
 						if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)) != 0){
-							const Rec_Event* del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime));
+							const shared_ptr<Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime));
 							if(processed_events.count(del_d_p->get_name())!=0){
 								d_del_opposite_side_processed = true;
 							}
@@ -1193,7 +1196,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 	 //Get V 3' deletion
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)) != 0){
-		const Rec_Event* del_v_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime));
+		const shared_ptr<Rec_Event> del_v_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime));
 		if(processed_events.count(del_v_p->get_name())!=0){
 			v_3_min_del=0;
 			v_3_max_del=0;
@@ -1210,7 +1213,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 	//Get D 5' deletion range
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)) != 0){
-		const Rec_Event* del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime));
+		const shared_ptr<Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime));
 		if(processed_events.count(del_d_p->get_name())!=0){
 			d_5_min_del=0;
 			d_5_max_del=0;
@@ -1227,7 +1230,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 	//Get D 3' deletion
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)) != 0){
-		const Rec_Event* del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime));
+		const shared_ptr<Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime));
 		if(processed_events.count(del_d_p->get_name())!=0){
 			d_3_min_del=0;
 			d_3_max_del=0;
@@ -1244,7 +1247,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 	//Get J 5' deletion range
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)) != 0){
-		const Rec_Event* del_j_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime));
+		const shared_ptr<Rec_Event> del_j_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime));
 		if(processed_events.count(del_j_p->get_name())!=0){
 			j_5_min_del=0;
 			j_5_max_del=0;
