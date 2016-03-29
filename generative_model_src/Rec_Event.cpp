@@ -137,13 +137,13 @@ inline void Rec_Event::iterate_wrap_up(double& scenario_proba , double& tmp_err_
 }
 */
 
-void Rec_Event::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
+void Rec_Event::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
 	//No action performed on the event by default if the method is not overloaded
 	//Need to call Rec_Event::initialize_event() to apply these common actions when the method is overloaded
 
 	if(offset_map.count(this->get_name()) != 0){
-		const vector<pair<const shared_ptr<Rec_Event>,int>>& offset_vector = offset_map.at(this->get_name());
-		for(vector<pair<const shared_ptr<Rec_Event>,int>>::const_iterator iter = offset_vector.begin() ; iter != offset_vector.end() ; ++iter){
+		const vector<pair<shared_ptr<const Rec_Event>,int>>& offset_vector = offset_map.at(this->get_name());
+		for(vector<pair<shared_ptr<const Rec_Event>,int>>::const_iterator iter = offset_vector.begin() ; iter != offset_vector.end() ; ++iter){
 			//Request memory layer
 			int event_identitfier = (*iter).first->get_event_identifier();
 			index_map.request_memory_layer(event_identitfier);

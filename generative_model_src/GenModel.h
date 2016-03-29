@@ -22,6 +22,7 @@
 #include <omp.h>
 #include <stdexcept>
 #include <stack>
+#include <memory>
 
 
 class GenModel {
@@ -44,7 +45,7 @@ public:
 private:
 	Model_Parms model_parms;
 	Model_marginals model_marginals;
-	std::pair<std::string , std::queue<std::queue<int>>> generate_unique_sequence(std::queue<std::shared_ptr<Rec_Event>> , std::unordered_map<Rec_Event_name,int> , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const std::shared_ptr<Rec_Event>,int>>>& , std::default_random_engine& );
+	std::pair<std::string , std::queue<std::queue<int>>> generate_unique_sequence(std::queue<std::shared_ptr<Rec_Event>> , std::unordered_map<Rec_Event_name,int> , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::default_random_engine& );
 	Model_marginals compute_marginals(std::list<std::string> sequences);
 	Model_marginals compute_seq_marginals (std::string sequence);
 	Model_marginals compute_seq_marginals (std::string sequence , std::list<std::list<std::string> > allowed_scenarios );

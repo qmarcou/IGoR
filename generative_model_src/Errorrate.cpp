@@ -18,7 +18,7 @@ Error_rate::~Error_rate() {
 	// TODO Auto-generated destructor stub
 }
 
-Error_rate* add_to_err_rate(Error_rate* err_p1 , Error_rate* err_p2){
+std::shared_ptr<Error_rate> add_to_err_rate(std::shared_ptr<Error_rate> err_p1 , std::shared_ptr<Error_rate> err_p2){
 	if(err_p1->type() != err_p2->type()){
 		throw invalid_argument("Cannot add error_rate of type " + err_p1->type() +" and " + err_p2->type() );
 	}

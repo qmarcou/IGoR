@@ -19,6 +19,7 @@
 #include <random>
 #include <chrono>
 #include <vector>
+#include <memory>
 
 //Includes from project
 #include "Model_Parms.h"
@@ -33,21 +34,21 @@ public:
 	Model_marginals(const Model_marginals&);
 	virtual ~Model_marginals();
 	size_t compute_size(const Model_Parms&);
-	size_t get_event_size( const std::shared_ptr<Rec_Event> , const Model_Parms&) const;
+	size_t get_event_size( std::shared_ptr<const Rec_Event> , const Model_Parms&) const;
 	Model_marginals& operator=(const Model_marginals&);
 	Model_marginals& operator +=(Model_marginals );
 	Model_marginals operator +(Model_marginals );
-	void normalize(std::unordered_map<Rec_Event_name,std::list<std::pair<const std::shared_ptr<Rec_Event>,int>>> , std::unordered_map<Rec_Event_name,int> , std::queue<std::shared_ptr<Rec_Event>>);
+	void normalize(std::unordered_map<Rec_Event_name,std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>> , std::unordered_map<Rec_Event_name,int> , std::queue<std::shared_ptr<Rec_Event>>);
 	void uniform_initialize(const Model_Parms&);
 	void null_initialize();
 	void random_initialize(const Model_Parms&);
-	void flatten(const std::shared_ptr<Rec_Event>,const Model_Parms& );
+	void flatten(std::shared_ptr<const Rec_Event>,const Model_Parms& );
 	bool add_to_marginals(double event_proba , std::list<std::shared_ptr<Rec_Event>> , Model_Parms); //FIXME drop this? pass a list of pointers instead, is this method still needed???
 	void copy_fixed_events_marginals(const Model_marginals&,const Model_Parms&,const std::unordered_map<Rec_Event_name,int>&);
-	std::unordered_map<Rec_Event_name,std::vector<std::pair<const std::shared_ptr<Rec_Event>,int>>> get_offsets_map(const Model_Parms&);
-	std::unordered_map<Rec_Event_name,std::vector<std::pair<const std::shared_ptr<Rec_Event>,int>>> get_offsets_map(const Model_Parms& , std::queue<std::shared_ptr<Rec_Event>>);
-	std::unordered_map<Rec_Event_name,std::list<std::pair<const std::shared_ptr<Rec_Event>,int>>> get_inverse_offset_map(const Model_Parms&);
-	std::unordered_map<Rec_Event_name,std::list<std::pair<const std::shared_ptr<Rec_Event>,int>>> get_inverse_offset_map(const Model_Parms& , std::queue<std::shared_ptr<Rec_Event>>);
+	std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>> get_offsets_map(const Model_Parms&);
+	std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>> get_offsets_map(const Model_Parms& , std::queue<std::shared_ptr<Rec_Event>>);
+	std::unordered_map<Rec_Event_name,std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>> get_inverse_offset_map(const Model_Parms&);
+	std::unordered_map<Rec_Event_name,std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>> get_inverse_offset_map(const Model_Parms& , std::queue<std::shared_ptr<Rec_Event>>);
 	std::unordered_map<Rec_Event_name,int> get_index_map(const Model_Parms&); //maybe tie this to the model_marginals itself
 	std::unordered_map<Rec_Event_name,int> get_index_map(const Model_Parms&, std::queue<std::shared_ptr<Rec_Event>>);
 	void write2txt(std::string ,const Model_Parms&);
@@ -61,14 +62,14 @@ public:
 	long double* marginal_array_p;
 
 private:
-	void iterate_normalize(std::shared_ptr<Rec_Event>, std::list<std::pair<const std::shared_ptr<Rec_Event>,int>>& , int ,int );
-	void write2txt_iteration(const std::list<std::pair<const std::shared_ptr<Rec_Event>,int>>::const_iterator,const std::list<std::pair<const std::shared_ptr<Rec_Event>,int>>::const_iterator,int,std::ofstream&, std::shared_ptr<Rec_Event> , std::list<std::string>&);
+	void iterate_normalize(std::shared_ptr<Rec_Event>, std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>& , int ,int );
+	void write2txt_iteration(const std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>::const_iterator,const std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>::const_iterator,int,std::ofstream&, std::shared_ptr<Rec_Event> , std::list<std::string>&);
 	size_t marginal_arr_size;
 	Model_marginals(size_t);
 
 };
 struct offset_comp {
-	 bool operator()(const std::pair<const std::shared_ptr<Rec_Event>,int> pair_1 , const std::pair<const std::shared_ptr<Rec_Event>,int> pair_2 ){
+	 bool operator()(const std::pair<std::shared_ptr<const Rec_Event>,int> pair_1 , const std::pair<std::shared_ptr<const Rec_Event>,int> pair_2 ){
 		 return pair_1.second > pair_2.second;
 	 }
 };

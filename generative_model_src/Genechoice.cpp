@@ -74,7 +74,7 @@ bool Gene_choice::add_realization(string gene_name , string gene_sequence  ){
 
 
 
-void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_pointer , const Marginal_array_p& model_parameters_pointer ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,Error_rate*& error_rate_p , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_pointer , const Marginal_array_p& model_parameters_pointer ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,shared_ptr<Error_rate>& error_rate_p , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 
 
@@ -585,7 +585,7 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
  *This short method performs the iterate operations common to all Rec_event (modify index map and fetch realization probability)
  *
  */
-double Gene_choice::iterate_common(double scenario_proba ,const int& gene_index , int base_index , Index_map& base_index_map ,const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map ,const Marginal_array_p model_parameters){
+double Gene_choice::iterate_common(double scenario_proba ,const int& gene_index , int base_index , Index_map& base_index_map ,const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map ,const Marginal_array_p model_parameters){
 
 	//TODO remove scenario proba as argument
 	//int gene_index = ((*this)).event_realizations.at((*iter).gene_name).index;
@@ -612,7 +612,7 @@ double Gene_choice::iterate_common(double scenario_proba ,const int& gene_index 
 	return  scenario_proba * model_parameters[base_index+gene_index];
 }
 
-queue<int> Gene_choice::draw_random_realization( const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+queue<int> Gene_choice::draw_random_realization( const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	double rand = distribution(generator);
 	double prob_count = 0;
@@ -637,7 +637,7 @@ queue<int> Gene_choice::draw_random_realization( const Marginal_array_p model_ma
 			}
 			realization_queue.push((*iter).second.index);
 			if(offset_map.count(this->get_name()) != 0){
-				for (vector<pair<const shared_ptr<Rec_Event>,int>>::const_iterator jiter = offset_map.at(this->get_name()).begin() ; jiter!= offset_map.at(this->get_name()).end() ; ++jiter){
+				for (vector<pair<shared_ptr<const Rec_Event>,int>>::const_iterator jiter = offset_map.at(this->get_name()).begin() ; jiter!= offset_map.at(this->get_name()).end() ; ++jiter){
 					index_map.at((*jiter).first->get_name()) += (*iter).second.index*(*jiter).second;
 				}
 			}
@@ -654,7 +654,7 @@ void Gene_choice::write2txt(ofstream& outfile){
 	}
 }
 
-void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , Error_rate* error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
+void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
 
 
 
@@ -663,7 +663,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 	//Check V choice
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side))!=0){
 		v_choice_exist=true;
-		const shared_ptr<Rec_Event> v_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side));
+		shared_ptr<const Rec_Event> v_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side));
 		if(processed_events.count(v_choice_p->get_name())!=0){v_chosen = true;}
 		else{v_chosen=false;}
 	}
@@ -675,7 +675,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 	//Check D choice
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side))!=0){
 		d_choice_exist=true;
-		const shared_ptr<Rec_Event> d_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side));
+		shared_ptr<const Rec_Event> d_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side));
 		if(processed_events.count(d_choice_p->get_name())!=0){d_chosen = true;}
 		else{d_chosen=false;}
 	}
@@ -687,7 +687,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 	//Check J choice
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side))!=0){
 		j_choice_exist = true;
-		const shared_ptr<Rec_Event> j_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side));
+		shared_ptr<const Rec_Event> j_choice_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side));
 		if(processed_events.count(j_choice_p->get_name())!=0){j_chosen = true;}
 		else{j_chosen=false;}
 	}
@@ -790,7 +790,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 
 	//Get V 3' deletion
 		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)) != 0){
-			const shared_ptr<Rec_Event> del_v_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime));
+			shared_ptr<const Rec_Event> del_v_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime));
 			if(processed_events.count(del_v_p->get_name())!=0){
 				v_3_min_del=0;
 				v_3_max_del=0;
@@ -807,7 +807,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 
 	//Get D 5' deletion range
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)) != 0){
-		const shared_ptr<Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime));
+		shared_ptr<const Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime));
 		if(processed_events.count(del_d_p->get_name())!=0){
 			d_5_min_del=0;
 			d_5_max_del=0;
@@ -824,7 +824,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 
 	//Get D 3' deletion
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)) != 0){
-		const shared_ptr<Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime));
+		shared_ptr<const Rec_Event> del_d_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime));
 		if(processed_events.count(del_d_p->get_name())!=0){
 			d_3_min_del=0;
 			d_3_max_del=0;
@@ -841,7 +841,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 
 	//Get J 5' deletion range
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)) != 0){
-		const shared_ptr<Rec_Event> del_j_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime));
+		shared_ptr<const Rec_Event> del_j_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime));
 		if(processed_events.count(del_j_p->get_name())!=0){
 			j_5_min_del=0;
 			j_5_max_del=0;

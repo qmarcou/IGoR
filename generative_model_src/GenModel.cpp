@@ -25,7 +25,7 @@ GenModel::~GenModel() {
 bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , double likelihood_threshold/*=1e-25 by default*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = model_marginals.get_index_map(model_parms,model_queue);
-	unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> inv_offset_map = model_marginals.get_inverse_offset_map(model_parms,model_queue);
+	unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> inv_offset_map = model_marginals.get_inverse_offset_map(model_parms,model_queue);
 	int iteration_accomplished = 0;
 	ofstream log_file(path + string("inference_logs.txt"));
 	log_file<<"iteration_n;seq_processed;nt_sequence;n_V_aligns;n_J_aligns;seq_likelihood;seq_mean_n_errors;seq_n_scenarios;seq_best_scenario"<<endl;
@@ -39,7 +39,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
  *
 	#pragma omp declare reduction(+:Model_marginals:omp_out+=omp_in) initializer(omp_priv = omp_orig.empty_copy())
 	//Note: since Error_rate is an abstract class, the following is very dirty, need to find a better solution
-	#pragma omp declare reduction(+:Error_rate*:add_to_err_rate(omp_out,omp_in)) initializer(omp_priv = omp_orig->copy())
+	#pragma omp declare reduction(+:shared_ptr<Error_rate>:add_to_err_rate(omp_out,omp_in)) initializer(omp_priv = omp_orig->copy())
 */
 
 	//Loop over iterations
@@ -47,7 +47,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 		//double proba_threshold_factor;
 		Model_marginals new_marginals = Model_marginals(model_parms);
-		Error_rate* error_rate_copy = model_parms.get_err_rate_p()->copy();
+		shared_ptr<Error_rate> error_rate_copy = model_parms.get_err_rate_p()->copy();
 
 		//Hard code Anand's probability threshold
 /*		if(iteration_accomplished ==0){	proba_threshold_factor = 0.01;	}
@@ -72,7 +72,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			unordered_map<Rec_Event_name,int> single_thread_index_map =model_marginals.get_index_map(model_parms,model_queue);
 			Model_marginals single_thread_model_marginals (model_marginals);
 			Model_marginals single_thread_marginals (single_thread_model_parms);
-			Error_rate* single_thread_err_rate = single_thread_model_parms.get_err_rate_p();
+			shared_ptr<Error_rate> single_thread_err_rate = single_thread_model_parms.get_err_rate_p();
 			unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> events_map = single_thread_model_parms.get_events_map();
 
 
@@ -102,7 +102,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			queue<shared_ptr<Rec_Event>> single_thread_model_queue = single_thread_model_parms.get_model_queue(); //single_thread_parms.get_model_queue();
 
 			queue<shared_ptr<Rec_Event>> init_single_thread_model_queue = single_thread_model_queue;
-			unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>>single_thread_offset_map = model_marginals.get_offsets_map(model_parms,single_thread_model_queue);
+			unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>single_thread_offset_map = model_marginals.get_offsets_map(model_parms,single_thread_model_queue);
 
 			stack<shared_ptr<Rec_Event>> init_single_thread_stack;
 
@@ -218,7 +218,7 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
 
 	queue<shared_ptr<Rec_Event>> model_queue = this->model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = this->model_marginals.get_index_map(this->model_parms,model_queue);
-	unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event> , int>>> offset_map = this->model_marginals.get_offsets_map(this->model_parms,model_queue);
+	unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>> offset_map = this->model_marginals.get_offsets_map(this->model_parms,model_queue);
 
 	//Create seed for random generator
 	//create a seed from timer
@@ -260,7 +260,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	outfile_ind_real<<endl;
 	model_queue = this->model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = this->model_marginals.get_index_map(this->model_parms,model_queue);
-	unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event> , int>>> offset_map = this->model_marginals.get_offsets_map(this->model_parms,model_queue);
+	unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>> offset_map = this->model_marginals.get_offsets_map(this->model_parms,model_queue);
 
 	//Create seed for random generator
 	//create a seed from timer
@@ -314,7 +314,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 
 }
 
-pair<string,queue<queue<int>>> GenModel::generate_unique_sequence(queue<shared_ptr<Rec_Event>> model_queue , unordered_map<Rec_Event_name,int> index_map , const unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event> , int>>>& offset_map , default_random_engine& generator ){
+pair<string,queue<queue<int>>> GenModel::generate_unique_sequence(queue<shared_ptr<Rec_Event>> model_queue , unordered_map<Rec_Event_name,int> index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>>& offset_map , default_random_engine& generator ){
 	unordered_map<Seq_type,string>* constructed_sequences_p = new unordered_map<Seq_type,string>;
 	unordered_map<Seq_type,string> constructed_sequences = *constructed_sequences_p;
 	queue<queue<int>> realizations ;

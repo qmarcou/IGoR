@@ -16,7 +16,7 @@ using namespace std;
  * Default constructor, creates an empty Model_Parms
  */
 Model_Parms::Model_Parms() {
-	this->events = *(new list <shared_ptr<Rec_Event>()); //FIXME nonsense new
+	this->events = *(new list <shared_ptr<Rec_Event>>()); //FIXME nonsense new
 	this->edges = *(new unordered_map <Rec_Event_name , Adjacency_list >());
 
 }
@@ -40,7 +40,7 @@ Model_Parms::Model_Parms(list <shared_ptr<Rec_Event>> event_list){
  * This method will make a copy of all the contained events and error rate as well
  */
 Model_Parms::Model_Parms(const Model_Parms& other){
-	for(list<shared_ptr<Rec_Event>::const_iterator iter = other.events.begin() ; iter!= other.events.end() ; ++iter){
+	for(list<shared_ptr<Rec_Event>>::const_iterator iter = other.events.begin() ; iter!= other.events.end() ; ++iter){
 		this->events.push_back((*iter)->copy());
 	}
 

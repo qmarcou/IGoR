@@ -30,14 +30,14 @@ Single_error_rate& Single_error_rate::operator +=(Single_error_rate err_r){
 	return *this;
 }
 
-Error_rate* Single_error_rate::copy()const{
-	Single_error_rate* copy_err_r = new Single_error_rate(this->model_rate);
+shared_ptr<Error_rate> Single_error_rate::copy()const{
+	shared_ptr<Single_error_rate> copy_err_r = shared_ptr<Single_error_rate>(new Single_error_rate(this->model_rate));
 	copy_err_r->updated = this->updated;
 	return copy_err_r;
 }
 
-Error_rate* Single_error_rate::add_checked(Error_rate* err_r){
-	return &(this->operator +=( *(dynamic_cast<Single_error_rate*>(err_r) ) ));
+shared_ptr<Error_rate> Single_error_rate::add_checked(shared_ptr<Error_rate> err_r){
+	return shared_ptr<Error_rate>( &( this->operator +=( *( dynamic_cast< Single_error_rate*> (err_r.get()) ) ) ) );
 }
 
 double Single_error_rate::get_err_rate_upper_bound() const{
