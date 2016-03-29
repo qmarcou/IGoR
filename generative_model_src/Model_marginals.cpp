@@ -39,11 +39,11 @@ Model_marginals Model_marginals::empty_copy(){
 }
 
 size_t Model_marginals::compute_size(const Model_Parms& model_parms){
-	list<Rec_Event*> events = model_parms.get_event_list();
+	list<shared_ptr<Rec_Event>> events = model_parms.get_event_list();
 		unordered_map<Rec_Event_name,Adjacency_list> edges = model_parms.get_edges();
 
 		size_t array_size = 0;
-		for(list<Rec_Event*>::const_iterator iter = events.begin() ; iter!= events.end() ; ++iter){
+		for(list<shared_ptr<Rec_Event>>::const_iterator iter = events.begin() ; iter!= events.end() ; ++iter){
 
 			int event_size = this->get_event_size((*iter),model_parms);
 
@@ -54,11 +54,11 @@ size_t Model_marginals::compute_size(const Model_Parms& model_parms){
 /*
  *
  */
-size_t Model_marginals::get_event_size(const Rec_Event* event_p , const Model_Parms& model_parms ) const{
+size_t Model_marginals::get_event_size(const shared_ptr<Rec_Event> event_p , const Model_Parms& model_parms ) const{
 	size_t event_size = event_p->size();
-	list<Rec_Event*> parents_list = model_parms.get_edges().at( event_p->get_name() ).parents;
+	list<shared_ptr<Rec_Event>> parents_list = model_parms.get_edges().at( event_p->get_name() ).parents;
 
-	for(list<Rec_Event*>::const_iterator jiter = parents_list.begin() ; jiter!=parents_list.end();++jiter){
+	for(list<shared_ptr<Rec_Event>>::const_iterator jiter = parents_list.begin() ; jiter!=parents_list.end();++jiter){
 		event_size*=(*(*jiter)).size();
 	}
 
@@ -98,38 +98,38 @@ Model_marginals Model_marginals::operator +(Model_marginals marginals){
 }
 
 
-unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms){
-	queue<Rec_Event*> model_queue = model_parms.get_model_queue();
+unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms){
+	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	return get_inverse_offset_map(model_parms,model_queue);
 }
 
 
-unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms, queue<Rec_Event*> model_queue){
+unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms, queue<shared_ptr<Rec_Event>> model_queue){
 	//Stack to keep track of the events processed and their order
-	stack<Rec_Event*>* model_stack_p = new stack<Rec_Event*>;
-	stack<Rec_Event*> model_stack = *model_stack_p;
-		unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> invert_offset_map = *(new unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>>);
+	stack<shared_ptr<Rec_Event>>* model_stack_p = new stack<shared_ptr<Rec_Event>>;
+	stack<shared_ptr<Rec_Event>> model_stack = *model_stack_p;
+		unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> invert_offset_map = *(new unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>>); //FIXME nonsense new
 
 		while(! model_queue.empty()){
 
 			if(!model_stack.empty()){
-				Rec_Event* current_event_point = model_queue.front();
+				shared_ptr<Rec_Event> current_event_point = model_queue.front();
 				//We look for all events upstream (parents)
-				unordered_map<Rec_Event_name,Rec_Event*>* related_events_map_p = new unordered_map<Rec_Event_name,Rec_Event*>; //stores all the related events
-				unordered_map<Rec_Event_name,Rec_Event*> related_events_map = *related_events_map_p;
+				unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>* related_events_map_p = new unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>; //stores all the related events
+				unordered_map<Rec_Event_name,shared_ptr<Rec_Event>> related_events_map = *related_events_map_p;
 
 				if(!model_parms.get_parents( current_event_point ).empty()){
-						list<Rec_Event*> event_parents = model_parms.get_parents(current_event_point);
+						list<shared_ptr<Rec_Event>> event_parents = model_parms.get_parents(current_event_point);
 
-					for(list<Rec_Event*>::const_iterator iter=event_parents.begin() ; iter!= event_parents.end() ; ++iter){
+					for(list<shared_ptr<Rec_Event>>::const_iterator iter=event_parents.begin() ; iter!= event_parents.end() ; ++iter){
 						related_events_map.insert(make_pair((*iter)->get_name(),*iter));
 					}
 
 				}
 				//Copy model stack to have a modifiable copy
 				//TODO model stack might be more complicated than a simple list
-				stack<Rec_Event*> model_stack_copy = model_stack;
-				invert_offset_map.emplace(current_event_point->get_name(),*(new list<pair< const Rec_Event*,int>>()));
+				stack<shared_ptr<Rec_Event>> model_stack_copy = model_stack;
+				invert_offset_map.emplace(current_event_point->get_name(),*(new list<pair< const shared_ptr<Rec_Event>,int>>()));
 
 				int offset = (*current_event_point).size();
 
@@ -160,22 +160,22 @@ unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> Model_marginals::
  * E.g: the choice of a V (say V3) gene will influence the position on the array where p(ins|V) must be written
  * regardless of the number of insertions.
  */
-unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms){
-	queue<Rec_Event*> model_queue = model_parms.get_model_queue();
+unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms){
+	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	return get_offsets_map(model_parms,model_queue);
 }
 
-unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms,queue<Rec_Event*> model_queue){
+unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms,queue<shared_ptr<Rec_Event>> model_queue){
 
-	unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> invert_offset_map = get_inverse_offset_map(model_parms,model_queue);
+	unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> invert_offset_map = get_inverse_offset_map(model_parms,model_queue);
 
 	// Inversion of the map
-	unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>> offset_map;// = *(new unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>>);
+	unordered_map<Rec_Event_name,vector<pair<const shared_ptr<Rec_Event>,int>>> offset_map;// = *(new unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>>);
 
-	for(unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>>::const_iterator iter = invert_offset_map.begin() ; iter != invert_offset_map.end() ; ++iter){
-		for(list<pair<const Rec_Event*,int>>::const_iterator jiter = (*iter).second.begin() ; jiter != (*iter).second.end() ; ++jiter ){
+	for(unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>>::const_iterator iter = invert_offset_map.begin() ; iter != invert_offset_map.end() ; ++iter){
+		for(list<pair<const shared_ptr<Rec_Event>,int>>::const_iterator jiter = (*iter).second.begin() ; jiter != (*iter).second.end() ; ++jiter ){
 			/*if(offset_map.count( (*jiter).first->get_name() ) == 0){
-				offset_map.emplace( (*jiter).first->get_name() , *(new list<pair<const Rec_Event*,int>>) );
+				offset_map.emplace( (*jiter).first->get_name() , *(new list<pair<const shared_ptr<Rec_Event>,int>>) );
 			}*/
 
 			offset_map[ (*jiter).first->get_name() ].push_back(make_pair( model_parms.get_event_pointer( (*iter).first ),(*jiter).second));
@@ -188,42 +188,42 @@ unordered_map<Rec_Event_name,vector<pair<const Rec_Event*,int>>> Model_marginals
 
 
 unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Parms& model_parms){
-	queue<Rec_Event*> model_queue = model_parms.get_model_queue();
+	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	return get_index_map( model_parms , model_queue);
 }
 
-unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Parms& model_parms , queue<Rec_Event*> model_queue){
+unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Parms& model_parms , queue<shared_ptr<Rec_Event>> model_queue){
 
 
 	int index = 0;
-	stack<Rec_Event*>* model_stack_p = new stack<Rec_Event*>;
-	stack<Rec_Event*> model_stack = *model_stack_p;
+	stack<shared_ptr<Rec_Event>>* model_stack_p = new stack<shared_ptr<Rec_Event>>;
+	stack<shared_ptr<Rec_Event>> model_stack = *model_stack_p;
 	unordered_map<Rec_Event_name,int> index_map = *(new unordered_map<Rec_Event_name,int>);
 
 	while(! model_queue.empty()){
 
 		//The index added in the map have been computed at the previous iteration (is 0 if first event in the queue)
 		index_map.insert(make_pair(model_queue.front()->get_name(),index));
-		Rec_Event* current_event_point = model_queue.front();
+		shared_ptr<Rec_Event> current_event_point = model_queue.front();
 		int event_size = current_event_point->size();
 
 		/*if(!model_stack.empty()){
 
 						//We look for all events upstream (parents)
-						unordered_map<Rec_Event_name,Rec_Event*>* related_events_map_p = new unordered_map<Rec_Event_name,Rec_Event*>; //stores all the related events
-						unordered_map<Rec_Event_name,Rec_Event*> related_events_map = *related_events_map_p;
+						unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>* related_events_map_p = new unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>; //stores all the related events
+						unordered_map<Rec_Event_name,shared_ptr<Rec_Event>> related_events_map = *related_events_map_p;
 
 						if(!model_parms.get_parents( current_event_point ).empty()){
-								list<Rec_Event*> event_parents = model_parms.get_parents(current_event_point);
+								list<shared_ptr<Rec_Event>> event_parents = model_parms.get_parents(current_event_point);
 
-							for(list<Rec_Event*>::const_iterator iter=event_parents.end() ; iter!= event_parents.end() ; iter++){
+							for(list<shared_ptr<Rec_Event>>::const_iterator iter=event_parents.end() ; iter!= event_parents.end() ; iter++){
 								related_events_map.insert(make_pair((*iter)->get_name(),*iter));
 							}
 
 						}
 						//Copy model stack to have a modifiable copy
 						//TODO model stack might be more complicated than a simple list
-						stack<Rec_Event*> model_stack_copy = model_stack;
+						stack<shared_ptr<Rec_Event>> model_stack_copy = model_stack;
 
 
 				//Compute the event size: total size needed on the array to store informations on an event and the ones that it depends on
@@ -235,9 +235,9 @@ unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Par
 				}
 				delete related_events_map_p;
 		}*/
-			list<Rec_Event*> parents_list = model_parms.get_parents(current_event_point);
+			list<shared_ptr<Rec_Event>> parents_list = model_parms.get_parents(current_event_point);
 			if(!parents_list.empty()){
-				for(list<Rec_Event*>::const_iterator iter = parents_list.begin() ; iter != parents_list.end() ; ++iter ){
+				for(list<shared_ptr<Rec_Event>>::const_iterator iter = parents_list.begin() ; iter != parents_list.end() ; ++iter ){
 					event_size*=(*iter)->size();
 				}
 			}
@@ -256,12 +256,12 @@ unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Par
 /*
  * This method normalizes the marginal array so that each probability sums to 1.
  */
-void Model_marginals::normalize(unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> inverse_offset_map , unordered_map<Rec_Event_name,int> index_map , queue<Rec_Event*> model_queue){
+void Model_marginals::normalize(unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> inverse_offset_map , unordered_map<Rec_Event_name,int> index_map , queue<shared_ptr<Rec_Event>> model_queue){
 	while (! model_queue.empty()){
-		Rec_Event* current_event_point = model_queue.front();
-		list<pair< const Rec_Event*,int>> related_events;
+		shared_ptr<Rec_Event> current_event_point = model_queue.front();
+		list<pair< const shared_ptr<Rec_Event>,int>> related_events;
 		if(inverse_offset_map.count(current_event_point->get_name()) == 0){
-			related_events = *(new list<pair<const Rec_Event* , int >>()); //TODO change this to prevent memory leak
+			related_events = *(new list<pair<const shared_ptr<Rec_Event> , int >>()); //TODO change this to prevent memory leak
 		}
 		else{
 			related_events = inverse_offset_map.at(current_event_point->get_name());
@@ -275,7 +275,7 @@ void Model_marginals::normalize(unordered_map<Rec_Event_name,list<pair<const Rec
 	}
 }
 
-void Model_marginals::iterate_normalize(Rec_Event* current_event_point, list<pair<const Rec_Event*,int>>& related_events, int index , int current_offset){
+void Model_marginals::iterate_normalize(shared_ptr<Rec_Event> current_event_point, list<pair<const shared_ptr<Rec_Event>,int>>& related_events, int index , int current_offset){
 
 	if(related_events.empty()) {
 		/*double sum_marginals = 0;
@@ -293,10 +293,10 @@ void Model_marginals::iterate_normalize(Rec_Event* current_event_point, list<pai
 		return;
 	}
 	else{
-		pair<const Rec_Event*,int> processed_event = related_events.front();
+		pair<const shared_ptr<Rec_Event>,int> processed_event = related_events.front();
 		size_t processed_event_size = processed_event.first->size();
 		int offset = processed_event.second;
-		list<pair<const Rec_Event*,int>> related_events_copy = related_events;
+		list<pair<const shared_ptr<Rec_Event>,int>> related_events_copy = related_events;
 		related_events_copy.pop_front();
 		for (size_t iter=0 ; iter!= processed_event_size ; ++iter){
 			int new_offset = current_offset+iter*offset;
@@ -306,8 +306,8 @@ void Model_marginals::iterate_normalize(Rec_Event* current_event_point, list<pai
 }
 
 void Model_marginals::copy_fixed_events_marginals(const Model_marginals& source_marginals, const Model_Parms& parms,const unordered_map<Rec_Event_name,int>& index_map){
-	list<Rec_Event*> events = parms.get_event_list();
-	for(list<Rec_Event*>::const_iterator iter = events.begin() ; iter!=events.end() ; ++iter ){
+	list<shared_ptr<Rec_Event>> events = parms.get_event_list();
+	for(list<shared_ptr<Rec_Event>>::const_iterator iter = events.begin() ; iter!=events.end() ; ++iter ){
 		if((*iter)->is_fixed()){
 			size_t event_size = this->get_event_size((*iter),parms);
 			size_t first_index = index_map.at((*iter)->get_name());
@@ -325,10 +325,10 @@ void Model_marginals::copy_fixed_events_marginals(const Model_marginals& source_
 void Model_marginals::uniform_initialize(const Model_Parms& parms){
 
 
-	list<Rec_Event*> events = parms.get_event_list();
-	queue<Rec_Event*> model_queue = parms.get_model_queue();
+	list<shared_ptr<Rec_Event>> events = parms.get_event_list();
+	queue<shared_ptr<Rec_Event>> model_queue = parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = get_index_map(parms,model_queue);
-	unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
+	unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
 
 
 	for(size_t i=0 ; i!= compute_size(parms) ; ++i){
@@ -361,20 +361,20 @@ void Model_marginals::random_initialize(const Model_Parms& parms){
 		marginal_array_p[i] = distribution(generator);
 	}
 
-	list<Rec_Event*> events = parms.get_event_list();
-	queue<Rec_Event*> model_queue = parms.get_model_queue();
+	list<shared_ptr<Rec_Event>> events = parms.get_event_list();
+	queue<shared_ptr<Rec_Event>> model_queue = parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = get_index_map(parms,model_queue);
-	unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
+	unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
 
 
 	this->normalize(inverse_offset_map , index_map , model_queue);
 
 }
 
-void Model_marginals::flatten(const Rec_Event* event,const Model_Parms& parms){
-	queue<Rec_Event*> model_queue = parms.get_model_queue();
+void Model_marginals::flatten(const shared_ptr<Rec_Event> event,const Model_Parms& parms){
+	queue<shared_ptr<Rec_Event>> model_queue = parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = get_index_map(parms,model_queue);
-	unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
+	unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
 
 	size_t event_size = this->get_event_size(event,parms);
 
@@ -390,21 +390,21 @@ void Model_marginals::flatten(const Rec_Event* event,const Model_Parms& parms){
 
 void Model_marginals::write2txt(string filename , const Model_Parms& model_parms){
 	ofstream outfile(filename);
-	queue<Rec_Event*> model_queue = model_parms.get_model_queue();
+	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> rank_map;
-	list<Rec_Event*> processed_events;
-	unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> inv_offset_map = get_inverse_offset_map(model_parms , model_queue);
+	list<shared_ptr<Rec_Event>> processed_events;
+	unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> inv_offset_map = get_inverse_offset_map(model_parms , model_queue);
 	unordered_map<Rec_Event_name,int> index_map = get_index_map(model_parms,model_queue);
 	//Write into the file according to the model queue order
 	while(!model_queue.empty()){
-		Rec_Event* current_event_p = model_queue.front();
+		shared_ptr<Rec_Event> current_event_p = model_queue.front();
 		outfile<<"@"<<current_event_p->get_nickname()<<endl;
 		outfile<<"$Dim[";
 		//if(!processed_events.empty()){
-			list<pair<const Rec_Event*,int>> inv_offset_list = inv_offset_map[current_event_p->get_name()];
+			list<pair<const shared_ptr<Rec_Event>,int>> inv_offset_list = inv_offset_map[current_event_p->get_name()];
 			if(!inv_offset_list.empty()){
 				inv_offset_list.sort(offset_comp());
-				for(list<pair<const Rec_Event*,int>>::const_iterator jiter=inv_offset_list.begin() ; jiter != inv_offset_list.end() ; ++jiter){
+				for(list<pair<const shared_ptr<Rec_Event>,int>>::const_iterator jiter=inv_offset_list.begin() ; jiter != inv_offset_list.end() ; ++jiter){
 					outfile<<(*jiter).first->size()<<",";
 				}
 			}
@@ -420,14 +420,14 @@ void Model_marginals::write2txt(string filename , const Model_Parms& model_parms
 	}
 }
 
-void Model_marginals::write2txt_iteration(list<pair<const Rec_Event*,int>>::const_iterator iter,const list<pair<const Rec_Event*,int>>::const_iterator iter_end,int index,ofstream& outfile , Rec_Event* current_event_p , list<string>& header){
+void Model_marginals::write2txt_iteration(list<pair<const shared_ptr<Rec_Event>,int>>::const_iterator iter,const list<pair<const shared_ptr<Rec_Event>,int>>::const_iterator iter_end,int index,ofstream& outfile , shared_ptr<Rec_Event> current_event_p , list<string>& header){
 
 	if(iter!=iter_end){
 		for(int i = 0 ; i != (*iter).first->size() ; ++i){
 			list<string> header_copy = header;
 			header_copy.push_back(string("[")+(*iter).first->get_nickname()+string(",")+to_string(i)+string("]"));
 			int new_index = index + i*(*iter).second;
-			list<pair<const Rec_Event*,int>>::const_iterator iter_copy = iter;
+			list<pair<const shared_ptr<Rec_Event>,int>>::const_iterator iter_copy = iter;
 			++iter_copy;
 			write2txt_iteration(iter_copy , iter_end , new_index , outfile , current_event_p , header_copy);
 		}
@@ -478,9 +478,9 @@ void Model_marginals::txt2marginals(string filename, const Model_Parms& parms){
 	this->marginal_arr_size = index;
 
 	//Make sure marginals are normalized (deals with problem of float precision output from the text file)
-	queue<Rec_Event*> model_queue = parms.get_model_queue();
+	queue<shared_ptr<Rec_Event>> model_queue = parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = get_index_map(parms,model_queue);
-	unordered_map<Rec_Event_name,list<pair<const Rec_Event*,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
+	unordered_map<Rec_Event_name,list<pair<const shared_ptr<Rec_Event>,int>>> inverse_offset_map = get_inverse_offset_map(parms,model_queue);
 
 	this->normalize(inverse_offset_map , index_map , model_queue);
 }
