@@ -78,7 +78,7 @@ public:
 
 	std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>> get_events_map();
 
-	void set_error_ratep(Error_rate* Er_r){error_rate = std::shared_ptr<Error_rate>(Er_r);}
+	void set_error_ratep(Error_rate* Er_r){error_rate = std::shared_ptr<Error_rate>(Er_r,null_delete<Error_rate>());}
 	void set_error_ratep(std::shared_ptr<Error_rate> Er_r){error_rate = Er_r;}
 
 	std::shared_ptr<Error_rate> get_err_rate_p(){return error_rate;}
@@ -93,5 +93,8 @@ private:
 
 
 };
+
+
+
 
 #endif /* MODEL_PARMS_H_ */

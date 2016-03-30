@@ -36,8 +36,8 @@ shared_ptr<Error_rate> Single_error_rate::copy()const{
 	return copy_err_r;
 }
 
-shared_ptr<Error_rate> Single_error_rate::add_checked(shared_ptr<Error_rate> err_r){
-	return shared_ptr<Error_rate>( &( this->operator +=( *( dynamic_cast< Single_error_rate*> (err_r.get()) ) ) ) );
+Error_rate* Single_error_rate::add_checked(Error_rate* err_r){
+	return &( this->operator +=( *( dynamic_cast< Single_error_rate*> (err_r) ) ) );
 }
 
 double Single_error_rate::get_err_rate_upper_bound() const{

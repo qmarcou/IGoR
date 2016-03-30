@@ -110,7 +110,7 @@ bool Model_Parms::add_event(shared_ptr<Rec_Event> event_point){
 	return 1;
 }
 bool Model_Parms::add_event(Rec_Event* event_point){
-	return this->add_event(shared_ptr<Rec_Event>(event_point));
+	return this->add_event(shared_ptr<Rec_Event>(event_point,null_delete<Rec_Event>()));
 }
 
 //TODO add remove edge method
@@ -143,8 +143,8 @@ list<shared_ptr<Rec_Event>> Model_Parms::get_children(shared_ptr<Rec_Event> even
  */
 bool Model_Parms::add_edge(Rec_Event* parent_point, Rec_Event* child_point){
 	//TODO check whether these events exist
-	this->edges.at( parent_point->get_name() ).children.push_back(shared_ptr<Rec_Event>(child_point));
-	this->edges.at( child_point->get_name() ).parents.push_back(shared_ptr<Rec_Event>(parent_point));
+	this->edges.at( parent_point->get_name() ).children.push_back(shared_ptr<Rec_Event>(child_point,null_delete<Rec_Event>()));
+	this->edges.at( child_point->get_name() ).parents.push_back(shared_ptr<Rec_Event>(parent_point,null_delete<Rec_Event>()));
 	return 1;
 }
 bool Model_Parms::add_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Event> child_point){

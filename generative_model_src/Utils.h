@@ -38,6 +38,18 @@ typedef std::string Rec_Event_name;
 typedef int Seq_Offset;
 typedef std::string* Str_ptr;
 
+/*Declare a null_delete function
+ * This function is not performing any task, it's purpose is to supply a "null_delete" function
+ * to prevent shared pointer objects created when passing Rec_Event or Error_rate objects pointers to model_parms
+ * to be destroyed when the model_parms object is destroyed itself and the rec_event and error_rate objects
+ * might still be of used (and if not prevent from a segfault error by trying to delete them twice)
+ */
+template<class T> struct null_delete{
+	null_delete<T>(){}
+	void operator()(T*&){};
+};
+
+
 /*
  * This class provides a fast alternative to unordered_map<Seq_type,string*> for the constructed_sequences objects
  * Change this and give some kind of matrix with memory levels

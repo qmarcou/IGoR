@@ -196,7 +196,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			#pragma omp critical(merge_marginals_and_er)
 			{
 				new_marginals+=single_thread_marginals;
-				add_to_err_rate(error_rate_copy,single_thread_err_rate);
+				add_to_err_rate(error_rate_copy.get(),single_thread_err_rate.get());
 			}
 
 

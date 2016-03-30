@@ -40,7 +40,7 @@ public:
 	virtual void write2txt(std::ofstream&)=0;
 	virtual std::shared_ptr<Error_rate> copy() const = 0;
 	virtual std::string type() const =0;
-	virtual std::shared_ptr<Error_rate> add_checked(std::shared_ptr<Error_rate>) = 0;
+	virtual Error_rate* add_checked(Error_rate*) = 0;
 	double get_model_likelihood() const{return model_log_likelihood;}
 	double get_seq_likelihood() const{return seq_likelihood;}
 	double get_seq_probability() const{return seq_probability;}
@@ -60,7 +60,7 @@ protected:
 
 };
 
-std::shared_ptr<Error_rate> add_to_err_rate(std::shared_ptr<Error_rate>,std::shared_ptr<Error_rate>);
+void add_to_err_rate(Error_rate*,Error_rate*);
 
 
 #endif /* ERRORRATE_H_ */

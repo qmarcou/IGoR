@@ -29,7 +29,7 @@ public:
 	void write2txt(std::ofstream&);
 	std::shared_ptr<Error_rate> copy()const;
 	std::string type() const {return "SingleErrorRate";}
-	std::shared_ptr<Error_rate> add_checked (std::shared_ptr<Error_rate>);
+	Error_rate* add_checked (Error_rate*);
 	double get_err_rate_upper_bound() const;
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
 	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
