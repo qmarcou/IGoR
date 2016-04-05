@@ -38,6 +38,7 @@ public:
 private:
 	void update_Nmers_proba(int,int,double);
 	void compute_P_SHM_and_BG();
+	double compute_Nmer_unorm_score(int*);
 	int number_seq; //FIXME check if need to remove this from here and from singleerrorrate and transfer it to errorrate
 
 	Gene_class learn_on;
