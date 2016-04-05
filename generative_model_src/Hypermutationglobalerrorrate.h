@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <math.h>
+#include <gsl/gsl_linalg.h>
 
 class Hypermutation_global_errorrate: public Error_rate {
 	friend Gene_choice; //Grant friendship to access current gene realization and offset
@@ -36,6 +37,7 @@ public:
 
 private:
 	void update_Nmers_proba(int,int,double);
+	void compute_P_SHM_and_BG();
 	int number_seq; //FIXME check if need to remove this from here and from singleerrorrate and transfer it to errorrate
 
 	Gene_class learn_on;
@@ -46,6 +48,9 @@ private:
 	//std::map<int,double> Nmer_background_proba;
 	double* Nmer_mutation_proba;
 
+	double* Nmer_P_SHM;
+	double* Nmer_P_BG;
+
 	//std::map<int,double> Nmer_background_proba_count;
 	//std::map<int,double> Nmer_SHM_proba_count;
 
@@ -53,8 +58,11 @@ private:
 	//Normalized coverage and error counters
 	//# V D and J possible realizations
 	size_t n_v_real;
+	const std::unordered_map<std::string , Event_realization> v_realizations;
 	size_t n_d_real;
+	const std::unordered_map<std::string , Event_realization> d_realizations;
 	size_t n_j_real;
+	const std::unordered_map<std::string , Event_realization> j_realizations;
 	//Use C arrays (faster than maps)
 	//size_t is the length of the sequence
 	//double* is the pointer to the array for coverage/error per nucleotide

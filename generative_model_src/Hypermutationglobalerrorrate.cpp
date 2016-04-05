@@ -97,7 +97,8 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 		//Get the adress of the first Nmer(disregarding the error penalty on teh first nucleotides)
 		Nmer_index = 0;
-		for(i=0 ; i!=Nmer_mutation_proba ; i++){
+		current_Nmer ();
+		for(i=0 ; i!=mutation_Nmer_size ; i++){
 			tmp_int_nt = stoi(v_gene_seq.substr(i,1));
 			current_Nmer.push(tmp_int_nt);
 			Nmer_index+=adressing_vector[i]*tmp_int_nt;
@@ -203,8 +204,78 @@ queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq
 
 void Hypermutation_global_errorrate::update(){
 
+	//Compute P_SHM and P_bg for each possible Nmer
+	this->compute_P_SHM_and_BG();
+
+
+
 	//Update the error rate by maximizing the likelihood of the error model
 
+	/*
+	 * Find the maximum likelihood parameters by using newton's method on the derivative
+	 * The constraint on the sum of e_j at one position being zero is absorbed by setting
+	 * e_j(\pi_k) = -sum(e_j(\pi_i)) for i!=k
+	 * At each step we solve H\deltaX=-J (where H is the hessian and J the jacobian of the likelihood function)
+	 */
+
+	while(true){
+
+
+		//Construct the 3N+1 sized Jacobian vector
+		double J_data[3*mutation_Nmer_size+1];
+		gsl_vector_view J = gsl_vector_view_array (J_data, 3*mutation_Nmer_size+1);
+
+		//Construct the 3N+1 square Hessian matrix
+		double H_data[(3*mutation_Nmer_size+1)*(3*mutation_Nmer_size+1)];
+		gsl_vector_view H = gsl_vector_view_array (J_data, 3*mutation_Nmer_size+1);
+
+		//Compute the values for the Jacobian and Hessian entries
+		int base_4_address[mutation_Nmer_size];
+		int max_address = 0;
+		for (i=0;i!=mutation_Nmer_size;++i){
+			base_4_address[i]=0;
+			max_address += 3*pow(4,i);
+		}
+		j=0;
+		while(j!=max_address){
+			double current_Nmer_P_SHM;
+			double current_Nmer_P_bg;
+			for(i=0;i!=mutation_Nmer_size;++i){
+				if(base_4_address[i]==3){
+
+				}
+				else{
+
+				}
+
+				//Add contribution to Z derivatives
+			}
+
+			//Update the base 10 and 4 addresses
+			j++;//base 10
+			bool bool_mod_4N = fmod(j,4)==0;
+			if(bool_mod_4N){
+				int position = 0;
+				while(bool_mod_4N){
+					base_4_address[position]=0;
+					++position;
+					base_4_address[position]+=1;
+					bool_mod_4N = fmod(j,pow(4,position+1))==0;
+					//Careful to out of range exception although should not happen
+
+				}
+			}
+		}
+
+
+		//Solve the system
+		gsl_vector *x = gsl_vector_alloc (3*mutation_Nmer_size+1);
+		gsl_permutation * p = gsl_permutation_alloc (3*mutation_Nmer_size+1);
+		gsl_linalg_LU_solve (&H.matrix, p, &J.vector, x);
+
+		//Update the parameters values
+
+	}
 
 	//Compute the mutation probabilities for the full Nmers
 	this->update_Nmers_proba(0,0,1);
@@ -247,7 +318,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			vgene_real_index_p = v_gene_event_p->current_realization_index;
 
 			//Initialize gene counters
-			const unordered_map<string , Event_realization>& v_realizations = v_gene_event_p->get_realizations_map();
+			v_realizations = v_gene_event_p->get_realizations_map();
 			//Get the number of realizations
 			n_v_real = v_realizations.size();
 			//Create arrays
@@ -436,5 +507,63 @@ void Hypermutation_global_errorrate::update_Nmers_proba(int current_pos , int cu
 		else{
 			this->Nmer_mutation_proba[new_index]= new_score/Z;
 		}
+	}
+}
+
+void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
+	if(learn_on_v){
+		for(unordered_map<string,Event_realization>::const_iterator real_iter = v_realizations.begin() ; real_iter!=v_realizations.end() ; real_iter++){
+			pair<size_t,double*>* nucleotide_coverage = v_gene_nucleotide_coverage_p[(*real_iter).second.index];
+			pair<size_t,double*>* nucleotide_error = v_gene_per_nucleotide_error_p[(*real_iter).second.index];
+
+			//Get the first Nmer on the gene
+			Nmer_index = 0;
+			current_Nmer ();
+			//and get min coverage for the first Nmer
+			double min_coverage = INT16_MAX;
+			for(j=0 ; j!=mutation_Nmer_size ; j++){
+				tmp_int_nt = stoi((*real_iter).second.value_str_int.substr(j,1));
+				current_Nmer.push(tmp_int_nt);
+				Nmer_index+=adressing_vector[i]*tmp_int_nt;
+
+				if(Nmer_P_BG[j]<min_coverage){
+					min_coverage = Nmer_P_BG[j];
+				}
+			}
+
+			Nmer_P_BG[Nmer_index] += min_coverage; //The coverage of the Nmer is only as high as the lowest covered nt
+			Nmer_P_SHM[Nmer_index] += nucleotide_error[(mutation_Nmer_size-1)/2];
+
+			for(i=(mutation_Nmer_size-1)/2 +1 ; i!=(*real_iter).second.value_str_int.size() - (mutation_Nmer_size-1)/2+1; ++i){
+				//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+				Nmer_index-=current_Nmer.front()*adressing_vector[mutation_Nmer_size-1];
+				current_Nmer.pop();
+				//Shift the index
+				Nmer_index*=mutation_Nmer_size;
+				//Add the contribution of the new nucleotide
+				tmp_int_nt = stoi(scenario_resulting_sequence.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+				Nmer_index+=tmp_int_nt;
+				current_Nmer.push(tmp_int_nt);
+
+				double min_coverage = INT16_MAX;
+				for(j=-(mutation_Nmer_size-1)/2 ; j!=-(mutation_Nmer_size+1)/2 ; j++){
+					if(Nmer_P_BG[j+i]<min_coverage){
+						min_coverage = Nmer_P_BG[j+i];
+					}
+				}
+
+				Nmer_P_BG[Nmer_index] += min_coverage; //The coverage of the Nmer is only as high as the lowest covered nt
+				Nmer_P_SHM[Nmer_index] += nucleotide_error[i];
+
+			}
+		}
+	}
+
+	if(learn_on_d){
+
+	}
+
+	if(learn_on_j){
+
 	}
 }
