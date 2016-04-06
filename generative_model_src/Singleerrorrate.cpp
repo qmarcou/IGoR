@@ -9,9 +9,9 @@
 
 using namespace std;
 
-Single_error_rate::Single_error_rate(): model_rate(0) , normalized_counter(0) , number_seq(0) , seq_weighted_er(0) {}
+Single_error_rate::Single_error_rate(): Error_rate() , model_rate(0) , normalized_counter(0) , number_seq(0) , seq_weighted_er(0) {}
 
-Single_error_rate::Single_error_rate(double error_rate): model_rate(error_rate) , normalized_counter(0) , number_seq(0) , seq_weighted_er(0)  {}
+Single_error_rate::Single_error_rate(double error_rate): Error_rate() , model_rate(error_rate) , normalized_counter(0) , number_seq(0) , seq_weighted_er(0)  {}
 
 Single_error_rate::~Single_error_rate() {
 	// TODO Auto-generated destructor stub

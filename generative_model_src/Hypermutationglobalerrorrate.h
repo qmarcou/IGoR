@@ -30,6 +30,7 @@ public:
 	void write2txt(std::ofstream&);
 	Error_rate* copy()const;
 	std::string type() const {return "HypermutationGlobalErrorRate";}
+	Hypermutation_global_errorrate& operator+=(Hypermutation_global_errorrate);
 	Error_rate* add_checked (Error_rate*);
 	double get_err_rate_upper_bound() const;
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
