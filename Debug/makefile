@@ -44,7 +44,7 @@ all: generative
 generative: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -fopenmp -pg -o "generative" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -fopenmp -pg -o "generative" $(OBJS) $(USER_OBJS) $(LIBS) -L/usr/lib -l:libgsl.so.0 -l:libgslcblas.so.0
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Error_rate::Error_rate():  debug_number_scenarios(0), model_log_likelihood(0) , seq_likelihood(0)  , seq_mean_error_number(0) , seq_probability(0) , updated(true) {
+Error_rate::Error_rate():  debug_number_scenarios(0), model_log_likelihood(0) , number_seq(0) , seq_likelihood(0)  , seq_mean_error_number(0) , seq_probability(0) , updated(true) {
 	// TODO Auto-generated constructor stub
 
 }

@@ -13,6 +13,7 @@ CPP_SRCS += \
 ../generative_model_src/Errorrate.cpp \
 ../generative_model_src/GenModel.cpp \
 ../generative_model_src/Genechoice.cpp \
+../generative_model_src/Hypermutationglobalerrorrate.cpp \
 ../generative_model_src/Insertion.cpp \
 ../generative_model_src/IntStr.cpp \
 ../generative_model_src/Model_Parms.cpp \
@@ -33,6 +34,7 @@ OBJS += \
 ./generative_model_src/Errorrate.o \
 ./generative_model_src/GenModel.o \
 ./generative_model_src/Genechoice.o \
+./generative_model_src/Hypermutationglobalerrorrate.o \
 ./generative_model_src/Insertion.o \
 ./generative_model_src/IntStr.o \
 ./generative_model_src/Model_Parms.o \
@@ -53,6 +55,7 @@ CPP_DEPS += \
 ./generative_model_src/Errorrate.d \
 ./generative_model_src/GenModel.d \
 ./generative_model_src/Genechoice.d \
+./generative_model_src/Hypermutationglobalerrorrate.d \
 ./generative_model_src/Insertion.d \
 ./generative_model_src/IntStr.d \
 ./generative_model_src/Model_Parms.d \

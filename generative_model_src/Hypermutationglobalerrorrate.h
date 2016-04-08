@@ -9,14 +9,15 @@
 #define HYPERMUTATIONGLOBALERRORRATE_H_
 
 #include "Errorrate.h"
+#include "Genechoice.h"
+#include "Deletion.h"
 #include <algorithm>
 #include <array>
 #include <math.h>
 #include <gsl/gsl_linalg.h>
 
+
 class Hypermutation_global_errorrate: public Error_rate {
-	friend Gene_choice; //Grant friendship to access current gene realization and offset
-	friend Deletion;//Grant friendship to access the current number of deletion
 
 public:
 	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double);
@@ -40,7 +41,6 @@ private:
 	void update_Nmers_proba(int,int,double);
 	void compute_P_SHM_and_BG();
 	double compute_Nmer_unorm_score(int*);
-	int number_seq; //FIXME check if need to remove this from here and from singleerrorrate and transfer it to errorrate
 
 	Gene_class learn_on;
 	Gene_class apply_to;
@@ -60,11 +60,11 @@ private:
 	//Normalized coverage and error counters
 	//# V D and J possible realizations
 	size_t n_v_real;
-	const std::unordered_map<std::string , Event_realization> v_realizations;
+	std::unordered_map<std::string , Event_realization> v_realizations;
 	size_t n_d_real;
-	const std::unordered_map<std::string , Event_realization> d_realizations;
+	std::unordered_map<std::string , Event_realization> d_realizations;
 	size_t n_j_real;
-	const std::unordered_map<std::string , Event_realization> j_realizations;
+	std::unordered_map<std::string , Event_realization> j_realizations;
 	//Use C arrays (faster than maps)
 	//size_t is the length of the sequence
 	//double* is the pointer to the array for coverage/error per nucleotide
@@ -92,25 +92,25 @@ private:
 	bool learn_on_d;
 	bool learn_on_j;
 
-	int*& vgene_offset_p;
-	int*& dgene_offset_p;
-	int*& jgene_offset_p;
+	const int* vgene_offset_p;
+	const int* dgene_offset_p;
+	const int* jgene_offset_p;
 
-	int*& vgene_real_index_p;
-	int*& dgene_real_index_p;
-	int*& jgene_real_index_p;
+	const int* vgene_real_index_p;
+	const int* dgene_real_index_p;
+	const int* jgene_real_index_p;
 
 	//Get deletion values
 	//TODO need to change this in order to handle multiple models
-	int* v_3_del_value_p;
-	int* d_5_del_value_p;
-	int* d_3_del_value_p;
-	int* j_5_del_value_p;
-	int no_del_buffer = 0; //buffer used in case of no deletion event
+	const int* v_3_del_value_p;
+	const int* d_5_del_value_p;
+	const int* d_3_del_value_p;
+	const int* j_5_del_value_p;
+	const int no_del_buffer = 0; //buffer used in case of no deletion event
 
 	//Utility speed variables
-	int i;//iteration utility
-	int j;
+	mutable int i;//iteration utility
+	mutable int j;
 	int v_3_del_value_corr;//Corrected value for deletion numbers to avoid taking into account negative deletions
 	int d_5_del_value_corr;
 	int d_3_del_value_corr;
