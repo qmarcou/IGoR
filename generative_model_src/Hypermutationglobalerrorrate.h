@@ -42,6 +42,8 @@ private:
 	void compute_P_SHM_and_BG();
 	double compute_Nmer_unorm_score(int*);
 
+	void introduce_uniform_transversion(char&, std::default_random_engine& , std::uniform_real_distribution<double>&) const;
+
 	Gene_class learn_on;
 	Gene_class apply_to;
 	size_t mutation_Nmer_size;
@@ -115,18 +117,18 @@ private:
 	int d_5_del_value_corr;
 	int d_3_del_value_corr;
 	int j_5_del_value_corr;
-	double* tmp_cov_p;
-	double* tmp_err_p;
+	mutable double* tmp_cov_p;
+	mutable double* tmp_err_p;
 	int tmp_corr_len;
 	int tmp_len_util;
 	double scenario_new_proba;
 	std::string scenario_resulting_sequence;
 
 	std::vector<size_t> adressing_vector;
-	std::queue<size_t> current_Nmer;
+	mutable std::queue<size_t> current_Nmer;
 	size_t largest_nuc_adress;
-	int tmp_int_nt;
-	int Nmer_index;
+	mutable int tmp_int_nt;
+	mutable int Nmer_index;
 	std::vector<int>::const_iterator current_mismatch;
 
 

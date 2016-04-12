@@ -11,6 +11,10 @@ using namespace std;
 
 Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , ei_nucleotide_contributions(new double [4*mutation_Nmer_size]) , Z(starting_flat_value) , n_v_real(0) , n_j_real(0) , n_d_real(0) {
 
+	if(fmod(nmer_width,2)==0){
+		throw runtime_error("Cannot instanciate hypermutation globale error rate with an even size Nmer(need to be symmetric)");
+	}
+
 	size_t array_size = pow(4,mutation_Nmer_size);
 
 	Nmer_mutation_proba = new double [array_size];
@@ -21,6 +25,8 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 	for(int ii=0 ; ii!=4*mutation_Nmer_size ; ++i){
 		ei_nucleotide_contributions[ii] = 0;
 	}
+
+	//Initialize addressing vector
 
 	//Initialize booleans
 	if(apply_to == V_gene | apply_to == VJ_genes | apply_to == VD_genes | apply_to == VDJ_genes){
@@ -61,6 +67,31 @@ Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
 	delete [] Nmer_mutation_proba;
 	delete [] Nmer_P_SHM;
 	delete [] Nmer_P_BG;
+
+	//Clean
+	if(learn_on_v){
+		for(i = 0 ; i != n_v_real ; ++i){
+			delete [] v_gene_nucleotide_coverage_p[i].second;
+			delete [] v_gene_nucleotide_coverage_seq_p[i].second;
+			delete [] v_gene_per_nucleotide_error_p[i].second;
+			delete [] v_gene_per_nucleotide_error_seq_p[i].second;
+		}
+		delete [] v_gene_nucleotide_coverage_p;
+		delete [] v_gene_nucleotide_coverage_seq_p;
+		delete [] v_gene_per_nucleotide_error_p;
+		delete [] v_gene_per_nucleotide_error_seq_p;
+	}
+
+	if(learn_on_d){
+
+	}
+
+	if(learn_on_j){
+
+	}
+
+
+
 }
 
 Error_rate* Hypermutation_global_errorrate::copy()const{
@@ -158,7 +189,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//Get the adress of the first Nmer(disregarding the error penalty on teh first nucleotides)
 		Nmer_index = 0;
 		current_Nmer = queue<size_t>();
-		for(i=0 ; i!=mutation_Nmer_size ; i++){
+		for(i=0 ; i!=mutation_Nmer_size ; ++i){
 			tmp_int_nt = stoi(v_gene_seq.substr(i,1));
 			current_Nmer.push(tmp_int_nt);
 			Nmer_index+=adressing_vector[i]*tmp_int_nt;
@@ -178,7 +209,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//Look at all Nmers in the scenario_resulting_sequence by sliding window
 		//Removing the contribution of the first and adding the contribution of the new last
 
-		for( i = (mutation_Nmer_size+1)/2 ; i!=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2 ; i++){
+		for( i = (mutation_Nmer_size+1)/2 ; i!=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2 ; ++i){
 			//Remove the previous first nucleotide of the Nmer and it's contribution to the index
 			Nmer_index-=current_Nmer.front()*adressing_vector[mutation_Nmer_size-1];
 			current_Nmer.pop();
@@ -257,12 +288,65 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	}
 
 	//FIXME compute model likelihhod
+	return scenario_new_proba;
 
 }
 
 queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq , default_random_engine& generator) const{
+	uniform_real_distribution<double> distribution(0.0,1.0);
+	double rand_err ;// distribution(generator);
+	queue<int> errors_indices;
 
+	double error_proba;
+
+	string int_generated_seq = nt2int(generated_seq);
+
+	//FIXME take into account hidden nucleotides on the right and left sides
+
+	//Get the adress of the first Nmer(disregarding the error penalty on the first nucleotides)
+	Nmer_index = 0;
+	current_Nmer = queue<size_t>();
+	for(i=0 ; i!=mutation_Nmer_size ; ++i){
+		tmp_int_nt = stoi(int_generated_seq.substr(i,1));
+		current_Nmer.push(tmp_int_nt);
+		Nmer_index+=adressing_vector[i]*tmp_int_nt;
+	}
+
+	error_proba = Nmer_mutation_proba[Nmer_index];
+	rand_err = distribution(generator);
+
+	if(rand_err<error_proba){
+		//Introduce an error
+		errors_indices.push((mutation_Nmer_size-1)/2);
+
+		introduce_uniform_transversion(generated_seq[(mutation_Nmer_size-1)/2], generator , distribution);
+	}
+
+	for( i = (mutation_Nmer_size+1)/2 ; i!=int_generated_seq.size()-(mutation_Nmer_size-1)/2 ; ++i){
+		//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+		Nmer_index-=current_Nmer.front()*adressing_vector[mutation_Nmer_size-1];
+		current_Nmer.pop();
+		//Shift the index
+		Nmer_index*=mutation_Nmer_size;
+		//Add the contribution of the new nucleotide
+		tmp_int_nt = stoi(int_generated_seq.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symmetrically sized Nmer
+		Nmer_index+=tmp_int_nt;
+		current_Nmer.push(tmp_int_nt);
+
+
+		error_proba = Nmer_mutation_proba[Nmer_index];
+		rand_err = distribution(generator);
+
+		if(rand_err<error_proba){
+			//Introduce an error
+			errors_indices.push(i);
+
+			introduce_uniform_transversion(generated_seq[i], generator , distribution);
+		}
+	}
+	return errors_indices;
 }
+
 
 void Hypermutation_global_errorrate::update(){
 
@@ -702,4 +786,58 @@ double Hypermutation_global_errorrate::compute_Nmer_unorm_score(int* base_4_addr
 		unorm_score*=exp(ei_nucleotide_contributions[4*ii+base_4_address[ii]]);
 	}
 	return unorm_score;
+}
+
+void Hypermutation_global_errorrate::introduce_uniform_transversion(char& nt , std::default_random_engine& generator , std::uniform_real_distribution<double>& distribution) const{
+	double rand_trans = distribution(generator);
+
+	if(nt == 'A'){
+		if(rand_trans<= 1.0/3.0){
+			nt = 'C';
+		}
+		else if (rand_trans >= 2.0/3.0){
+			nt = 'G';
+		}
+		else{
+			nt = 'T';
+		}
+	}
+	else if(nt == 'C'){
+		if(rand_trans<= 1.0/3.0){
+			nt = 'A';
+		}
+		else if (rand_trans >= 2.0/3.0){
+			nt = 'G';
+		}
+		else{
+			nt = 'T';
+		}
+	}
+	else if(nt == 'G'){
+		if(rand_trans<= 1.0/3.0){
+			nt = 'A';
+		}
+		else if (rand_trans >= 2.0/3.0){
+			nt = 'C';
+		}
+		else{
+			nt = 'T';
+		}
+
+	}
+	else if (nt == 'T'){
+		if(rand_trans<= 1.0/3.0){
+			nt = 'A';
+		}
+		else if (rand_trans >= 2.0/3.0){
+			nt = 'C';
+		}
+		else{
+			nt = 'G';
+		}
+
+	}
+	else{
+		throw runtime_error("unknown nucleotide in Hypermutationglobalerrorrate::generate_errors()");
+	}
 }
