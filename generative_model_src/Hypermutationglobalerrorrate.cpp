@@ -705,7 +705,13 @@ void Hypermutation_global_errorrate::clean_seq_counters(){
 }
 
 void Hypermutation_global_errorrate::write2txt(ofstream& outfile){
-
+	outfile<<"#Hypermutationglobalerrorrate"<<this->mutation_Nmer_size<<this->learn_on<<this->apply_to<<endl;
+	outfile<<Z<<endl;
+	outfile<<ei_nucleotide_contributions[0];
+	for(i=1 ; i!=mutation_Nmer_size*4 ; ++i){
+		outfile<<";"<<ei_nucleotide_contributions[i];
+	}
+	outfile<<endl;
 }
 
 void Hypermutation_global_errorrate::update_Nmers_proba(int current_pos , int current_index,double current_score){
@@ -835,7 +841,6 @@ void Hypermutation_global_errorrate::introduce_uniform_transversion(char& nt , s
 		else{
 			nt = 'G';
 		}
-
 	}
 	else{
 		throw runtime_error("unknown nucleotide in Hypermutationglobalerrorrate::generate_errors()");
