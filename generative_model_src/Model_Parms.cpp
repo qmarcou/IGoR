@@ -462,3 +462,9 @@ void Model_Parms::read_model_parms(string filename){
 
 
 }
+
+void Model_Parms::set_fixed_all_events(bool fix_bool_status){
+	for(list<Rec_Event*>::iterator iter = events.begin() ; iter != events.end() ; ++iter){
+		(*iter)->fix(fix_bool_status);
+	}
+}

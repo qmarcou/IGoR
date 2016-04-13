@@ -375,12 +375,12 @@ unsigned Hypermutation_global_errorrate::generate_random_contributions(double ei
 		double rand_contribution;
 		for(j = 0 ; j != 4 ; ++j){
 			rand_contribution = distribution(generator);
-			ei_contribution_range[i*mutation_Nmer_size+j] = rand_contribution;
+			ei_nucleotide_contributions[i*mutation_Nmer_size+j] = rand_contribution;
 			contribution_sum += rand_contribution;
 		}
 		//Ensure that the sum of the contributions at one position is 0
 		for(j=0 ; j != 4 ; ++j){
-			ei_contribution_range[i*mutation_Nmer_size+j] -= contribution_sum;
+			ei_nucleotide_contributions[i*mutation_Nmer_size+j] -= contribution_sum;
 		}
 	}
 	this->update_Nmers_proba(0,0,1);

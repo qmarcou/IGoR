@@ -72,6 +72,7 @@ public:
 	void write_model_parms(std::string);
 
 	void read_model_parms(std::string);
+	void set_fixed_all_events(bool);
 
 	//Accessors
 	std::list<std::shared_ptr<Rec_Event>> get_event_list() const {return events;}
