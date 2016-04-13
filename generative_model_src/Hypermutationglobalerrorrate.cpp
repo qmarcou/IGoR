@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , ei_nucleotide_contributions(new double [4*mutation_Nmer_size]) , Z(starting_flat_value) , n_v_real(0) , n_j_real(0) , n_d_real(0) {
+Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , ei_nucleotide_contributions((new double [4*mutation_Nmer_size])) , Z(starting_flat_value) , n_v_real(0) , n_j_real(0) , n_d_real(0) {
 
 	if(fmod(nmer_width,2)==0){
 		throw runtime_error("Cannot instanciate hypermutation globale error rate with an even size Nmer(need to be symmetric)");
@@ -58,6 +58,17 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 		learn_on_j = true;
 	}
 	else learn_on_j = false;
+}
+
+Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value , vector<double> ei_contributions): Hypermutation_global_errorrate(nmer_width , learn , apply , starting_flat_value){
+	if(ei_contributions.size()==(4*mutation_Nmer_size)){
+		for(i=0 ; i != ei_contributions.size() ; ++i){
+			ei_nucleotide_contributions[i] = ei_contributions[i];
+		}
+	}
+	else{
+		throw runtime_error("Size of ei contribution vector does not match the expected size in Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>)");
+	}
 }
 
 Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
@@ -345,6 +356,36 @@ queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq
 		}
 	}
 	return errors_indices;
+}
+
+unsigned Hypermutation_global_errorrate::generate_random_contributions(double ei_contribution_range){
+	//Create seed for random generator
+	//create a seed from timer
+	typedef std::chrono::high_resolution_clock myclock;
+	myclock::time_point time = myclock::now();
+	myclock::duration dur = myclock::time_point::max() - time;
+
+	unsigned time_seed = dur.count();
+	//Instantiate random number generator
+	default_random_engine generator =  default_random_engine(time_seed);
+	uniform_real_distribution<double> distribution(-ei_contribution_range,ei_contribution_range);
+
+	for(i = 0 ; i != mutation_Nmer_size ; ++i){
+		double contribution_sum = 0;
+		double rand_contribution;
+		for(j = 0 ; j != 4 ; ++j){
+			rand_contribution = distribution(generator);
+			ei_contribution_range[i*mutation_Nmer_size+j] = rand_contribution;
+			contribution_sum += rand_contribution;
+		}
+		//Ensure that the sum of the contributions at one position is 0
+		for(j=0 ; j != 4 ; ++j){
+			ei_contribution_range[i*mutation_Nmer_size+j] -= contribution_sum;
+		}
+	}
+	this->update_Nmers_proba(0,0,1);
+
+	return time_seed;
 }
 
 
@@ -705,7 +746,7 @@ void Hypermutation_global_errorrate::clean_seq_counters(){
 }
 
 void Hypermutation_global_errorrate::write2txt(ofstream& outfile){
-	outfile<<"#Hypermutationglobalerrorrate"<<this->mutation_Nmer_size<<this->learn_on<<this->apply_to<<endl;
+	outfile<<"#Hypermutationglobalerrorrate;"<<this->mutation_Nmer_size<<";"<<this->learn_on<<";"<<this->apply_to<<endl;
 	outfile<<Z<<endl;
 	outfile<<ei_nucleotide_contributions[0];
 	for(i=1 ; i!=mutation_Nmer_size*4 ; ++i){

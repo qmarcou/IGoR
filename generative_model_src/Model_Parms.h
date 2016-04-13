@@ -25,6 +25,7 @@
 #include "Genechoice.h"
 #include "Singleerrorrate.h"
 #include "Dinuclmarkov.h"
+#include "Hypermutationglobalerrorrate.h"
 #include <stdexcept>
 #include <memory>
 

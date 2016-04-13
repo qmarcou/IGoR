@@ -293,27 +293,24 @@ void Model_Parms::read_model_parms(string filename){
 			size_t next_semicolon_index = line_str.find(";",semicolon_index+1);
 			string event_class_str = line_str.substr(semicolon_index+1,(next_semicolon_index - semicolon_index - 1));
 			Gene_class event_class;
-			if(event_class_str == "V_gene"){event_class = V_gene;}
-			else if(event_class_str == "VD_genes"){event_class = VD_genes;}
-			else if(event_class_str == "D_gene"){event_class = D_gene;}
-			else if(event_class_str == "DJ_gene"){event_class = DJ_genes;}
-			else if(event_class_str == "VJ_gene"){event_class = VJ_genes;}
-			else if(event_class_str == "J_gene"){event_class = J_gene;}
-			else if(event_class_str == "VDJ_genes"){event_class = VDJ_genes;}
-			else if(event_class_str == "Undefined_gene"){event_class = Undefined_gene;}
-			else{
-				throw runtime_error("Unknown Gene_class in model file: " + filename);
+			try{
+				event_class = str2GeneClass(event_class_str);
 			}
+			catch(exception& e){
+				throw runtime_error("Unknown Gene_class\""+event_class_str +"\" in model file: " + filename);
+			}
+
 			semicolon_index = next_semicolon_index;
 			next_semicolon_index = line_str.find(";",semicolon_index+1);
 			string event_side_str = line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index - 1));
 			Seq_side event_side;
-			if(event_side_str == "Five_prime"){event_side = Five_prime;}
-			else if(event_side_str == "Three_prime"){event_side = Three_prime;}
-			else if(event_side_str == "Undefined_side"){event_side = Undefined_side;}
-			else{
-				throw runtime_error("Unknown event_side in file: " + filename);
+			try{
+				event_side = str2SeqSide(event_side_str);
 			}
+			catch(exception& e){
+				throw runtime_error("Unknown Seq_side\""+event_side_str +"\" in file: " + filename);
+			}
+
 
 			semicolon_index = next_semicolon_index;
 			next_semicolon_index = line_str.find(";",semicolon_index+1);
@@ -422,9 +419,36 @@ void Model_Parms::read_model_parms(string filename){
 	}
 	if(line_str == string("@ErrorRate")){
 		getline(infile,line_str);
-		if(line_str == string("#SingleErrorRate")){
+		size_t semicolon_index = line_str.find(";");
+		string errrate = line_str.substr(0,semicolon_index-1);
+		if(errrate == string("#SingleErrorRate")){
 			getline(infile,line_str);
 			shared_ptr<Single_error_rate> err_rate_p = shared_ptr<Single_error_rate> (new Single_error_rate(stod(line_str)));
+			this->error_rate = err_rate_p;
+		}
+		else if(errrate == string("#Hypermutationglobalerrorrate")){
+			size_t next_semicolon_index = line_str.find(";",semicolon_index+1);
+			size_t mutation_Nmer_size = stoi(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			semicolon_index = next_semicolon_index;
+			next_semicolon_index = line_str.find(";",semicolon_index+1);
+			Gene_class learn_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			semicolon_index = next_semicolon_index;
+			next_semicolon_index = line_str.find(";",semicolon_index+1);
+			Gene_class apply_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+
+			getline(infile,line_str);
+			double Z = stod(line_str);
+
+			getline(infile,line_str);
+			semicolon_index = 0;
+			next_semicolon_index = line_str.find(";");
+			vector<double> ei_contributions ;
+			while( semicolon_index!=string::npos ){
+				ei_contributions.push_back(stod(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1))));
+				semicolon_index = next_semicolon_index;
+				next_semicolon_index = line_str.find(";",semicolon_index+1);
+			}
+			Hypermutation_global_errorrate* err_rate_p = new Hypermutation_global_errorrate(mutation_Nmer_size, learn_on , apply_on , Z , ei_contributions);
 			this->error_rate = err_rate_p;
 		}
 		else{

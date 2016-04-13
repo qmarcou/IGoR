@@ -23,6 +23,9 @@ enum Seq_side{ Five_prime =0 , Three_prime = 1 , Undefined_side = 2 };
 enum Seq_type {V_gene_seq = 0 , VD_ins_seq = 1 , D_gene_seq = 2 , DJ_ins_seq = 3 , J_gene_seq = 4 , VJ_ins_seq = 5};
 enum Gene_class{V_gene , VD_genes , D_gene , DJ_genes , J_gene , VJ_genes , VDJ_genes ,Undefined_gene };
 
+Gene_class str2GeneClass(std::string);
+Seq_side str2SeqSide(std::string);
+
 std::ostream& operator<<(std::ostream& , Gene_class);
 std::ostream& operator<<(std::ostream& , Seq_side);
 std::string operator+(const std::string& , Gene_class );

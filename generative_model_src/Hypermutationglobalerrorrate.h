@@ -15,12 +15,14 @@
 #include <array>
 #include <math.h>
 #include <gsl/gsl_linalg.h>
+#include <memory>
 
 
 class Hypermutation_global_errorrate: public Error_rate {
 
 public:
 	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double);
+	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>);
 	//Hypermutation_global_errorrate(size_t,Gene_class,Gene_class, ??); Constructor to read or copy the error rate
 	virtual ~Hypermutation_global_errorrate();
 	double compare_sequences_error_prob( double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>&  , Mismatch_vectors_map& , double& , double& );
@@ -36,6 +38,7 @@ public:
 	double get_err_rate_upper_bound() const;
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
 	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
+	unsigned generate_random_contributions(double);
 
 private:
 	void update_Nmers_proba(int,int,double);
@@ -47,6 +50,7 @@ private:
 	Gene_class learn_on;
 	Gene_class apply_to;
 	size_t mutation_Nmer_size;
+	//std::unique_ptr<double[]> ei_nucleotide_contributions;
 	double* ei_nucleotide_contributions;
 	double Z;
 	//std::map<int,double> Nmer_background_proba;

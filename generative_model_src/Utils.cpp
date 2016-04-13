@@ -70,6 +70,33 @@ string operator+(const string& str , Event_type et){
 	return str+next_str;
 }
 
+Gene_class str2GeneClass(string str){
+	Gene_class gene_class;
+	if(str == "V_gene"){gene_class = V_gene;}
+	else if(str == "VD_genes"){gene_class = VD_genes;}
+	else if(str == "D_gene"){gene_class = D_gene;}
+	else if(str == "DJ_gene"){gene_class = DJ_genes;}
+	else if(str == "VJ_gene"){gene_class = VJ_genes;}
+	else if(str == "J_gene"){gene_class = J_gene;}
+	else if(str == "VDJ_genes"){gene_class = VDJ_genes;}
+	else if(str == "Undefined_gene"){gene_class = Undefined_gene;}
+	else{
+		throw runtime_error("Unknown Gene_class in str2GeneClass");
+	}
+	return gene_class;
+}
+
+Seq_side str2SeqSide(string str){
+	Seq_side seq_side;
+	if(str == "Five_prime"){seq_side = Five_prime;}
+		else if(str == "Three_prime"){seq_side = Three_prime;}
+		else if(str == "Undefined_side"){seq_side = Undefined_side;}
+	else{
+		throw runtime_error("Unknown event_side in str2SeqSide");
+	}
+	return seq_side;
+}
+
 //Seq_type_str_p_map::Seq_type_str_p_map(): Enum_fast_memory_map<Seq_type,Str_ptr>(6){}
 
 //Implementing Seq_type_str_p_map methods
