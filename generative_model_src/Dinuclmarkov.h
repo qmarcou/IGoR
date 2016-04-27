@@ -90,6 +90,7 @@ private:
 	int realization_final_index;
 
 
+
 	inline void iterate_common( int* , int& , Int_Str& , const Marginal_array_p);
 	inline std::queue<int> draw_random_common(const std::string& , std::string& , const Marginal_array_p , int , std::uniform_real_distribution<double>& , std::default_random_engine&) const;
 	inline double compute_nt_freq( int , const Marginal_array_p) const;

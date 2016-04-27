@@ -30,6 +30,7 @@ public:
 	void initialize(const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>&);
 	void add_to_norm_counter();
 	void clean_seq_counters();
+	void clean_all_counters();
 	void write2txt(std::ofstream&);
 	Error_rate* copy()const;
 	std::string type() const {return "HypermutationGlobalErrorRate";}
@@ -52,12 +53,14 @@ private:
 	size_t mutation_Nmer_size;
 	//std::unique_ptr<double[]> ei_nucleotide_contributions;
 	double* ei_nucleotide_contributions;
-	double Z;
+	double R;
 	//std::map<int,double> Nmer_background_proba;
 	double* Nmer_mutation_proba;
 
 	double* Nmer_P_SHM;
 	double* Nmer_P_BG;
+
+	size_t alphabet_size = 4;
 
 	//std::map<int,double> Nmer_background_proba_count;
 	//std::map<int,double> Nmer_SHM_proba_count;
@@ -98,13 +101,20 @@ private:
 	bool learn_on_d;
 	bool learn_on_j;
 
-	const int* vgene_offset_p;
-	const int* dgene_offset_p;
-	const int* jgene_offset_p;
+	bool v_gene;
+	bool d_gene;
+	bool j_gene;
+	bool vd_ins;
+	bool dj_ins;
+	bool vj_ins;
 
-	const int* vgene_real_index_p;
-	const int* dgene_real_index_p;
-	const int* jgene_real_index_p;
+	const int** vgene_offset_p;
+	const int** dgene_offset_p;
+	const int** jgene_offset_p;
+
+	const int** vgene_real_index_p;
+	const int** dgene_real_index_p;
+	const int** jgene_real_index_p;
 
 	//Get deletion values
 	//TODO need to change this in order to handle multiple models

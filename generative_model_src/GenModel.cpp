@@ -79,6 +79,10 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		shared_ptr<Error_rate> error_rate_copy = model_parms.get_err_rate_p()->copy();
 
 
+		//Initialize error rate copy
+		error_rate_copy->initialize(model_parms.get_events_map());
+
+
 		//Initialize counters for the log file
 		size_t sequences_processed = 0;
 

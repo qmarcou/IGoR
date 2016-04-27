@@ -9,12 +9,14 @@
 
 
 using namespace std;
-Insertion::Insertion(): Rec_Event() {
+Insertion::Insertion(): Insertion(Undefined_gene,*(new unordered_map<string,Event_realization>)) {
 	this->type = Event_type::Insertion_t;
 	this->update_event_name();
 }
 
-Insertion::Insertion(Gene_class genes , pair<int,int> ins_range): Rec_Event(genes , Undefined_side , *(new unordered_map<string,Event_realization>))  { //FIXME nonsense new
+
+Insertion::Insertion(Gene_class genes , pair<int,int> ins_range): Insertion(genes , *(new unordered_map<string,Event_realization>))  { //FIXME nonsense new
+
 	int min_ins = min(ins_range.first , ins_range.second);
 	int max_ins = max(ins_range.first , ins_range.second);
 
@@ -28,7 +30,7 @@ Insertion::Insertion(Gene_class genes , pair<int,int> ins_range): Rec_Event(gene
 	this->update_event_name();
 }
 
-Insertion::Insertion(Gene_class gene , unordered_map<string,Event_realization>& realizations): Rec_Event(gene,Undefined_side , realizations){
+Insertion::Insertion(Gene_class gene , unordered_map<string,Event_realization>& realizations): Rec_Event(gene,Undefined_side , realizations) , proba_contribution(-1) , previous_index(-1) , insertions(-1) , new_scenario_proba(-1) , base_index(-1) , new_index(-1) , realization_index(-1) , dinuc_updated_bound(NULL){
 	this->type = Event_type::Insertion_t;
 	for(unordered_map<string,Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end() ; ++iter){
 		if((*iter).second.value_int > this->len_max){this->len_max = (*iter).second.value_int;}

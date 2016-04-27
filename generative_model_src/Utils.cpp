@@ -21,6 +21,9 @@ ostream& operator<<(ostream& os , Gene_class gc){
 	case J_gene:os<<"J_gene";break;
 	case VDJ_genes:os<<"VDJ_genes";break;
 	case Undefined_gene: os<<"Undefined_gene";break;
+
+	default:
+		throw invalid_argument("Unknown Gene_class in operator<< ");
 	}
 	return os;
 }

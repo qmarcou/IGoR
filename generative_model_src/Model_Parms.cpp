@@ -420,7 +420,7 @@ void Model_Parms::read_model_parms(string filename){
 	if(line_str == string("@ErrorRate")){
 		getline(infile,line_str);
 		size_t semicolon_index = line_str.find(";");
-		string errrate = line_str.substr(0,semicolon_index-1);
+		string errrate = line_str.substr(0,semicolon_index);
 		if(errrate == string("#SingleErrorRate")){
 			getline(infile,line_str);
 			shared_ptr<Single_error_rate> err_rate_p = shared_ptr<Single_error_rate> (new Single_error_rate(stod(line_str)));
@@ -431,13 +431,25 @@ void Model_Parms::read_model_parms(string filename){
 			size_t mutation_Nmer_size = stoi(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
 			semicolon_index = next_semicolon_index;
 			next_semicolon_index = line_str.find(";",semicolon_index+1);
-			Gene_class learn_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			Gene_class learn_on;
+			try{
+				learn_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			}
+			catch(exception& e){
+				throw runtime_error("Unknown Gene_class\""+ line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)) +"\" for Hypermutationglobalerrorrate in model file: " + filename);
+			}
 			semicolon_index = next_semicolon_index;
 			next_semicolon_index = line_str.find(";",semicolon_index+1);
-			Gene_class apply_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			Gene_class apply_on;
+			try{
+				learn_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			}
+			catch(exception& e){
+				throw runtime_error("Unknown Gene_class\""+ line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)) +"\" for Hypermutationglobalerrorrate in model file: " + filename);
+			}
 
 			getline(infile,line_str);
-			double Z = stod(line_str);
+			double R = stod(line_str);
 
 			getline(infile,line_str);
 			semicolon_index = 0;
@@ -448,11 +460,11 @@ void Model_Parms::read_model_parms(string filename){
 				semicolon_index = next_semicolon_index;
 				next_semicolon_index = line_str.find(";",semicolon_index+1);
 			}
-			Hypermutation_global_errorrate* err_rate_p = new Hypermutation_global_errorrate(mutation_Nmer_size, learn_on , apply_on , Z , ei_contributions);
+			Hypermutation_global_errorrate* err_rate_p = new Hypermutation_global_errorrate(mutation_Nmer_size, learn_on , apply_on , R , ei_contributions);
 			this->error_rate = err_rate_p;
 		}
 		else{
-			throw runtime_error("Unknown Error_rate type in model file: " + filename);
+			throw runtime_error("Unknown Error_rate type\""+ errrate + "\" in model file: " + filename);
 		}
 
 	}

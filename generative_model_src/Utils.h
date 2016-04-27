@@ -21,7 +21,7 @@ enum Event_type {GeneChoice_t , Deletion_t , Insertion_t , Dinuclmarkov_t,Undefi
 enum Event_safety{VD_safe = 0  , DJ_safe = 1  , VJ_safe = 2 };
 enum Seq_side{ Five_prime =0 , Three_prime = 1 , Undefined_side = 2 };
 enum Seq_type {V_gene_seq = 0 , VD_ins_seq = 1 , D_gene_seq = 2 , DJ_ins_seq = 3 , J_gene_seq = 4 , VJ_ins_seq = 5};
-enum Gene_class{V_gene , VD_genes , D_gene , DJ_genes , J_gene , VJ_genes , VDJ_genes ,Undefined_gene };
+enum Gene_class{V_gene=0 , VD_genes=1 , D_gene=2 , DJ_genes=3 , J_gene=4 , VJ_genes=5 , VDJ_genes=6 ,Undefined_gene=7 };
 
 Gene_class str2GeneClass(std::string);
 Seq_side str2SeqSide(std::string);
