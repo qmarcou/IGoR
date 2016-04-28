@@ -465,7 +465,7 @@ void Model_Parms::read_model_parms(string filename){
 				semicolon_index = next_semicolon_index;
 				next_semicolon_index = line_str.find(";",semicolon_index+1);
 			}
-			Hypermutation_global_errorrate* err_rate_p = new Hypermutation_global_errorrate(mutation_Nmer_size, learn_on , apply_on , R , ei_contributions);
+			shared_ptr<Hypermutation_global_errorrate> err_rate_p = shared_ptr<Hypermutation_global_errorrate> (new Hypermutation_global_errorrate(mutation_Nmer_size, learn_on , apply_on , R , ei_contributions));
 			this->error_rate = err_rate_p;
 		}
 		else{
@@ -481,7 +481,7 @@ void Model_Parms::read_model_parms(string filename){
 }
 
 void Model_Parms::set_fixed_all_events(bool fix_bool_status){
-	for(list<Rec_Event*>::iterator iter = events.begin() ; iter != events.end() ; ++iter){
+	for(list<shared_ptr<Rec_Event>>::iterator iter = events.begin() ; iter != events.end() ; ++iter){
 		(*iter)->fix(fix_bool_status);
 	}
 }

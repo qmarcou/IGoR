@@ -25,14 +25,14 @@ public:
 	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>);
 	//Hypermutation_global_errorrate(size_t,Gene_class,Gene_class, ??); Constructor to read or copy the error rate
 	virtual ~Hypermutation_global_errorrate();
-	double compare_sequences_error_prob( double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>&  , Mismatch_vectors_map& , double& , double& );
+	double compare_sequences_error_prob( double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Mismatch_vectors_map& , double& , double& );
 	void update();
-	void initialize(const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>&);
+	void initialize(const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&);
 	void add_to_norm_counter();
 	void clean_seq_counters();
 	void clean_all_counters();
 	void write2txt(std::ofstream&);
-	Error_rate* copy()const;
+	std::shared_ptr<Error_rate> copy()const;
 	std::string type() const {return "HypermutationGlobalErrorRate";}
 	Hypermutation_global_errorrate& operator+=(Hypermutation_global_errorrate);
 	Error_rate* add_checked (Error_rate*);

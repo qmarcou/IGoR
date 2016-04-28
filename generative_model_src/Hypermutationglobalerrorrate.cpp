@@ -125,9 +125,9 @@ Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
 
 }
 
-Error_rate* Hypermutation_global_errorrate::copy()const{
+shared_ptr<Error_rate> Hypermutation_global_errorrate::copy()const{
 
-	Hypermutation_global_errorrate* copy_err_r = new Hypermutation_global_errorrate(this->mutation_Nmer_size , this->learn_on , this->apply_to , this->R);
+	shared_ptr<Hypermutation_global_errorrate> copy_err_r = shared_ptr<Hypermutation_global_errorrate>( new Hypermutation_global_errorrate(this->mutation_Nmer_size , this->learn_on , this->apply_to , this->R) );
 	copy_err_r->updated = this->updated;
 	//copy_err_r->R = this->R;
 	for(int ii = 0 ; ii != mutation_Nmer_size*4 ; ++ii){
@@ -193,7 +193,7 @@ double Hypermutation_global_errorrate::get_err_rate_upper_bound() const{
 	return max_proba/3;
 }
 
-double Hypermutation_global_errorrate::compare_sequences_error_prob (double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
+double Hypermutation_global_errorrate::compare_sequences_error_prob (double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
 	//TODO Take into account the order of mutations
 
 	scenario_resulting_sequence.clear();
@@ -711,13 +711,13 @@ void Hypermutation_global_errorrate::update(){
 
 }
 
-void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_type,Gene_class,Seq_side>, Rec_Event*>& events_map){
+void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
 	//FIXME look for previous initialization to avoid memory leak
 
 	//Get the right pointers for the V gene
 	if(learn_on == V_gene | learn_on == VJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
 		try{
-			Gene_choice* v_gene_event_p = dynamic_cast<Gene_choice*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side)));
+			shared_ptr<Gene_choice> v_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side)));
 			vgene_offset_p = &v_gene_event_p->alignment_offset_p;
 			vgene_real_index_p = &v_gene_event_p->current_realization_index;
 
@@ -752,7 +752,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 
 		//Get deletion value pointer for V 3' deletions if it exists
 		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)) != 0){
-			const Deletion* v_3_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)));
+			shared_ptr<const Deletion> v_3_del_event_p = dynamic_pointer_cast<Deletion>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)));
 			v_3_del_value_p = &(v_3_del_event_p->deletion_value);
 		}
 		else{v_3_del_value_p = &no_del_buffer;}
@@ -762,7 +762,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 	//Get the right pointers for the D gene
 	if(learn_on == D_gene | learn_on == DJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
 		try{
-			Gene_choice* d_gene_event_p = dynamic_cast<Gene_choice*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
+			shared_ptr<Gene_choice> d_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
 			dgene_offset_p = &d_gene_event_p->alignment_offset_p;
 			dgene_real_index_p = &d_gene_event_p->current_realization_index;
 			//Initialize gene counters
@@ -777,14 +777,14 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 
 		//Get deletion value pointer for D 5' deletions if it exists
 		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)) != 0){
-			const Deletion* d_5_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)));
+			shared_ptr<const Deletion> d_5_del_event_p = dynamic_pointer_cast<Deletion>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)));
 			d_5_del_value_p = &(d_5_del_event_p->deletion_value);
 		}
 		else{d_5_del_value_p = &no_del_buffer;}
 
 		//Get deletion value pointer for D 3' deletions if it exists
 		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)) != 0){
-			const Deletion* d_3_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)));
+			shared_ptr<const Deletion> d_3_del_event_p = dynamic_pointer_cast<Deletion>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Three_prime)));
 			d_3_del_value_p = &(d_3_del_event_p->deletion_value);
 		}
 		else{d_3_del_value_p = &no_del_buffer;}
@@ -794,7 +794,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 	//Get the right pointers for the J gene
 	if(learn_on == J_gene | learn_on == DJ_genes | learn_on == VJ_genes | learn_on == VDJ_genes){
 		try{
-			Gene_choice* j_gene_event_p = dynamic_cast<Gene_choice*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
+			shared_ptr<Gene_choice> j_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
 			jgene_offset_p = &j_gene_event_p->alignment_offset_p;
 			jgene_real_index_p = &j_gene_event_p->current_realization_index;
 			//Initialize gene counters
@@ -810,7 +810,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 
 	//Get deletion value pointer for J 5' deletions if it exists
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)) != 0){
-		const Deletion* j_5_del_event_p = dynamic_cast<Deletion*>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)));
+		shared_ptr<const Deletion> j_5_del_event_p = dynamic_pointer_cast<Deletion>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)));
 		j_5_del_value_p = &(j_5_del_event_p->deletion_value);
 	}
 	else{j_5_del_value_p = &no_del_buffer;}
