@@ -315,11 +315,11 @@ int main(int argc , char* argv[]){
 		//alpha_model_parms.write_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/test.txt");
 
 
-/*		//Read back the model
+		//Read back the model
 		Model_Parms alpha_read_parms;
 		alpha_read_parms.read_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/test.txt");
 
-		//introduce errors in an out of frame naive sequences sample
+/*		//introduce errors in an out of frame naive sequences sample
 		auto naive_indexed_seq = read_indexed_csv("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/AJ_Naive_noncoding_indexed_seq.csv");
 
 		//Create seed for random generator
@@ -342,7 +342,8 @@ int main(int argc , char* argv[]){
 		write_indexed_seq_csv(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/mutated_seqs_test.csv"),mutated_indexed_seq);*/
 
 		//infer back a model keeping everything fixed but the hypermutation error rate
-		alpha_model_parms.set_fixed_all_events(true);
+		//alpha_model_parms.set_fixed_all_events(true);
+		alpha_read_parms.set_fixed_all_events(true);
 
 /*		//align the sequences
         vector<pair<string,string>> v_genomic = read_genomic_fasta(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/GEN_DATA/AJ_alleles_final/genomicVs.fasta"));
@@ -378,7 +379,8 @@ int main(int argc , char* argv[]){
 		sorted_alignments = read_alignments_seq_csv_score_range(path + "J_alignments_non_coding_mutated.csv", J_gene , 10 , false , mutated_seqs_sample , sorted_alignments);//30//20
 
 		//infer back the model
-		GenModel genmodel(alpha_model_parms,alpha_model_marginals);
+		//GenModel genmodel(alpha_model_parms,alpha_model_marginals);
+		GenModel genmodel(alpha_read_parms,alpha_model_marginals);
 
 
 		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);

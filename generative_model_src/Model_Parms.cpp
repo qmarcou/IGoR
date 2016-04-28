@@ -456,7 +456,12 @@ void Model_Parms::read_model_parms(string filename){
 			next_semicolon_index = line_str.find(";");
 			vector<double> ei_contributions ;
 			while( semicolon_index!=string::npos ){
-				ei_contributions.push_back(stod(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1))));
+				if(semicolon_index==0){
+					ei_contributions.push_back(stod(line_str.substr(semicolon_index , (next_semicolon_index - semicolon_index -1))));
+				}
+				else{
+					ei_contributions.push_back(stod(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1))));
+				}
 				semicolon_index = next_semicolon_index;
 				next_semicolon_index = line_str.find(";",semicolon_index+1);
 			}

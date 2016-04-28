@@ -9,7 +9,15 @@
 
 using namespace std;
 
-Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , mutation_Nmer_size(nmer_width) , learn_on(learn) , apply_to(apply) , ei_nucleotide_contributions((new double [4*nmer_width])) , R(starting_flat_value) , n_v_real(0) , n_j_real(0) , n_d_real(0) {
+Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , mutation_Nmer_size(nmer_width) , learn_on(learn) , apply_to(apply) , ei_nucleotide_contributions((new double [4*nmer_width])) , R(starting_flat_value) , n_v_real(0) , n_j_real(0) , n_d_real(0) ,
+		v_gene_nucleotide_coverage_p(NULL) , v_gene_per_nucleotide_error_p(NULL),d_gene_nucleotide_coverage_p(NULL) , d_gene_per_nucleotide_error_p(NULL),j_gene_nucleotide_coverage_p(NULL) , j_gene_per_nucleotide_error_p(NULL),
+		v_gene_nucleotide_coverage_seq_p(NULL) , v_gene_per_nucleotide_error_seq_p(NULL) , d_gene_nucleotide_coverage_seq_p(NULL) , d_gene_per_nucleotide_error_seq_p(NULL) , j_gene_nucleotide_coverage_seq_p(NULL) , j_gene_per_nucleotide_error_seq_p(NULL) ,
+		dj_ins(true) , vd_ins(true) , vj_ins(true) , v_gene(true) , d_gene(true) , j_gene(true) ,
+		vgene_offset_p(NULL) , dgene_offset_p(NULL) , jgene_offset_p(NULL) ,
+		vgene_real_index_p(NULL) , dgene_real_index_p(NULL) , jgene_real_index_p(NULL),
+		v_3_del_value_p(NULL) , d_5_del_value_p(NULL) , d_3_del_value_p(NULL) , j_5_del_value_p(NULL),
+		i(-1) , j(-1) , v_3_del_value_corr(INT16_MAX) , d_5_del_value_corr(INT16_MAX) , d_3_del_value_corr(INT16_MAX) , j_5_del_value_corr(INT16_MAX) , tmp_cov_p(NULL) , tmp_err_p(NULL) , tmp_corr_len(-1) , tmp_len_util(-1) , scenario_new_proba(-1) ,
+		largest_nuc_adress(-1), tmp_int_nt(-1) , Nmer_index(-1){
 
 	if(fmod(nmer_width,2)==0){
 		throw runtime_error("Cannot instanciate hypermutation globale error rate with an even size Nmer(need to be symmetric)");
@@ -79,6 +87,8 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 	else{
 		throw runtime_error("Size of ei contribution vector does not match the expected size in Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>)");
 	}
+
+	this->update_Nmers_proba(0,0,1);
 }
 
 Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
@@ -125,6 +135,8 @@ Error_rate* Hypermutation_global_errorrate::copy()const{
 	}
 	//Make sure the values for the Nmer probas are correct
 	copy_err_r->update_Nmers_proba(0,0,1);
+
+	cout<<"here you get your copy"<<endl;
 
 	return copy_err_r;
 
@@ -235,7 +247,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 		//Get the adress of the first Nmer(disregarding the error penalty on teh first nucleotides)
 		Nmer_index = 0;
-		current_Nmer = queue<size_t>();
+		current_Nmer.empty();
 		for(i=0 ; i!=mutation_Nmer_size ; ++i){
 			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i,1));
 			current_Nmer.push(tmp_int_nt);
@@ -252,6 +264,9 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
 		}
 
+		if(std::isnan(scenario_new_proba)){
+			cout<<"major problem"<<endl;
+		}
 
 		//Look at all Nmers in the scenario_resulting_sequence by sliding window
 		//Removing the contribution of the first and adding the contribution of the new last
@@ -273,8 +288,11 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 				current_mismatch++;
 			}
 			else{
+				cout<<Nmer_mutation_proba[Nmer_index]<<endl;
+				cout<<scenario_new_proba<<endl;
 				scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
 			}
+
 
 		}
 
