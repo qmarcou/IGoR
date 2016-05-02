@@ -55,6 +55,7 @@ struct Event_realization {
 class Rec_Event {
 public:
 	Rec_Event();
+	Rec_Event(Gene_class, Seq_side );
 	Rec_Event(Gene_class, Seq_side ,std::unordered_map<std::string,Event_realization>&);
 	virtual ~Rec_Event();
 	virtual std::shared_ptr<Rec_Event> copy() = 0;//TODO make it const somehow

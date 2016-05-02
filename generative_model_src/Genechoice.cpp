@@ -11,12 +11,20 @@ using namespace std;
 
 
 
-Gene_choice::Gene_choice(): Rec_Event() {
+Gene_choice::Gene_choice(): Gene_choice(Undefined_gene) {
 	this->type = Event_type::GeneChoice_t;
 	this->update_event_name();
 }
 
-Gene_choice::Gene_choice(Gene_class gene): Rec_Event(gene , Undefined_side , *(new unordered_map<string,Event_realization>)){
+Gene_choice::Gene_choice(Gene_class gene): Rec_Event(gene , Undefined_side ),
+		vd_check(true) , vj_check(true) , dj_check(true),
+		d_5_min_offset(INT16_MAX) , d_5_max_offset (INT16_MAX) , j_5_min_offset(INT16_MAX) , j_5_max_offset(INT16_MAX) , v_5_off(INT16_MAX) , v_3_off(INT16_MAX) , d_offset(INT16_MAX) , j_offset(INT16_MAX) , v_offset(INT16_MAX) ,
+		v_3_min_offset(INT16_MAX) , v_3_max_offset(INT16_MAX) , d_3_off(INT16_MAX) , d_5_off(INT16_MAX) , d_3_min_offset(INT16_MAX) , d_3_max_offset(INT16_MAX) , j_5_off(INT16_MAX),
+		no_d_align(true) , d_size(INT16_MAX) , d_full_3_offset(INT16_MAX),
+		base_index(-1) , new_scenario_proba(-1) , new_tmp_err_w_proba(-1) , proba_contribution(-1) , new_index(-1) , alignment_offset_p(NULL),
+		memory_layer_cs(-1) , memory_layer_mismatches(-1) , memory_layer_safety_1(-1) , memory_layer_safety_2(-1) , memory_layer_off_threep(-1) , memory_layer_off_fivep(-1) , memory_layer_offset_check1(-1) , memory_layer_offset_check2(-1) ,
+		v_chosen(false) , v_choice_exist(true) , d_chosen(false) , d_choice_exist(false) , j_chosen(false) , j_choice_exist(true),
+		d_5_max_del(INT16_MIN) , d_5_min_del(INT16_MAX) , d_5_real_max_del(INT16_MIN) , j_5_max_del(INT16_MIN) , j_5_min_del(INT16_MIN) , v_3_max_del(INT16_MIN) , v_3_min_del(INT16_MAX) , d_3_max_del(INT16_MIN) , d_3_min_del(INT16_MAX){
 	this->type = Event_type::GeneChoice_t;
 	this->update_event_name();
 }
@@ -25,7 +33,9 @@ Gene_choice::Gene_choice(Gene_class gene): Rec_Event(gene , Undefined_side , *(n
  * Should probably be avoided, default initialize the event and use add_event_realization() instead
  * unless you're sure about the index fields in the Event_realizations instances
  */
-Gene_choice::Gene_choice(Gene_class gene  ,unordered_map<string,Event_realization>& realizations): Rec_Event(gene , Undefined_side , realizations){
+Gene_choice::Gene_choice(Gene_class gene  ,unordered_map<string,Event_realization>& realizations): Gene_choice(gene){
+	this->event_realizations = realizations;
+
 	this->type = Event_type::GeneChoice_t;
 	for(unordered_map<string,Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end(); ++iter){
 		int str_len = (*iter).second.value_str.length();
@@ -35,7 +45,7 @@ Gene_choice::Gene_choice(Gene_class gene  ,unordered_map<string,Event_realizatio
 	this->update_event_name();
 }
 
-Gene_choice::Gene_choice(Gene_class gene , vector<pair<string,string>> genomic_sequences ):Rec_Event(gene,Undefined_side,*(new unordered_map<string,Event_realization>)){
+Gene_choice::Gene_choice(Gene_class gene , vector<pair<string,string>> genomic_sequences ): Gene_choice(gene){
 	this->type = Event_type::GeneChoice_t;
 	for(vector<pair<string,string>>::const_iterator seq_it = genomic_sequences.begin() ; seq_it != genomic_sequences.end() ; ++seq_it ){
 		int str_len = (*seq_it).second.length();

@@ -27,6 +27,7 @@ public:
 	Insertion();
 	Insertion(Gene_class,std::pair<int,int>);
 	Insertion(Gene_class,std::forward_list<int>);
+	Insertion(Gene_class );
 	Insertion(Gene_class  , std::unordered_map<std::string , Event_realization>&);
 
 	//Destructor

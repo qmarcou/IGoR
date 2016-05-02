@@ -15,9 +15,7 @@ GenModel::GenModel(const Model_Parms& parms, const Model_marginals& marginals, c
 
 GenModel::GenModel(const Model_Parms& parms, const Model_marginals& marginals):GenModel(parms , marginals , map<size_t,shared_ptr<Counter>>()){}
 
-GenModel::GenModel(const Model_Parms& parms): GenModel(parms , *(new Model_marginals(parms)) , map<size_t,shared_ptr<Counter>>())  {//FIXME nonsense new
-	// TODO Auto-generated constructor stub
-
+GenModel::GenModel(const Model_Parms& parms): GenModel(parms ,  Model_marginals(parms) , map<size_t,shared_ptr<Counter>>())  {
 }
 
 GenModel::~GenModel() {
@@ -322,7 +320,7 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
 	unsigned time_seed = dur.count();
 	//Instantiate random number generator
 	default_random_engine generator =  default_random_engine(time_seed);
-	forward_list<pair<string,queue<queue<int>>>> sequence_list = *(new forward_list<pair<string,queue<queue<int>>>>());
+	forward_list<pair<string,queue<queue<int>>>> sequence_list =  forward_list<pair<string,queue<queue<int>>>>();
 
 	for(int seq = 0 ; seq != number_seq ; ++seq){
 		pair<string,queue<queue<int>>> sequence = this->generate_unique_sequence(model_queue , index_map ,offset_map , generator);

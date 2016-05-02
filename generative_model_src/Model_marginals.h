@@ -57,6 +57,7 @@ public:
 	size_t get_length()const{return marginal_arr_size;};
 
 
+	std::string debug_marg_name;
 
 	//get marginals for given parameter
 	long double* marginal_array_p;

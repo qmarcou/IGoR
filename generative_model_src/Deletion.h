@@ -29,6 +29,7 @@ public:
 	Deletion();
 	Deletion(Gene_class, Seq_side ,std::pair<int,int>);
 	Deletion(std::forward_list<int>);
+	Deletion(Gene_class , Seq_side );
 	Deletion(Gene_class , Seq_side , std::unordered_map<std::string , Event_realization>&);
 
 	//Destructor

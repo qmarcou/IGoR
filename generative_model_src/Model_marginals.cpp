@@ -14,7 +14,7 @@ using namespace std;
 Model_marginals::Model_marginals(const Model_Parms& model_parms) {
 	marginal_arr_size = compute_size(model_parms);
 	if(marginal_arr_size == 0){
-		throw runtime_error("Model_pams imply empty marginals");
+		throw runtime_error("provided Model_parms imply empty marginals in Model_marginals::Model_marginals(const Model_Parms& model_parms)");
 	}
 	marginal_array_p = new long double[marginal_arr_size];
 	this->null_initialize();
@@ -69,11 +69,11 @@ size_t Model_marginals::get_event_size(shared_ptr<const Rec_Event> event_p , con
 
 
 Model_marginals::~Model_marginals() {
-	delete [] marginal_array_p;
+	delete [] this->marginal_array_p;
 }
 
 Model_marginals& Model_marginals::operator=(const Model_marginals& other){
-	delete this->marginal_array_p;
+	delete [] this->marginal_array_p;
 	this->marginal_arr_size = other.marginal_arr_size;
 	this->marginal_array_p = new long double [this->marginal_arr_size];
 	for(size_t i=0 ; i!=marginal_arr_size ; ++i){
@@ -110,8 +110,7 @@ unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> Model_
 	//Stack to keep track of the events processed and their order
 	stack<shared_ptr<Rec_Event>>* model_stack_p = new stack<shared_ptr<Rec_Event>>;
 	stack<shared_ptr<Rec_Event>> model_stack = *model_stack_p;
-		unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> invert_offset_map = *(new unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>>); //FIXME nonsense new
-
+		unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> invert_offset_map = unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> ();
 		while(! model_queue.empty()){
 
 			if(!model_stack.empty()){
@@ -131,7 +130,7 @@ unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> Model_
 				//Copy model stack to have a modifiable copy
 				//TODO model stack might be more complicated than a simple list
 				stack<shared_ptr<Rec_Event>> model_stack_copy = model_stack;
-				invert_offset_map.emplace(current_event_point->get_name(),*(new list<pair< shared_ptr<const Rec_Event>,int>>()));
+				invert_offset_map.emplace(current_event_point->get_name(), list<pair< shared_ptr<const Rec_Event>,int>>() );
 
 				int offset = (*current_event_point).size();
 
@@ -200,7 +199,7 @@ unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Par
 	int index = 0;
 	stack<shared_ptr<Rec_Event>>* model_stack_p = new stack<shared_ptr<Rec_Event>>;
 	stack<shared_ptr<Rec_Event>> model_stack = *model_stack_p;
-	unordered_map<Rec_Event_name,int> index_map = *(new unordered_map<Rec_Event_name,int>);
+	unordered_map<Rec_Event_name,int> index_map =  unordered_map<Rec_Event_name,int> ();
 
 	while(! model_queue.empty()){
 
@@ -263,7 +262,7 @@ void Model_marginals::normalize(unordered_map<Rec_Event_name,list<pair<shared_pt
 		shared_ptr<Rec_Event> current_event_point = model_queue.front();
 		list<pair< shared_ptr<const Rec_Event>,int>> related_events;
 		if(inverse_offset_map.count(current_event_point->get_name()) == 0){
-			related_events = *(new list<pair<shared_ptr<const Rec_Event> , int >>()); //TODO change this to prevent memory leak
+			related_events = list<pair<shared_ptr<const Rec_Event> , int >> (); //TODO change this to prevent memory leak
 		}
 		else{
 			related_events = inverse_offset_map.at(current_event_point->get_name());

@@ -16,8 +16,8 @@ using namespace std;
  * Default constructor, creates an empty Model_Parms
  */
 Model_Parms::Model_Parms() {
-	this->events = *(new list <shared_ptr<Rec_Event>>()); //FIXME nonsense new
-	this->edges = *(new unordered_map <Rec_Event_name , Adjacency_list >());
+/*	this->events = *(new list <shared_ptr<Rec_Event>>()); //FIXME nonsense new
+	this->edges = *(new unordered_map <Rec_Event_name , Adjacency_list >());*/
 
 }
 
@@ -26,10 +26,10 @@ Model_Parms::Model_Parms() {
  */
 Model_Parms::Model_Parms(list <shared_ptr<Rec_Event>> event_list){
 	this->events = event_list;
-	this->edges = *(new unordered_map<Rec_Event_name,Adjacency_list>()); //FIXME nonsense new
+	//this->edges = *(new unordered_map<Rec_Event_name,Adjacency_list>()); //FIXME nonsense new
 	size_t event_identifier = 0;
 	for(list<shared_ptr<Rec_Event>>::const_iterator iter = this->events.begin() ; iter != this->events.end() ; ++iter){
-		this->edges.emplace( (*iter)->get_name() ,*(new Adjacency_list()));
+		this->edges.emplace( (*iter)->get_name() , Adjacency_list());
 		(*iter)->set_event_identifier(event_identifier);
 		++event_identifier;
 	}
@@ -106,7 +106,7 @@ bool Model_Parms::add_event(shared_ptr<Rec_Event> event_point){
 	//this->events.push_back(event_point);
 	event_point->set_event_identifier(this->events.size());
 	this->events.emplace_back(event_point);
-	this->edges.emplace(event_point->get_name(),*(new Adjacency_list())); //FIXME nonsense new
+	this->edges.emplace(event_point->get_name(), Adjacency_list());
 	return 1;
 }
 bool Model_Parms::add_event(Rec_Event* event_point){
@@ -160,7 +160,7 @@ bool Model_Parms::add_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Ev
  * This method returns all the roots of the tree (events with no parents).
  */
 list<shared_ptr<Rec_Event>> Model_Parms::get_roots() const{
-	list<shared_ptr<Rec_Event>> root_list = *(new list<shared_ptr<Rec_Event>>); //FIXME nonsense new
+	list<shared_ptr<Rec_Event>> root_list = list<shared_ptr<Rec_Event>> (); //FIXME nonsense new
 	for ( list <shared_ptr<Rec_Event>>::const_iterator iter = this->events.begin(); iter != this->events.end(); ++iter){
 		if (this->edges.at( (*iter)->get_name() ).parents.empty()){
 			root_list.push_back(*iter);
@@ -183,7 +183,7 @@ queue<shared_ptr<Rec_Event>> Model_Parms::get_model_queue() const{
 	list<shared_ptr<Rec_Event>> events_copy_list = this->events;
 
 
-	queue<shared_ptr<Rec_Event>> model_queue = *(new queue<shared_ptr<Rec_Event>>); //FIXME nonsense new
+	queue<shared_ptr<Rec_Event>> model_queue = queue<shared_ptr<Rec_Event>> ();
 
 
 	//if all events are root they are independent and thus the queue is sorted only by priority
@@ -200,7 +200,7 @@ queue<shared_ptr<Rec_Event>> Model_Parms::get_model_queue() const{
 	model_queue.push(*(model_roots.begin()));
 
 	//Keep track of the events already added to the queue
-	unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>* processed_events_point = new unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>; //FIXME nonsense new
+	unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>* processed_events_point = new unordered_map<Rec_Event_name,shared_ptr<Rec_Event>>;
 	(*processed_events_point).insert(make_pair( (*model_roots.begin())->get_name() , *(model_roots.begin()) ));
 	model_roots.pop_front();
 
@@ -329,7 +329,7 @@ void Model_Parms::read_model_parms(string filename){
 
 			cout<<event<<" read"<<endl;
 			if(event == string("Insertion")){
-				unordered_map<string,Event_realization> event_realizations = *(new unordered_map<string,Event_realization>()); //FIXME nonsense new
+				unordered_map<string,Event_realization> event_realizations = unordered_map<string,Event_realization> ();
 				getline(infile,line_str);
 				while(line_str[0]=='%'){
 					semicolon_index = line_str.find(";",0);
@@ -346,7 +346,7 @@ void Model_Parms::read_model_parms(string filename){
 				this->add_event(new_event_p);
 			}
 			else if(event == string("Deletion")){
-				unordered_map<string,Event_realization> event_realizations = *(new unordered_map<string,Event_realization>()); //FIXME nonsense new
+				unordered_map<string,Event_realization> event_realizations = unordered_map<string,Event_realization> ();
 				getline(infile,line_str);
 				while(line_str[0]=='%'){
 					semicolon_index = line_str.find(";",0);
@@ -363,7 +363,7 @@ void Model_Parms::read_model_parms(string filename){
 				this->add_event(new_event_p);
 			}
 			else if(event == string("GeneChoice")){
-				unordered_map<string,Event_realization> event_realizations = *(new unordered_map<string,Event_realization>()); //FIXME nonsense new
+				unordered_map<string,Event_realization> event_realizations = unordered_map<string,Event_realization> (); //FIXME nonsense new
 				getline(infile,line_str);
 				while(line_str[0]=='%'){
 					semicolon_index = line_str.find(";",0);
@@ -442,7 +442,7 @@ void Model_Parms::read_model_parms(string filename){
 			next_semicolon_index = line_str.find(";",semicolon_index+1);
 			Gene_class apply_on;
 			try{
-				learn_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+				apply_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
 			}
 			catch(exception& e){
 				throw runtime_error("Unknown Gene_class\""+ line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)) +"\" for Hypermutationglobalerrorrate in model file: " + filename);
@@ -466,7 +466,7 @@ void Model_Parms::read_model_parms(string filename){
 				next_semicolon_index = line_str.find(";",semicolon_index+1);
 			}
 			shared_ptr<Hypermutation_global_errorrate> err_rate_p = shared_ptr<Hypermutation_global_errorrate> (new Hypermutation_global_errorrate(mutation_Nmer_size, learn_on , apply_on , R , ei_contributions));
-			this->error_rate = err_rate_p;
+			this->set_error_ratep(err_rate_p);
 		}
 		else{
 			throw runtime_error("Unknown Error_rate type\""+ errrate + "\" in model file: " + filename);

@@ -13,10 +13,12 @@ Dinucl_markov::Dinucl_markov(Gene_class gene): Rec_Event()  ,  total_nucl_count(
 	this->type = Event_type::Dinuclmarkov_t;
 	event_class = gene;
 	//Same indexes as Aligner::nt2int
-	event_realizations.emplace("A" ,*(new Event_realization("A",INT16_MAX,"A",Int_Str(),0)));
-	event_realizations.emplace("C" ,*(new Event_realization("C",INT16_MAX,"C",Int_Str(),1)));
-	event_realizations.emplace("G" ,*(new Event_realization("G",INT16_MAX,"G",Int_Str(),2)));
-	event_realizations.emplace("T" ,*(new Event_realization("T",INT16_MAX,"T",Int_Str(),3)));
+
+	event_realizations.emplace("A" , Event_realization("A",INT16_MAX,"A","",0));
+	event_realizations.emplace("C" , Event_realization("C",INT16_MAX,"C","",1));
+	event_realizations.emplace("G" , Event_realization("G",INT16_MAX,"G","",2));
+	event_realizations.emplace("T" , Event_realization("T",INT16_MAX,"T","",3));
+
 	updated = true;
 	updated_upper_bound_proba = new double;
 	this->update_event_name();

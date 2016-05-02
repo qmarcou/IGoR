@@ -9,12 +9,12 @@
 
 
 using namespace std;
-Deletion::Deletion(): Deletion(Undefined_gene,Undefined_side, *(new unordered_map<string,Event_realization> ()) ) {
+Deletion::Deletion(): Deletion(Undefined_gene,Undefined_side ) {
 	this->type = Event_type::Deletion_t;
 	this->update_event_name();
 }
 
-Deletion::Deletion(Gene_class gene, Seq_side del_side , pair<int,int> del_range):Deletion(gene , del_side , *(new unordered_map<string,Event_realization>)  ){
+Deletion::Deletion(Gene_class gene, Seq_side del_side , pair<int,int> del_range):Deletion(gene , del_side){
 	//TODO prevent undefined_side entry(throw exception)
 
 	int min_del = min(del_range.first , del_range.second);
@@ -30,11 +30,22 @@ Deletion::Deletion(Gene_class gene, Seq_side del_side , pair<int,int> del_range)
 	this->update_event_name();
 }
 
-Deletion::Deletion(Gene_class gene , Seq_side side , unordered_map<string,Event_realization>& realizations):Rec_Event(gene,side,realizations), new_scenario_proba(-1) , d_3_max_del(INT16_MAX) , v_3_new_offset(INT16_MAX) , memory_layer_mismatches(-1) , memory_layer_offset_del(-1) ,
+Deletion::Deletion(Gene_class gene , Seq_side side ):Rec_Event(gene,side), new_scenario_proba(-1) , d_3_max_del(INT16_MAX) , v_3_new_offset(INT16_MAX) , memory_layer_mismatches(-1) , memory_layer_offset_del(-1) ,
 		v_3_min_del(INT16_MAX) ,memory_layer_offset_check2(-1) , d_5_min_offset(INT16_MAX) , new_index(-1) , j_5_max_offset(INT16_MAX) , d_3_max_offset(INT16_MAX) , dj_check(true) ,j_5_offset(INT16_MAX) , end_reached(false) ,d_chosen(false) , memory_layer_safety_1(-1) ,
 		new_tmp_err_w_proba(-1) , d_5_max_del(INT16_MAX) , v_3_min_offset(INT16_MAX) ,j_chosen(false) , memory_layer_safety_2(-1) , err_rate_upper_bound(-1) , v_chosen(false),vd_check(true) , j_5_min_offset(INT16_MAX) , v_3_max_offset(INT16_MAX) , v_3_max_del(INT16_MAX),
 		d_3_min_offset(INT16_MAX) , d_5_max_offset(INT16_MAX) , j_5_min_del(INT16_MAX) , d_5_new_offset(INT16_MAX) , vj_check(true) , d_3_min_del(INT16_MAX) , base_index(INT16_MAX) , memory_layer_offset_check1(-1) , d_5_offset(INT16_MAX) , d_del_opposite_side_processed(false),
 		v_3_offset(INT16_MAX) , d_5_min_del(INT16_MAX) , previous_marginal_index(INT16_MAX) , deletion_value(INT16_MAX) , j_5_max_del(INT16_MAX) , d_3_offset(INT16_MAX) , proba_contribution(-1) , d_3_new_offset(INT16_MAX) , memory_layer_cs(-1) , j_5_new_offset(INT16_MAX){
+	this->type = Event_type::Deletion_t;
+	for(unordered_map<string,Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end() ; ++iter){
+		if((*iter).second.value_int > (-this->len_min)){this->len_min = -(*iter).second.value_int;}
+		else if((*iter).second.value_int < (-this->len_max)){this->len_max = -(*iter).second.value_int;}
+	}
+	this->update_event_name();
+}
+
+Deletion::Deletion(Gene_class gene , Seq_side side , unordered_map<string,Event_realization>& realizations): Deletion(gene,side){
+	this->event_realizations = realizations;
+
 	this->type = Event_type::Deletion_t;
 	for(unordered_map<string,Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end() ; ++iter){
 		if((*iter).second.value_int > (-this->len_min)){this->len_min = -(*iter).second.value_int;}
@@ -59,7 +70,9 @@ shared_ptr<Rec_Event> Deletion::copy(){
 
 
 void Deletion::add_realization(int del_number){
-	this->Rec_Event::add_realization(*(new Event_realization(to_string(del_number) , del_number , "" , Int_Str() , this->size())));//FIXME nonsense new
+
+	this->Rec_Event::add_realization( Event_realization(to_string(del_number) , del_number , "" , Int_Str() , this->size()));
+
 	if(del_number > (-this->len_min)){this->len_min = (-del_number);}
 	else if (del_number < (-this->len_max)){this->len_max = (-del_number);}
 	this->update_event_name();

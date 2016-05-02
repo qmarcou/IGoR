@@ -9,13 +9,13 @@
 
 
 using namespace std;
-Insertion::Insertion(): Insertion(Undefined_gene,*(new unordered_map<string,Event_realization>)) {
+Insertion::Insertion(): Insertion(Undefined_gene) {
 	this->type = Event_type::Insertion_t;
 	this->update_event_name();
 }
 
 
-Insertion::Insertion(Gene_class genes , pair<int,int> ins_range): Insertion(genes , *(new unordered_map<string,Event_realization>))  { //FIXME nonsense new
+Insertion::Insertion(Gene_class genes , pair<int,int> ins_range): Insertion( genes )  { //FIXME nonsense new
 
 	int min_ins = min(ins_range.first , ins_range.second);
 	int max_ins = max(ins_range.first , ins_range.second);
@@ -30,7 +30,18 @@ Insertion::Insertion(Gene_class genes , pair<int,int> ins_range): Insertion(gene
 	this->update_event_name();
 }
 
-Insertion::Insertion(Gene_class gene , unordered_map<string,Event_realization>& realizations): Rec_Event(gene,Undefined_side , realizations) , proba_contribution(-1) , previous_index(-1) , insertions(-1) , new_scenario_proba(-1) , base_index(-1) , new_index(-1) , realization_index(-1) , dinuc_updated_bound(NULL){
+Insertion::Insertion(Gene_class gene ): Rec_Event(gene,Undefined_side ) , proba_contribution(-1) , previous_index(-1) , insertions(-1) , new_scenario_proba(-1) , base_index(-1) , new_index(-1) , realization_index(-1) , dinuc_updated_bound(NULL){
+	this->type = Event_type::Insertion_t;
+	for(unordered_map<string,Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end() ; ++iter){
+		if((*iter).second.value_int > this->len_max){this->len_max = (*iter).second.value_int;}
+		else if ((*iter).second.value_int < this->len_min){this->len_min = (*iter).second.value_int;}
+	}
+	this->update_event_name();
+}
+
+Insertion::Insertion(Gene_class gene , unordered_map<string,Event_realization>& realizations): Insertion(gene){
+	this->event_realizations = realizations;
+
 	this->type = Event_type::Insertion_t;
 	for(unordered_map<string,Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end() ; ++iter){
 		if((*iter).second.value_int > this->len_max){this->len_max = (*iter).second.value_int;}
@@ -56,7 +67,7 @@ shared_ptr<Rec_Event> Insertion::copy(){
 
 
 bool Insertion::add_realization(int insertion_number){
-	this->Rec_Event::add_realization(*(new Event_realization(to_string(insertion_number),insertion_number ,"",Int_Str(),this->size() ))); //FIXME nonsense new
+	this->Rec_Event::add_realization( Event_realization(to_string(insertion_number),insertion_number ,"",Int_Str(),this->size() ));
 	if(insertion_number>this->len_max){this->len_max = insertion_number;}
 	else if(insertion_number < this->len_min){this->len_min = insertion_number;}
 	this->update_event_name();
