@@ -206,7 +206,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					//new_tmp_err_w_proba = tmp_err_w_proba;
 					proba_contribution =1;
 
-					iterate_common( iter , base_index_map , offset_map , model_parameters_point);
+					this->iterate_common( iter , base_index_map , offset_map , model_parameters_point);
 
 
 					//Positive or negative deletion (palindroms) mechanism
@@ -445,7 +445,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						//new_tmp_err_w_proba = tmp_err_w_proba;
 						proba_contribution = 1;
 
-						iterate_common( iter , base_index_map , offset_map , model_parameters_point);
+						this->iterate_common( iter , base_index_map , offset_map , model_parameters_point);
 
 						//Positive or negative deletion (palindroms) mechanism
 						if((*iter).value_int >= 0){
@@ -687,7 +687,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						//new_tmp_err_w_proba = tmp_err_w_proba;
 						proba_contribution = 1;
 
-						iterate_common( iter , base_index_map , offset_map , model_parameters_point);
+						this->iterate_common( iter , base_index_map , offset_map , model_parameters_point);
 
 
 						//Positive or negative deletion (palindroms) mechanism
@@ -992,7 +992,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					//new_tmp_err_w_proba=tmp_err_w_proba;
 					proba_contribution = 1;
 
-					iterate_common( iter , base_index_map , offset_map , model_parameters_point);
+					this->iterate_common( iter , base_index_map , offset_map , model_parameters_point);
 
 					//Positive or negative deletion (palindroms) mechanism
 					if((*iter).value_int >= 0){
@@ -1180,7 +1180,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 	 proba_contribution = (model_parameters_point[base_index+(*iter).index]);
  }
 
- queue<int> Deletion::draw_random_realization( const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+ queue<int> Deletion::draw_random_realization( const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
 
 	 uniform_real_distribution<double> distribution(0.0,1.0);
 	 double rand = distribution(generator);
@@ -1525,7 +1525,8 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
  }
 
- void Deletion::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
+
+ void Deletion::add_to_marginals(long double scenario_proba , Marginal_array_p& updated_marginals) const{
  	if(viterbi_run){
  		 updated_marginals[this->new_index]=scenario_proba;
  	}

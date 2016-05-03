@@ -84,6 +84,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		//Initialize counters for the log file
 		size_t sequences_processed = 0;
 
+
 		const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
 
 		//Take only best alignments if fast_iter
@@ -99,6 +100,9 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		else{
 			sequence_util_ptr = &sequences;
 		}
+
+		new_marginals.debug_marg_name = "new_marginals";
+
 
 
 		/* omp parallel declaration using OpenMP 4.0 standards
@@ -123,6 +127,8 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				}
 			}
 
+			single_thread_marginals.debug_marg_name = "single_thread_marginals";
+			single_thread_model_marginals.debug_marg_name = "single thread model marginals";
 
 			unordered_set<Rec_Event_name> init_processed_events;
 
@@ -148,8 +154,10 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 				//Get events probability upper bounds
 				size_t event_size = single_thread_model_marginals.get_event_size((*event_iter) , single_thread_model_parms);
+
 				(*event_iter)->set_event_marginal_size(event_size);
-				(*event_iter)->set_crude_upper_bound_proba(single_thread_index_map.at((*event_iter)->get_name()) , event_size , single_thread_model_marginals.marginal_array_p);
+				(*event_iter)->set_crude_upper_bound_proba(single_thread_index_map.at((*event_iter)->get_name()) , event_size , single_thread_model_marginals.marginal_array_smart_p);
+
 			}
 
 			queue<shared_ptr<Rec_Event>> single_thread_model_queue = single_thread_model_parms.get_model_queue(); //single_thread_parms.get_model_queue();
@@ -193,7 +201,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				tmp_init_proba_single_thread_model_queue.pop();
 				last_proba_init_event->initialize_crude_scenario_proba_bound(downstream_proba_bound , updated_proba_list , events_map);
 
-				last_proba_init_event->initialize_Len_proba_bound(tmp_init_proba_single_thread_model_queue,single_thread_model_marginals.marginal_array_p,index_mapp);
+				last_proba_init_event->initialize_Len_proba_bound(tmp_init_proba_single_thread_model_queue,single_thread_model_marginals.marginal_array_smart_p,index_mapp);
 				cout<<last_proba_init_event->get_name()<<" initialized"<<endl;
 			}
 			cout<<"Initialization of proba bounds over"<<endl;
@@ -224,6 +232,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 				//cout<<int_sequence<<endl;
 
+				single_seq_marginals.debug_marg_name = "single_seq_marginals";
 
 				/*
 				 * Call iterate on the first event
@@ -231,7 +240,9 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				 * The weight of each recombination scenario is added to the single_seq_marginals on the fly
 				 */
 				try{
-					first_event->iterate(init_proba , downstream_proba_map , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_p , single_thread_model_marginals.marginal_array_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
+
+					first_event->iterate(init_proba , downstream_proba_map , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_smart_p , single_thread_model_marginals.marginal_array_smart_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
+
 				}
 				catch(exception& except){
 					general_logs<<"Exception caught calling iterate() on sequence:"<<endl;
@@ -246,7 +257,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 
 				//Normalize the weights on the single_seq_marginal so that each sequence has the same weight when merged to the single_thread_marginals
-				single_thread_err_rate->norm_weights_by_seq_likelihood(single_seq_marginals.marginal_array_p,single_seq_marginals.get_length());
+				single_thread_err_rate->norm_weights_by_seq_likelihood(single_seq_marginals.marginal_array_smart_p,single_seq_marginals.get_length());
 				#pragma omp critical(dump_seq_info)
 				{
 					++sequences_processed;
@@ -410,7 +421,7 @@ pair<string,queue<queue<int>>> GenModel::generate_unique_sequence(queue<shared_p
 	unordered_map<Seq_type,string> constructed_sequences = *constructed_sequences_p;
 	queue<queue<int>> realizations ;
 	while(! model_queue.empty()){
-		realizations.push(model_queue.front()->draw_random_realization((this->model_marginals.marginal_array_p) , index_map , offset_map , constructed_sequences ,  generator));
+		realizations.push(model_queue.front()->draw_random_realization((this->model_marginals.marginal_array_smart_p) , index_map , offset_map , constructed_sequences ,  generator));
 		model_queue.pop();
 	}
 	//CAT strings

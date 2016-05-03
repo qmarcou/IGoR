@@ -16,25 +16,26 @@ Model_marginals::Model_marginals(const Model_Parms& model_parms) {
 	if(marginal_arr_size == 0){
 		throw runtime_error("provided Model_parms imply empty marginals in Model_marginals::Model_marginals(const Model_Parms& model_parms)");
 	}
-	marginal_array_p = new long double[marginal_arr_size];
+	marginal_array_smart_p = Marginal_array_p(new long double[marginal_arr_size]);
 	this->null_initialize();
 }
 /*
  * Provides a deep copy of the object
  */
-Model_marginals::Model_marginals(const Model_marginals& other):marginal_array_p(new long double[other.marginal_arr_size]), marginal_arr_size(other.marginal_arr_size) {
+Model_marginals::Model_marginals(const Model_marginals& other):marginal_array_smart_p(Marginal_array_p(new long double[other.marginal_arr_size])), marginal_arr_size(other.marginal_arr_size) {
 	for(size_t i=0 ; i!=marginal_arr_size ; ++i){
-		marginal_array_p[i] = other.marginal_array_p[i];
+		marginal_array_smart_p[i] = other.marginal_array_smart_p[i];
 	}
 }
 
 Model_marginals::Model_marginals(size_t arr_size):marginal_arr_size(arr_size){
-	marginal_array_p = new long double[marginal_arr_size];
+	marginal_array_smart_p = Marginal_array_p(new long double[marginal_arr_size]);
 	this->null_initialize();
 }
 
 Model_marginals Model_marginals::empty_copy(){
 	Model_marginals null_copy (this->marginal_arr_size);
+	null_copy.debug_marg_name = "null tmp copy";
 	return null_copy;
 }
 
@@ -69,15 +70,17 @@ size_t Model_marginals::get_event_size(shared_ptr<const Rec_Event> event_p , con
 
 
 Model_marginals::~Model_marginals() {
-	delete [] this->marginal_array_p;
+	//cout<<debug_marg_name<<endl;
+	//delete [] this->marginal_array_p;
+	//cout<<"test"<<endl;
 }
 
 Model_marginals& Model_marginals::operator=(const Model_marginals& other){
-	delete [] this->marginal_array_p;
+	//delete [] this->marginal_array_p;
 	this->marginal_arr_size = other.marginal_arr_size;
-	this->marginal_array_p = new long double [this->marginal_arr_size];
+	this->marginal_array_smart_p = Marginal_array_p(new long double [this->marginal_arr_size]);
 	for(size_t i=0 ; i!=marginal_arr_size ; ++i){
-		marginal_array_p[i] = other.marginal_array_p[i];
+		marginal_array_smart_p[i] = other.marginal_array_smart_p[i];
 	}
 	return *this;
 }
@@ -88,7 +91,7 @@ Model_marginals& Model_marginals::operator +=(Model_marginals marginals){
 	}
 	else{
 		for(size_t i = 0 ; i!= this->marginal_arr_size ; ++i){
-			this->marginal_array_p[i]+=marginals.marginal_array_p[i];
+			this->marginal_array_smart_p[i]+=marginals.marginal_array_smart_p[i];
 		}
 	}
 	return *this;
@@ -288,7 +291,7 @@ void Model_marginals::iterate_normalize(shared_ptr<Rec_Event> current_event_poin
 				this->marginal_array_p[index + current_offset + iter] /= sum_marginals;
 			}
 		}*/
-		current_event_point->ind_normalize(this->marginal_array_p,index + current_offset);
+		current_event_point->ind_normalize(this->marginal_array_smart_p,index + current_offset);
 
 
 		return;
@@ -313,7 +316,7 @@ void Model_marginals::copy_fixed_events_marginals(const Model_marginals& source_
 			size_t event_size = this->get_event_size((*iter),parms);
 			size_t first_index = index_map.at((*iter)->get_name());
 			for(size_t i = first_index ; i!=first_index+event_size ; ++i){
-				this->marginal_array_p[i] = source_marginals.marginal_array_p[i];
+				this->marginal_array_smart_p[i] = source_marginals.marginal_array_smart_p[i];
 			}
 		}
 	}
@@ -333,7 +336,7 @@ void Model_marginals::uniform_initialize(const Model_Parms& parms){
 
 
 	for(size_t i=0 ; i!= compute_size(parms) ; ++i){
-		marginal_array_p[i]=1;
+		marginal_array_smart_p[i]=1;
 	}
 
 
@@ -343,7 +346,7 @@ void Model_marginals::uniform_initialize(const Model_Parms& parms){
 
 void Model_marginals::null_initialize(){
 	for(size_t i=0 ; i!= marginal_arr_size ; ++i){
-			marginal_array_p[i]=0;
+			marginal_array_smart_p[i]=0;
 		}
 }
 
@@ -359,7 +362,7 @@ void Model_marginals::random_initialize(const Model_Parms& parms){
 	default_random_engine generator =  default_random_engine(time_seed);
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	for(size_t i = 0 ; i != this->marginal_arr_size ; ++i){
-		marginal_array_p[i] = distribution(generator);
+		marginal_array_smart_p[i] = distribution(generator);
 	}
 
 	list<shared_ptr<Rec_Event>> events = parms.get_event_list();
@@ -383,7 +386,7 @@ void Model_marginals::flatten(shared_ptr<const Rec_Event> event,const Model_Parm
 
 	//Set all values to 1 on the marginal array
 	for(int i = base_index ; i!=base_index+event_size;++i){
-		this->marginal_array_p[i]=1;
+		this->marginal_array_smart_p[i]=1;
 	}
 	this->normalize(inverse_offset_map,index_map,model_queue);
 
@@ -448,9 +451,9 @@ void Model_marginals::write2txt_iteration(list<pair<shared_ptr<const Rec_Event>,
 		}
 
 		outfile<<endl;
-		outfile<<"%"<<marginal_array_p[index];
+		outfile<<"%"<<marginal_array_smart_p[index];
 		for(int j=1 ; j < current_event_p->size() ; ++j){
-			outfile<<","<<marginal_array_p[index+j];
+			outfile<<","<<marginal_array_smart_p[index+j];
 		}
 		outfile<<endl;
 	}
@@ -466,11 +469,11 @@ void Model_marginals::txt2marginals(string filename, const Model_Parms& parms){
 	while(getline(infile,line_str)){
 		if(line_str[0]=='%'){
 			size_t semicolon_index =  line_str.find(",");
-			marginal_array_p[index] = stod(line_str.substr(1,(semicolon_index)));
+			marginal_array_smart_p[index] = stod(line_str.substr(1,(semicolon_index)));
 			++index;
 			while(semicolon_index!=string::npos){
 				size_t next_comma_index = line_str.find(",", (semicolon_index+1) );
-				marginal_array_p[index] = stod(line_str.substr( (semicolon_index+1) , (next_comma_index - semicolon_index -1) ));
+				marginal_array_smart_p[index] = stod(line_str.substr( (semicolon_index+1) , (next_comma_index - semicolon_index -1) ));
 				semicolon_index = next_comma_index;
 				++index;
 			}

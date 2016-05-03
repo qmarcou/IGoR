@@ -60,7 +60,7 @@ public:
 	std::string debug_marg_name;
 
 	//get marginals for given parameter
-	long double* marginal_array_p;
+	std::unique_ptr<long double []> marginal_array_smart_p;
 
 private:
 	void iterate_normalize(std::shared_ptr<Rec_Event>, std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>& , int ,int );

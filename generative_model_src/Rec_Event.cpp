@@ -171,7 +171,7 @@ void Rec_Event::initialize_event( unordered_set<Rec_Event_name>& processed_event
 	return;
 }
 
-void Rec_Event::ind_normalize(Marginal_array_p marginal_array_p , size_t base_index){
+void Rec_Event::ind_normalize(Marginal_array_p& marginal_array_p , size_t base_index){
 	long double sum_marginals = 0;
 	for(int i =0 ; i != this->size() ; ++i){
 		sum_marginals+= marginal_array_p[base_index + i];
@@ -183,7 +183,9 @@ void Rec_Event::ind_normalize(Marginal_array_p marginal_array_p , size_t base_in
 	}
 }
 
-void Rec_Event::set_crude_upper_bound_proba( size_t base_index , size_t event_size , Marginal_array_p marginal_array_p){
+
+void Rec_Event::set_crude_upper_bound_proba( size_t base_index , size_t event_size , Marginal_array_p& marginal_array_p){
+
 	double max_proba = 0;
 	for(size_t i = 0 ; i!= event_size ; ++i){
 		if(marginal_array_p[base_index + i] > max_proba){
@@ -214,6 +216,8 @@ void Rec_Event::initialize_crude_scenario_proba_bound(double& downstream_proba_b
 		throw logic_error("Updated events should overload Rec_event::initialize_scenario_proba_bound()");
 	}
 }
+
+
 /*
  * Description??
  */

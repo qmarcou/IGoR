@@ -884,7 +884,7 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
  *This short method performs the iterate operations common to all Rec_event (modify index map and fetch realization probability)
  *
  */
-double Gene_choice::iterate_common(double scenario_proba ,const int& gene_index , int base_index , Index_map& base_index_map ,const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map ,const Marginal_array_p model_parameters){
+double Gene_choice::iterate_common(double scenario_proba ,const int& gene_index , int base_index , Index_map& base_index_map ,const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map ,const Marginal_array_p& model_parameters){
 
 	//TODO remove scenario proba as argument
 	//int gene_index = ((*this)).event_realizations.at((*iter).gene_name).index;
@@ -911,7 +911,7 @@ double Gene_choice::iterate_common(double scenario_proba ,const int& gene_index 
 	return  scenario_proba * model_parameters[base_index+gene_index];
 }
 
-queue<int> Gene_choice::draw_random_realization( const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+queue<int> Gene_choice::draw_random_realization( const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	double rand = distribution(generator);
 	double prob_count = 0;
@@ -1198,10 +1198,11 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 
 }
 
+
 /**
  * All add_to_marginals should take into account the possibility to perform viterbi runs(take only the most likely scenario into account)
  */
-void Gene_choice::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
+void Gene_choice::add_to_marginals(long double scenario_proba , Marginal_array_p& updated_marginals) const{
 	if(viterbi_run){
 		updated_marginals[this->new_index]=scenario_proba;
 	}

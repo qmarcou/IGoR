@@ -16,6 +16,8 @@
 #include <stdexcept>
 #include <iostream>
 #include "IntStr.h"
+#include <memory>
+
 
 enum Event_type {GeneChoice_t , Deletion_t , Insertion_t , Dinuclmarkov_t,Undefined_t};
 enum Event_safety{VD_safe = 0  , DJ_safe = 1  , VJ_safe = 2 };
@@ -33,7 +35,7 @@ std::string operator+(const std::string& , Seq_side );
 std::string operator+(const std::string& , Event_type );
 
 //Type used to describe the array of doubles containing the marginals values
-typedef long double* Marginal_array_p;
+typedef std::unique_ptr<long double []> Marginal_array_p;
 
 //Type used as key for unordered map since Rec_event cannot be instantiated
 typedef std::string Rec_Event_name;

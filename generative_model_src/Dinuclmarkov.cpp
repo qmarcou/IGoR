@@ -139,7 +139,7 @@ void Dinucl_markov::iterate(double& scenario_proba , Downstream_scenario_proba_b
 	}
 }
 
-queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
 
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	bool correct_class=0;
@@ -193,7 +193,7 @@ queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p model_m
 	return realization_queue;
 }
 
-queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string& inserted_seq ,const Marginal_array_p model_marginals_p , int index , uniform_real_distribution<double>&  distribution , default_random_engine& generator)const{
+queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string& inserted_seq ,const Marginal_array_p& model_marginals_p , int index , uniform_real_distribution<double>&  distribution , default_random_engine& generator)const{
 
 	queue<int> realization_queue;
 	double prob_count;
@@ -257,10 +257,12 @@ void Dinucl_markov::write2txt(ofstream& outfile){
 	}
 }
 
-void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_nt  , Int_Str& ins_seq , const Marginal_array_p model_parameters_point){
+
+void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_nt  , Int_Str& ins_seq , const Marginal_array_p& model_parameters_point){
 
 	if(!ins_seq.empty()){
 		if(ins_seq.at(0)==-1){
+
 
 			//first_nt_index = event_realizations.at(previous_assigned_nt).index;
 			//sec_nt_index = event_realizations.at(data_seq_substr.substr(0,1)).index;
@@ -308,7 +310,7 @@ void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_
 /*
  * This way of proceeding is highly not optimal, should be modified
  */
-double Dinucl_markov::compute_nt_freq(int index , const Marginal_array_p model_marginals) const{
+double Dinucl_markov::compute_nt_freq(int index , const Marginal_array_p& model_marginals) const{
 	double nucl_freq = 0;
 	for(size_t i = 0 ; i != event_realizations.size() ; ++i){
 		nucl_freq+=model_marginals[index + i];
@@ -316,7 +318,7 @@ double Dinucl_markov::compute_nt_freq(int index , const Marginal_array_p model_m
 	return nucl_freq;
 }
 
-void Dinucl_markov::ind_normalize(Marginal_array_p marginal_array_p , size_t base_index){
+void Dinucl_markov::ind_normalize(Marginal_array_p& marginal_array_p , size_t base_index){
 	size_t numb_realizations = this->event_realizations.size();
 	for(size_t i = 0 ; i != numb_realizations ; ++i){
 		long double sum_marginals = 0;
@@ -379,12 +381,14 @@ void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_e
 
 }
 
-void Dinucl_markov::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
+
+void Dinucl_markov::add_to_marginals(long double scenario_proba , Marginal_array_p& updated_marginals) const{
 	if(viterbi_run){
 		for(size_t i=0 ; i!=this->event_marginal_size ; ++i){
 			updated_marginals[unmutable_base_index + i] = 0;
 		}
 	}
+
 
 	if(event_class == VD_genes || event_class == VDJ_genes){
 		for(size_t i = 0 ; i != vd_seq_size ; ++i){

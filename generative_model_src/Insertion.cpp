@@ -248,7 +248,7 @@ void Insertion::iterate(double& scenario_proba , Downstream_scenario_proba_bound
 /*
  *This short method performs the iterate operations common to all Rec_event (modify index map and fetch realization probability)
  */
-inline double Insertion::iterate_common(double scenario_proba , int insertions , int base_index , Index_map& base_index_map ,const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map ,const Marginal_array_p model_parameters_point){
+inline double Insertion::iterate_common(double scenario_proba , int insertions , int base_index , Index_map& base_index_map ,const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map ,const Marginal_array_p& model_parameters_point){
 
 	//insertions_str = to_string(insertions);
 	//TODO just output proba contribution no need to take it as argument
@@ -282,7 +282,7 @@ inline double Insertion::iterate_common(double scenario_proba , int insertions ,
 	return  scenario_proba * model_parameters_point[base_index+realization_index];
 }
 
-queue<int> Insertion::draw_random_realization(Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+queue<int> Insertion::draw_random_realization(const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	double rand = distribution(generator);
 	double prob_count = 0;
@@ -351,7 +351,8 @@ void Insertion::initialize_event( unordered_set<Rec_Event_name>& processed_event
 
 
 
-void Insertion::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
+
+void Insertion::add_to_marginals(long double scenario_proba , Marginal_array_p& updated_marginals) const{
 	if(viterbi_run){
 		updated_marginals[this->new_index]=scenario_proba;
 	}
@@ -361,7 +362,9 @@ void Insertion::add_to_marginals(long double scenario_proba , Marginal_array_p u
 }
 
 
-void Insertion::set_crude_upper_bound_proba(size_t base_index , size_t event_size , Marginal_array_p marginal_array_p){
+
+void Insertion::set_crude_upper_bound_proba(size_t base_index , size_t event_size , Marginal_array_p& marginal_array_p){
+
 	size_t numb_realizations = this->size();
 	upper_bound_per_ins.clear();
 	for(unordered_map < string, Event_realization >::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end() ; ++iter){

@@ -24,7 +24,7 @@ void Error_rate::initialize(const unordered_map<tuple<Event_type,Gene_class,Seq_
 	//This method is called if no other method is supplied in the instantiated class
 }
 
-void Error_rate::norm_weights_by_seq_likelihood(Marginal_array_p single_seq_marginal_array , const size_t marginal_array_size , const double seq_weight/*=1 by default*/){
+void Error_rate::norm_weights_by_seq_likelihood(Marginal_array_p& single_seq_marginal_array , const size_t marginal_array_size , const double seq_weight/*=1 by default*/){
 	if(seq_likelihood!=0){
 		for(size_t i = 0 ; i != marginal_array_size ; ++i){
 			single_seq_marginal_array[i]/=this->seq_likelihood*seq_weight;

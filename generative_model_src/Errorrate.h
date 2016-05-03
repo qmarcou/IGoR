@@ -38,7 +38,7 @@ public:
 	void update_value(bool update_status) {updated = update_status;};
 	virtual void add_to_norm_counter()=0;
 	virtual void clean_seq_counters()=0;
-	void norm_weights_by_seq_likelihood(Marginal_array_p, const size_t, const double seq_weight=1);
+	void norm_weights_by_seq_likelihood(Marginal_array_p&, const size_t, const double seq_weight=1);
 	virtual void write2txt(std::ofstream&)=0;
 	virtual std::shared_ptr<Error_rate> copy() const = 0;
 	virtual std::string type() const =0;
