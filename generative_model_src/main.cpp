@@ -307,52 +307,28 @@ int main(int argc , char* argv[]){
 		//Model_marginals alpha_model_marginals(alpha_model_parms);
 		//alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_model_parms);
 
-
 		//Instantiate a Hypermutation model and set it as the new error rate
-
-/*		double test [] = {0.0276114,0.881688,-0.51299,-0.39631,-0.432195,-0.159324,0.236861,0.354658,0.777972,-0.444209,0.19826,-0.532023};
-		vector<double> test_vect (test, test + sizeof(test) / sizeof(double) );
-		Hypermutation_global_errorrate shm_err_rate (3,V_gene,VDJ_genes,.05,test_vect);*/
-
 		Hypermutation_global_errorrate shm_err_rate (3,V_gene,VDJ_genes,.05);
+		shm_err_rate.generate_random_contributions(1);
+		alpha_model_parms.set_error_ratep(&shm_err_rate);
+		alpha_model_parms.write_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/random_alpha_hyperm_model.txt");
 
 		Model_marginals alpha_model_marginals(alpha_model_parms);
 		alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_model_parms);
 
+		GenModel genmodel(alpha_model_parms,alpha_model_marginals);
 
-		//shm_err_rate.generate_random_contributions(1);
-		alpha_model_parms.set_error_ratep(&shm_err_rate);
-		//alpha_model_parms.write_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/test.txt");
-
+		genmodel.generate_sequences(2000,true,"/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed.csv","/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed_real.csv");
 
 		//Read back the model
-		Model_Parms alpha_read_parms;
-		alpha_read_parms.read_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/test.txt");
+		//Model_Parms alpha_read_parms;
+		//alpha_read_parms.read_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/test.txt");
 		//Model_marginals alpha_model_marginals(alpha_read_parms);
 		//alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_read_parms);
 
-/*
 		//introduce errors in an out of frame naive sequences sample
-		auto naive_indexed_seq = read_indexed_csv("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/AJ_Naive_noncoding_indexed_seq.csv");
+		auto naive_indexed_seq = read_indexed_csv("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed.csv");
 
-		//Create seed for random generator
-		//create a seed from timer
-		typedef std::chrono::high_resolution_clock myclock;
-		myclock::time_point time = myclock::now();
-		myclock::duration dur = myclock::time_point::max() - time;
-
-		unsigned time_seed = dur.count();
-		//Instantiate random number generator
-		default_random_engine generator =  default_random_engine(time_seed);
-
-		vector<pair<const int,const string>> mutated_indexed_seq;
-		for(auto iter = naive_indexed_seq.begin() ; iter != naive_indexed_seq.end() ; ++iter){
-			string str_copy = (*iter).second;
-			shm_err_rate.generate_errors(str_copy,generator);
-			mutated_indexed_seq.emplace_back((*iter).first,str_copy);
-		}
-
-		write_indexed_seq_csv(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/mutated_seqs_test.csv"),mutated_indexed_seq);
 
 		//infer back a model keeping everything fixed but the hypermutation error rate
 		//alpha_model_parms.set_fixed_all_events(true);
@@ -385,7 +361,6 @@ int main(int argc , char* argv[]){
 		j_aligner.align_seqs(path + "J_alignments_non_coding_mutated.csv" , mutated_indexed_seq_sample,10,true,89,104);
 
 		write_indexed_seq_csv(path + "mutated_indexed_seq_40000_sample.csv",mutated_indexed_seq_sample);
-*/
 
 		//read alignments
 		auto mutated_seqs_sample = read_indexed_csv(path + "mutated_indexed_seq_40000_sample.csv");
