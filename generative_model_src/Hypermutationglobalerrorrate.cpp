@@ -94,18 +94,18 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
 	// TODO Auto-generated destructor stub
 	//Make a clean destructor and delete all the double* contained in maps
-	delete [] ei_nucleotide_contributions;
-	delete [] Nmer_mutation_proba;
-	delete [] Nmer_P_SHM;
-	delete [] Nmer_P_BG;
+	//delete [] ei_nucleotide_contributions;
+	//delete [] Nmer_mutation_proba;
+	//delete [] Nmer_P_SHM;
+	//delete [] Nmer_P_BG;
 
 	//Clean
 	if(learn_on_v){
 		for(i = 0 ; i != n_v_real ; ++i){
-			delete [] v_gene_nucleotide_coverage_p[i].second;
-			delete [] v_gene_nucleotide_coverage_seq_p[i].second;
-			delete [] v_gene_per_nucleotide_error_p[i].second;
-			delete [] v_gene_per_nucleotide_error_seq_p[i].second;
+			//delete [] v_gene_nucleotide_coverage_p[i].second;
+			//delete [] v_gene_nucleotide_coverage_seq_p[i].second;
+			//delete [] v_gene_per_nucleotide_error_p[i].second;
+			//delete [] v_gene_per_nucleotide_error_seq_p[i].second;
 		}
 		//delete [] v_gene_nucleotide_coverage_p; //FIXME find out why free() exception
 		//delete [] v_gene_nucleotide_coverage_seq_p;
@@ -135,8 +135,6 @@ shared_ptr<Error_rate> Hypermutation_global_errorrate::copy()const{
 	}
 	//Make sure the values for the Nmer probas are correct
 	copy_err_r->update_Nmers_proba(0,0,1);
-
-	cout<<"here you get your copy"<<endl;
 
 	return copy_err_r;
 
@@ -247,7 +245,10 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 		//Get the adress of the first Nmer(disregarding the error penalty on teh first nucleotides)
 		Nmer_index = 0;
-		current_Nmer.empty();
+		while(!current_Nmer.empty()){
+			current_Nmer.pop();
+		}
+
 		for(i=0 ; i!=mutation_Nmer_size ; ++i){
 			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i,1));
 			current_Nmer.push(tmp_int_nt);
@@ -262,10 +263,6 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		}
 		else{
 			scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
-		}
-
-		if(std::isnan(scenario_new_proba)){
-			cout<<"major problem"<<endl;
 		}
 
 		//Look at all Nmers in the scenario_resulting_sequence by sliding window
@@ -288,8 +285,6 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 				current_mismatch++;
 			}
 			else{
-				cout<<Nmer_mutation_proba[Nmer_index]<<endl;
-				cout<<scenario_new_proba<<endl;
 				scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
 			}
 
@@ -324,7 +319,6 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 		//Get the coverage
 		//Get the length of the gene and a pointer to the right array to write on
-		cout<<"vgene real index: "<<**vgene_real_index_p<<endl;
 		tmp_corr_len = v_gene_nucleotide_coverage_seq_p[**vgene_real_index_p].first;
 		tmp_cov_p = v_gene_nucleotide_coverage_seq_p[**vgene_real_index_p].second;
 		tmp_err_p = v_gene_per_nucleotide_error_seq_p[**vgene_real_index_p].second;
@@ -340,7 +334,10 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//Compute the error per nucleotide on the gene
 		tmp_len_util = v_mismatch_list.size();
 		for( i = 0 ; i != tmp_len_util ; ++i){
-			tmp_err_p[v_mismatch_list[i]-(**vgene_offset_p)]+=scenario_new_proba;
+			//Disregard mismatches due to P nucleotides
+			if((v_mismatch_list[i]-(**vgene_offset_p))<tmp_corr_len){
+				tmp_err_p[v_mismatch_list[i]-(**vgene_offset_p)]+=scenario_new_proba;
+			}
 		}
 
 	}
@@ -465,7 +462,7 @@ void Hypermutation_global_errorrate::update(){
 
 	double j_norm = INFINITY;
 
-	while(j_norm!=0){
+	while(j_norm>1e-10){
 
 		double error_model_likelihood = 0;
 
@@ -647,7 +644,7 @@ void Hypermutation_global_errorrate::update(){
 		gsl_vector *work_vect = gsl_vector_alloc(3*mutation_Nmer_size+1);
 		gsl_linalg_SV_decomp(&H.matrix , V , S , work_vect);
 
-		gsl_linalg_SV_solve (&H.matrix, V , S , &J.vector, x );*/
+		gsl_linalg_SV_solve (&H.matrix, V , S , &J.vector, x );	*/
 
 		cout<<"\\deltaX vector"<<endl;
 		for(int ii= 0 ; ii != mutation_Nmer_size*3+1 ; ++ii){
@@ -678,6 +675,7 @@ void Hypermutation_global_errorrate::update(){
 		cout<<endl;
 
 	}
+	//this->R = .05;
 
 	//Compute the new mutation probabilities for the full Nmers
 	this->update_Nmers_proba(0,0,1);
@@ -717,7 +715,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 	//Get the right pointers for the V gene
 	if(learn_on == V_gene | learn_on == VJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
 		try{
-			shared_ptr<Gene_choice> v_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side)));
+			v_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side)));
 			vgene_offset_p = &v_gene_event_p->alignment_offset_p;
 			vgene_real_index_p = &v_gene_event_p->current_realization_index;
 
@@ -762,7 +760,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 	//Get the right pointers for the D gene
 	if(learn_on == D_gene | learn_on == DJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
 		try{
-			shared_ptr<Gene_choice> d_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
+			d_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
 			dgene_offset_p = &d_gene_event_p->alignment_offset_p;
 			dgene_real_index_p = &d_gene_event_p->current_realization_index;
 			//Initialize gene counters
@@ -794,7 +792,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 	//Get the right pointers for the J gene
 	if(learn_on == J_gene | learn_on == DJ_genes | learn_on == VJ_genes | learn_on == VDJ_genes){
 		try{
-			shared_ptr<Gene_choice> j_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
+			j_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
 			jgene_offset_p = &j_gene_event_p->alignment_offset_p;
 			jgene_real_index_p = &j_gene_event_p->current_realization_index;
 			//Initialize gene counters
@@ -982,7 +980,7 @@ void Hypermutation_global_errorrate::update_Nmers_proba(int current_pos , int cu
 		}
 		else{
 			this->Nmer_mutation_proba[new_index]= new_score*R/(1+new_score*R);
-			cout<<new_index<<";"<<new_score*R/(1+new_score*R)<<endl;
+			//cout<<new_index<<";"<<new_score*R/(1+new_score*R)<<endl;
 		}
 	}
 }
@@ -1035,26 +1033,17 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 					}
 				}
 
-				if(min_coverage!=0){
-					cout<<"kinda work more"<<endl;
-				}
-				if(nucleotide_coverage.second[i]!=0){
-					cout<<"is this reassuring?"<<endl;
-				}
-				bool test = std::isnan(nucleotide_error.second[i]);
-				if(!test){
-					//cout<<"no problem"<<endl;
-				}else{
-					cout<<"problem"<<endl;
-					cout<<i<<endl;
-					cout<<(*real_iter).first<<endl;
-				}
 				Nmer_P_BG[Nmer_index] += min_coverage; //The coverage of the Nmer is only as high as the lowest covered nt
 				Nmer_P_SHM[Nmer_index] += nucleotide_error.second[i];
 
 			}
 		}
 	}
+	cout<<endl<<"Pbg,Pshm"<<endl;
+	for(int zzz=0 ; zzz!=pow(4,mutation_Nmer_size) ; ++zzz){
+		cout<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<endl;
+	}
+	cout<<endl;
 
 	if(learn_on_d){
 

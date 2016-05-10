@@ -118,11 +118,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					vd_check = true;//Further check needed
 				}
 				else{
-					vd_check = false;//No point of checking if D has not been picked because the offset is unknown
+					vd_check = false;
+					safety_set.set_value(Event_safety::VD_safe,true,memory_layer_safety_1);
 				}
 			}
 			else{
-				vd_check = false;
+				vd_check = false;//No point of checking if D has not been picked because the offset is unknown
 			}
 
 
@@ -142,11 +143,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					vj_check = true;//Further check needed
 					}
 				else{
-					vj_check = false;//No point of checking if J has not been picked because the offset is unknown
+					vj_check = false;
+					safety_set.set_value(Event_safety::VJ_safe,true,memory_layer_safety_2);
 				}
 			}
 			else{
-				vj_check = false;
+				vj_check = false;//No point of checking if J has not been picked because the offset is unknown
 			}
 			Int_Str& previous_str = (*constructed_sequences.at(V_gene_seq,memory_layer_cs-1));
 			vector<int>& v_mismatch_list = *mismatches_lists.at(V_gene_seq , memory_layer_mismatches-1);
@@ -393,6 +395,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					}
 					else{
 						vd_check = false;
+						safety_set.set_value(Event_safety::VD_safe,true,memory_layer_safety_1);
 					}
 
 				}
@@ -647,6 +650,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					}
 					else{
 						dj_check = false;
+						safety_set.set_value(Event_safety::DJ_safe,true,memory_layer_safety_2);
 					}
 				}
 				else{
@@ -915,6 +919,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 				}
 				else{
 					dj_check = false;
+					safety_set.set_value(Event_safety::DJ_safe,true,memory_layer_safety_2);
 				}
 			}
 			else{
@@ -938,6 +943,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 				}
 				else{
 					vj_check = false;
+					safety_set.set_value(Event_safety::VJ_safe,true,memory_layer_safety_1);
 				}
 			}
 			else{

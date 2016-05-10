@@ -68,10 +68,13 @@ private:
 
 	//Normalized coverage and error counters
 	//# V D and J possible realizations
+	std::shared_ptr<Gene_choice> v_gene_event_p;
 	size_t n_v_real;
 	std::unordered_map<std::string , Event_realization> v_realizations;
+	std::shared_ptr<Gene_choice> d_gene_event_p;
 	size_t n_d_real;
 	std::unordered_map<std::string , Event_realization> d_realizations;
+	std::shared_ptr<Gene_choice> j_gene_event_p;
 	size_t n_j_real;
 	std::unordered_map<std::string , Event_realization> j_realizations;
 	//Use C arrays (faster than maps)
