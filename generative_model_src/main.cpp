@@ -297,13 +297,13 @@ int main(int argc , char* argv[]){
 	else{
 		//Write your custom procedure here
 
-		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/";
+		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_no_del/";
 
 
 
 		//Read the alpha chain model of BCRs
 		Model_Parms alpha_model_parms;
-		alpha_model_parms.read_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/iteration_20_parms_no_N.txt");
+		alpha_model_parms.read_model_parms(path + "iteration_20_parms_no_N.txt");
 		//Model_marginals alpha_model_marginals(alpha_model_parms);
 		//alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_model_parms);
 
@@ -311,15 +311,15 @@ int main(int argc , char* argv[]){
 /*		Hypermutation_global_errorrate shm_err_rate (3,V_gene,VDJ_genes,.05);
 		shm_err_rate.generate_random_contributions(1);
 		alpha_model_parms.set_error_ratep(&shm_err_rate);
-		alpha_model_parms.write_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/random_alpha_hyperm_model.txt");*/
+		alpha_model_parms.write_model_parms(path + "random_alpha_hyperm_model.txt");*/
 
 		Model_marginals alpha_model_marginals(alpha_model_parms);
-		alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_model_parms);
+		alpha_model_marginals.txt2marginals(path + "iteration_20.txt",alpha_model_parms);
 
 /*
 		GenModel genmodel_gen(alpha_model_parms,alpha_model_marginals);
 
-		genmodel_gen.generate_sequences(5000,true,"/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed.csv","/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed_real.csv");
+		genmodel_gen.generate_sequences(5000,true,path + "gen_hyper_indexed.csv",path + "gen_hyper_indexed_real.csv");
 */
 
 		//Read back the model
@@ -336,8 +336,8 @@ int main(int argc , char* argv[]){
 		alpha_model_parms.set_fixed_all_events(true);
 		//alpha_read_parms.set_fixed_all_events(true);
 
-		//align the sequences
 /*
+		//align the sequences
         vector<pair<string,string>> v_genomic = read_genomic_fasta(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/GEN_DATA/AJ_alleles_final/genomicVs.fasta"));
 
         vector<pair<string,string>> j_genomic = read_genomic_fasta(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/GEN_DATA/AJ_alleles_final/genomicJs.fasta"));
@@ -357,7 +357,7 @@ int main(int argc , char* argv[]){
 		Aligner j_aligner (nuc44_sub_matrix , 50 , J_gene);
 		j_aligner.set_genomic_sequences(j_genomic);
 
-		v_aligner.align_seqs( path + "V_alignments_non_coding_mutated.csv" , mutated_indexed_seq,50,true,INT16_MIN,-145);
+		v_aligner.align_seqs( path + "V_alignments_non_coding_mutated.csv" , mutated_indexed_seq,50,true);
 
 		j_aligner.align_seqs(path + "J_alignments_non_coding_mutated.csv" , mutated_indexed_seq,10,true,89,104);
 */

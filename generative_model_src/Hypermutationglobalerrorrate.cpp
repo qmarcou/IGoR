@@ -235,7 +235,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	scenario_resulting_sequence = v_gene_seq + vd_ins_seq + d_gene_seq + dj_ins_seq + vj_ins_seq + j_gene_seq; //Will this work?*/
 
 
-	vector<int>& v_mismatch_list = *mismatches_lists[V_gene_seq];
+	vector<int>& v_mismatch_list = *mismatches_lists.at(V_gene_seq);
 	if(mismatches_lists.exist(D_gene_seq)){ //Remove check? ensured by initialization
 		vector<int>& d_mismatch_list = *mismatches_lists[D_gene_seq];
 	}
@@ -267,13 +267,17 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
 
 		//Check if there's an error and apply the cost accordingly
-		if((*current_mismatch)==(mutation_Nmer_size+1)/2){
+
+		if( (current_mismatch!=v_mismatch_list.end())
+			&& ((*current_mismatch)==(mutation_Nmer_size+1)/2) ){
 			scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
-			current_mismatch++;
+			++current_mismatch;
 		}
 		else{
 			scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
 		}
+
+
 
 		//Look at all Nmers in the scenario_resulting_sequence by sliding window
 		//Removing the contribution of the first and adding the contribution of the new last
@@ -290,9 +294,10 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			current_Nmer.push(tmp_int_nt);
 
 			//Apply the error cost
-			if( (*current_mismatch)==(mutation_Nmer_size+1)/2){
+			if( (current_mismatch!=v_mismatch_list.end())
+					&& ((*current_mismatch)==(mutation_Nmer_size+1)/2)){
 				scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
-				current_mismatch++;
+				++current_mismatch;
 			}
 			else{
 				scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
