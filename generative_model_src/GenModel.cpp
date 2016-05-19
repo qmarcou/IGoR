@@ -384,7 +384,8 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		//TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		//string tmp = sequence.first.substr(sequence.first.size()-101,100);
 		//string tmp = sequence.first.substr(sequence.first.size()-128,127);
-		//sequence.first = tmp;
+		string tmp = sequence.first.substr(sequence.first.size()-131,130);//Harlan BCR
+		sequence.first = tmp;
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

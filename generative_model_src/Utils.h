@@ -332,6 +332,23 @@ public:
 			}
 		}
 
+		V at(const K1& key1 , const K2& key2) const{
+			if(key1>range_key1-1){
+				throw std::out_of_range("Unknown key1 in Enum_fast_memory_dual_key_map::at()");
+			}
+			else if(key2>range_key2-1){
+				throw std::out_of_range("Unknown key2 in Enum_fast_memory_dual_key__map::at()");
+			}
+			else{
+				if(memory_layer_ptr[key1+range_key1*key2]>-1){
+					return (*(value_ptr_arr + key1+range_key1*key2 + memory_layer_ptr[key1+range_key1*key2]*total_range));
+				}
+				else{
+					throw std::out_of_range("Trying to access uninitialized position in Enum_fast_memory_dual_key__map::at()");
+				}
+			}
+		}
+
 
 		V& at(const K1& key1 , const K2& key2 , int memory_layer){
 			if(key1>range_key1-1){

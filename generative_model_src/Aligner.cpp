@@ -472,7 +472,15 @@ unordered_map<int,vector<Alignment_data>> read_alignments_seq_csv(string filenam
 					}
 					else{
 						if(!del_substr.empty()){
-							deletions.push_front(stoi(del_substr));
+							try{
+								deletions.push_front(stoi(del_substr));
+							}
+							catch(exception& except){
+								cout<<del_substr<<" cannot be casted as an integer in line:"<<endl;
+								cout<<line_str<<endl;
+								cout<<"Throwing exception now"<<endl;
+								throw except;
+							}
 						}
 					}
 

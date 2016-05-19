@@ -297,28 +297,30 @@ int main(int argc , char* argv[]){
 	else{
 		//Write your custom procedure here
 
-		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/";
+		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/";
 
 
 
 		//Read the alpha chain model of BCRs
 		Model_Parms alpha_model_parms;
-		alpha_model_parms.read_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20_parms.txt");
+		alpha_model_parms.read_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/iteration_20_parms_no_N.txt");
 		//Model_marginals alpha_model_marginals(alpha_model_parms);
 		//alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_model_parms);
 
 		//Instantiate a Hypermutation model and set it as the new error rate
-		Hypermutation_global_errorrate shm_err_rate (3,V_gene,VDJ_genes,.05);
+/*		Hypermutation_global_errorrate shm_err_rate (3,V_gene,VDJ_genes,.05);
 		shm_err_rate.generate_random_contributions(1);
 		alpha_model_parms.set_error_ratep(&shm_err_rate);
-		alpha_model_parms.write_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/random_alpha_hyperm_model.txt");
+		alpha_model_parms.write_model_parms("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/random_alpha_hyperm_model.txt");*/
 
 		Model_marginals alpha_model_marginals(alpha_model_parms);
 		alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_model_parms);
 
-		GenModel genmodel(alpha_model_parms,alpha_model_marginals);
+/*
+		GenModel genmodel_gen(alpha_model_parms,alpha_model_marginals);
 
-		genmodel.generate_sequences(2000,true,"/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed.csv","/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed_real.csv");
+		genmodel_gen.generate_sequences(5000,true,"/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed.csv","/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed_real.csv");
+*/
 
 		//Read back the model
 		//Model_Parms alpha_read_parms;
@@ -327,14 +329,15 @@ int main(int argc , char* argv[]){
 		//alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_read_parms);
 
 		//introduce errors in an out of frame naive sequences sample
-		auto naive_indexed_seq = read_indexed_csv("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed.csv");
+		auto mutated_indexed_seq = read_indexed_csv("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_test/gen_hyper_indexed_sub.csv");
 
 
 		//infer back a model keeping everything fixed but the hypermutation error rate
-		//alpha_model_parms.set_fixed_all_events(true);
+		alpha_model_parms.set_fixed_all_events(true);
 		//alpha_read_parms.set_fixed_all_events(true);
 
 		//align the sequences
+/*
         vector<pair<string,string>> v_genomic = read_genomic_fasta(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/GEN_DATA/AJ_alleles_final/genomicVs.fasta"));
 
         vector<pair<string,string>> j_genomic = read_genomic_fasta(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/GEN_DATA/AJ_alleles_final/genomicJs.fasta"));
@@ -354,29 +357,29 @@ int main(int argc , char* argv[]){
 		Aligner j_aligner (nuc44_sub_matrix , 50 , J_gene);
 		j_aligner.set_genomic_sequences(j_genomic);
 
-		auto mutated_indexed_seq_sample = sample_indexed_seq(mutated_indexed_seq,20000);
+		v_aligner.align_seqs( path + "V_alignments_non_coding_mutated.csv" , mutated_indexed_seq,50,true,INT16_MIN,-145);
 
-		v_aligner.align_seqs( path + "V_alignments_non_coding_mutated.csv" , mutated_indexed_seq_sample,50,true,INT16_MIN,-145);
-
-		j_aligner.align_seqs(path + "J_alignments_non_coding_mutated.csv" , mutated_indexed_seq_sample,10,true,89,104);
-
-		write_indexed_seq_csv(path + "mutated_indexed_seq_40000_sample.csv",mutated_indexed_seq_sample);
+		j_aligner.align_seqs(path + "J_alignments_non_coding_mutated.csv" , mutated_indexed_seq,10,true,89,104);
+*/
 
 		//read alignments
-		auto mutated_seqs_sample = read_indexed_csv(path + "mutated_indexed_seq_40000_sample.csv");
 
-		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_non_coding_mutated.csv", V_gene , 55 , false , mutated_seqs_sample  );//40//35
+		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_non_coding_mutated.csv", V_gene , 55 , false , mutated_indexed_seq  );//40//35
 
-		sorted_alignments = read_alignments_seq_csv_score_range(path + "J_alignments_non_coding_mutated.csv", J_gene , 10 , false , mutated_seqs_sample , sorted_alignments);//30//20
+		sorted_alignments = read_alignments_seq_csv_score_range(path + "J_alignments_non_coding_mutated.csv", J_gene , 10 , false , mutated_indexed_seq , sorted_alignments);//30//20
 
 		//infer back the model
-		GenModel genmodel(alpha_model_parms,alpha_model_marginals);
+
+		Hypermutation_global_errorrate shm_err_rate_flat (3,V_gene,VDJ_genes,.03);
+		alpha_model_parms.set_error_ratep(&shm_err_rate_flat);
+
+		GenModel genmodel_infer(alpha_model_parms,alpha_model_marginals);
 		//GenModel genmodel(alpha_read_parms,alpha_model_marginals);
 
 
 		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
-		genmodel.infer_model(sorted_alignments_vec , 40 , path+"/run_test/" ,1e-100,0.001);
+		genmodel_infer.infer_model(sorted_alignments_vec , 5 , path+"/run_test/" ,1e-100,0.001);
 
 	}
 

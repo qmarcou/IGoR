@@ -9,6 +9,8 @@
 
 using namespace std;
 
+ofstream debug_stream("/tmp/debug_stream.csv");
+
 Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , mutation_Nmer_size(nmer_width) , learn_on(learn) , apply_to(apply) , ei_nucleotide_contributions((new double [4*nmer_width])) , R(starting_flat_value) , n_v_real(0) , n_j_real(0) , n_d_real(0) ,
 		v_gene_nucleotide_coverage_p(NULL) , v_gene_per_nucleotide_error_p(NULL),d_gene_nucleotide_coverage_p(NULL) , d_gene_per_nucleotide_error_p(NULL),j_gene_nucleotide_coverage_p(NULL) , j_gene_per_nucleotide_error_p(NULL),
 		v_gene_nucleotide_coverage_seq_p(NULL) , v_gene_per_nucleotide_error_seq_p(NULL) , d_gene_nucleotide_coverage_seq_p(NULL) , d_gene_per_nucleotide_error_seq_p(NULL) , j_gene_nucleotide_coverage_seq_p(NULL) , j_gene_per_nucleotide_error_seq_p(NULL) ,
@@ -75,6 +77,14 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 	//Initialize adressing vector
 	for(int ii = (mutation_Nmer_size-1) ; ii != -1 ; --ii){
 		adressing_vector.push_back(pow(4,ii));
+	}
+
+
+	debug_v_seq_coverage = new double[130];
+	debug_mismatch_seq_coverage = new double[130];
+	for(int zz=0 ; zz!=130 ; ++zz){
+		debug_v_seq_coverage[zz] = 0;
+		debug_mismatch_seq_coverage[zz] = 0;
 	}
 }
 
@@ -337,6 +347,8 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			//Disregard mismatches due to P nucleotides
 			if((v_mismatch_list[i]-(**vgene_offset_p))<tmp_corr_len){
 				tmp_err_p[v_mismatch_list[i]-(**vgene_offset_p)]+=scenario_new_proba;
+				//Debug
+				debug_mismatch_seq_coverage[v_mismatch_list[i]]+=scenario_new_proba;
 			}
 		}
 
@@ -349,6 +361,13 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	if(learn_on_j){
 
 	}
+
+	//Debug coverage and mismatches
+	Seq_Offset tmp_offset = seq_offsets.at(V_gene_seq,Three_prime);
+	for(int zz = 0 ; zz != (tmp_offset+1) ; ++zz){
+		debug_v_seq_coverage[zz]+=scenario_new_proba;
+	}
+	this->debug_current_string = original_sequence;
 
 	this->seq_likelihood += scenario_new_proba;
 	this->seq_probability+=scenario_probability;
@@ -884,12 +903,29 @@ void Hypermutation_global_errorrate::add_to_norm_counter(){
 
 		model_log_likelihood+=log10(seq_likelihood);
 		number_seq+=1;
+
+		//Debug
+		debug_stream<<debug_current_string<<";{"<<debug_v_seq_coverage[0]/seq_likelihood;
+		debug_v_seq_coverage[0]=0;
+		for(int zz=1 ; zz!=130 ; ++zz){
+			debug_stream<<","<<debug_v_seq_coverage[zz]/seq_likelihood;
+			debug_v_seq_coverage[zz] = 0;
+		}
+		debug_stream<<"};{"<<debug_mismatch_seq_coverage[0]/seq_likelihood;
+		debug_mismatch_seq_coverage[0] = 0;
+		for(int zz=1 ; zz!=130 ; ++zz){
+			debug_stream<<","<<debug_mismatch_seq_coverage[zz]/seq_likelihood;
+			debug_mismatch_seq_coverage[zz] = 0;
+		}
+		debug_stream<<"}"<<endl;
 	}
 
 	seq_mean_error_number = 0;
 	seq_likelihood = 0;
 	seq_probability = 0;
 	debug_number_scenarios=0;
+
+
 }
 
 void Hypermutation_global_errorrate::clean_seq_counters(){
@@ -1039,6 +1075,9 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 			}
 		}
 	}
+
+
+
 	cout<<endl<<"Pbg,Pshm"<<endl;
 	for(int zzz=0 ; zzz!=pow(4,mutation_Nmer_size) ; ++zzz){
 		cout<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<endl;
