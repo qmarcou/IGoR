@@ -370,7 +370,7 @@ int main(int argc , char* argv[]){
 
 		//infer back the model
 
-		Hypermutation_global_errorrate shm_err_rate_flat (3,V_gene,VDJ_genes,.03);
+		Hypermutation_global_errorrate shm_err_rate_flat (3,V_gene,VDJ_genes,.05);
 		alpha_model_parms.set_error_ratep(&shm_err_rate_flat);
 
 		GenModel genmodel_infer(alpha_model_parms,alpha_model_marginals);

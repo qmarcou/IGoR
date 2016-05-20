@@ -269,7 +269,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//Check if there's an error and apply the cost accordingly
 
 		if( (current_mismatch!=v_mismatch_list.end())
-			&& ((*current_mismatch)==(mutation_Nmer_size+1)/2) ){
+			&& ((*current_mismatch)==(mutation_Nmer_size-1)/2) ){
 			scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
 			++current_mismatch;
 		}
@@ -295,7 +295,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 			//Apply the error cost
 			if( (current_mismatch!=v_mismatch_list.end())
-					&& ((*current_mismatch)==(mutation_Nmer_size+1)/2)){
+					&& ((*current_mismatch)==i)){
 				scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
 				++current_mismatch;
 			}
@@ -350,7 +350,8 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		tmp_len_util = v_mismatch_list.size();
 		for( i = 0 ; i != tmp_len_util ; ++i){
 			//Disregard mismatches due to P nucleotides
-			if((v_mismatch_list[i]-(**vgene_offset_p))<tmp_corr_len){
+			if(	(v_mismatch_list[i]>=(mutation_Nmer_size-1)/2)
+					&& (v_mismatch_list[i]-(**vgene_offset_p))<tmp_corr_len - (mutation_Nmer_size-1)/2){
 				tmp_err_p[v_mismatch_list[i]-(**vgene_offset_p)]+=scenario_new_proba;
 				//Debug
 				debug_mismatch_seq_coverage[v_mismatch_list[i]]+=scenario_new_proba;
