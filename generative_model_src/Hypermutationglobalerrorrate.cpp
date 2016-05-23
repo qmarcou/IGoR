@@ -520,6 +520,7 @@ void Hypermutation_global_errorrate::update(){
 			base_4_address[i]=0;
 			max_address += 3*adressing_vector[i];
 		}
+		max_address+=1;
 		j=0;
 		while(j!=max_address){
 			double current_Nmer_P_SHM = Nmer_P_SHM[j];
@@ -1022,7 +1023,7 @@ void Hypermutation_global_errorrate::update_Nmers_proba(int current_pos , int cu
 		}
 		else{
 			this->Nmer_mutation_proba[new_index]= new_score*R/(1+new_score*R);
-			//cout<<new_index<<";"<<new_score*R/(1+new_score*R)<<endl;
+			cout<<"Nmerproba: "<<new_index<<";"<<new_score*R/(1+new_score*R)<<endl;
 		}
 	}
 }
@@ -1086,7 +1087,7 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 
 	cout<<endl<<"Pbg,Pshm"<<endl;
 	for(int zzz=0 ; zzz!=pow(4,mutation_Nmer_size) ; ++zzz){
-		cout<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<endl;
+		cout<<zzz<<";"<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<endl;
 	}
 	cout<<endl;
 
@@ -1104,6 +1105,7 @@ double Hypermutation_global_errorrate::compute_Nmer_unorm_score(int* base_4_addr
 	for(int ii = 0 ; ii != mutation_Nmer_size ; ++ii){
 		unorm_score*=exp(ei_nucleotide_contributions[4*ii+base_4_address[ii]]);
 	}
+	cout<<"unorm score b4 address:"<<base_4_address[0]<<base_4_address[1]<<base_4_address[2]<<";"<<unorm_score<<endl;
 	return unorm_score;
 }
 

@@ -379,7 +379,7 @@ int main(int argc , char* argv[]){
 
 		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
-		genmodel_infer.infer_model(sorted_alignments_vec , 5 , path+"/run_test/" ,1e-100,0.001);
+		genmodel_infer.infer_model(sorted_alignments_vec , 10 , path+"/run_test/" ,1e-100,0.001);
 
 	}
 
