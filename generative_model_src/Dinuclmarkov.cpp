@@ -207,7 +207,7 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 				offset = event_realizations.at(previous_seq.substr(previous_seq.size()-1,1)).index*event_realizations.size();
 			}
 			catch(exception& except){
-				cout<<"exception caught 1, key used: "<<previous_seq.substr(previous_seq.size()-1,1);
+				cout<<"exception caught in DinucMarkov draw random common, key used: "<<previous_seq.substr(previous_seq.size()-1,1);
 				throw except;
 			}
 			for(unordered_map<string,Event_realization>::const_iterator iter = event_realizations.begin() ; iter != event_realizations.end() ; ++iter){

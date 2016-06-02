@@ -683,10 +683,10 @@ void Hypermutation_global_errorrate::update(){
 			//ei_nucleotide_contributions[i*mutation_Nmer_size+3] = 0;
 			for(j=0 ; j!=3 ; ++j){
 				//Update the contribution of the nucleotide
-				ei_nucleotide_contributions[i*4+j] += gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+j] += .1*gsl_vector_get(x,(i*3 + j));
 
 				//Compute the contribution of the constrained nucleotide
-				ei_nucleotide_contributions[i*4+3] -= gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+3] -= .1*gsl_vector_get(x,(i*3 + j));
 			}
 		}
 		//Update the normalization factor
