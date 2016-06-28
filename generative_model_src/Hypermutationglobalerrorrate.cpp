@@ -86,6 +86,17 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 		debug_v_seq_coverage[zz] = 0;
 		debug_mismatch_seq_coverage[zz] = 0;
 	}
+
+	debug_one_seq_Nmer_N_SHM = new double [array_size];
+	debug_one_seq_Nmer_N_bg = new double [array_size];
+	debug_Nmer_N_SHM = new double [array_size];
+	debug_Nmer_N_bg = new double [array_size];
+	for(int ii=0 ; ii!=array_size ; ++ii){
+		debug_one_seq_Nmer_N_SHM[ii] = 0;
+		debug_one_seq_Nmer_N_bg[ii] = 0;
+		debug_Nmer_N_SHM[ii] = 0;
+		debug_Nmer_N_bg[ii] = 0;
+	}
 }
 
 Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value , vector<double> ei_contributions): Hypermutation_global_errorrate(nmer_width , learn , apply , starting_flat_value){
@@ -178,6 +189,18 @@ Hypermutation_global_errorrate& Hypermutation_global_errorrate::operator +=(Hype
 
 		//Copy D gene error and coverage
 
+		//////////////////////////////////////////////////////////////////////////
+		//Debug shit
+		size_t array_size = pow(4,mutation_Nmer_size);
+		for(size_t ii=0 ; ii != array_size ; ++ii){
+			//cout<<debug_one_seq_Nmer_N_bg[ii]<<',';
+			debug_Nmer_N_SHM[ii] += err_r.debug_Nmer_N_SHM[ii];
+			debug_Nmer_N_bg[ii]+= err_r.debug_Nmer_N_bg[ii];
+
+		}
+		//////////////////////////////////////////////////////////////////////////
+		//end of debug shit
+
 		return *this;
 	}
 	else{
@@ -253,7 +276,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 		//TODO Need to get the previous V nucleotides and last J ones
 
-		//Get the adress of the first Nmer(disregarding the error penalty on teh first nucleotides)
+		//Get the adress of the first Nmer(disregarding the error penalty on the first nucleotides)
 		Nmer_index = 0;
 		while(!current_Nmer.empty()){
 			current_Nmer.pop();
@@ -357,6 +380,72 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 				debug_mismatch_seq_coverage[v_mismatch_list[i]]+=scenario_new_proba;
 			}
 		}
+/////////////////////////////////////////////////////////////////////////////////////////////
+		//Debug shit
+/////////////////////////////////////////////////////////////////////////////////////////////
+		current_mismatch = v_mismatch_list.begin();
+
+		//TODO Need to get the previous V nucleotides and last J ones
+
+		//Get the address of the first Nmer(disregarding the error penalty on the first nucleotides)
+		Nmer_index = 0;
+		while(!current_Nmer.empty()){
+			current_Nmer.pop();
+		}
+
+		for(i=0 ; i!=mutation_Nmer_size ; ++i){
+			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i,1));
+			current_Nmer.push(tmp_int_nt);
+			Nmer_index+=adressing_vector[i]*tmp_int_nt;
+		}
+		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
+
+		//Check if there's an error and apply the cost accordingly
+
+		if( (current_mismatch!=v_mismatch_list.end())
+			&& ((*current_mismatch)==(mutation_Nmer_size-1)/2) ){
+			debug_one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+			debug_one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+			++current_mismatch;
+		}
+		else{
+			debug_one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+		}
+
+
+
+		//Look at all Nmers in the scenario_resulting_sequence by sliding window
+		//Removing the contribution of the first and adding the contribution of the new last
+
+		for( i = (mutation_Nmer_size+1)/2 ; i!=seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 ; ++i){
+			//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+			Nmer_index-=current_Nmer.front()*adressing_vector[0];
+			current_Nmer.pop();
+			//Shift the index
+			Nmer_index*=4;
+			//Add the contribution of the new nucleotide
+			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+			Nmer_index+=tmp_int_nt;
+			current_Nmer.push(tmp_int_nt);
+
+			//Apply the error cost
+			if( (current_mismatch!=v_mismatch_list.end())
+					&& ((*current_mismatch)==i)){
+				debug_one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+				debug_one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+				++current_mismatch;
+			}
+			else{
+				debug_one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+			}
+
+
+		}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+		//End of debug shit
+/////////////////////////////////////////////////////////////////////////////////////////
+
 
 	}
 
@@ -910,7 +999,7 @@ void Hypermutation_global_errorrate::add_to_norm_counter(){
 
 		model_log_likelihood+=log10(seq_likelihood);
 		number_seq+=1;
-
+/////////////////////////////////////////////////////////////////////////////////////////////
 		//Debug
 		debug_stream<<debug_current_string<<";{"<<debug_v_seq_coverage[0]/seq_likelihood;
 		debug_v_seq_coverage[0]=0;
@@ -925,6 +1014,19 @@ void Hypermutation_global_errorrate::add_to_norm_counter(){
 			debug_mismatch_seq_coverage[zz] = 0;
 		}
 		debug_stream<<"}"<<endl;
+
+		size_t array_size = pow(4,mutation_Nmer_size);
+		for(size_t ii=0 ; ii != array_size ; ++ii){
+			//cout<<debug_one_seq_Nmer_N_bg[ii]<<',';
+			debug_Nmer_N_SHM[ii] += debug_one_seq_Nmer_N_SHM[ii]/seq_likelihood;
+			debug_one_seq_Nmer_N_SHM[ii]=0;
+
+			debug_Nmer_N_bg[ii] += debug_one_seq_Nmer_N_bg[ii]/seq_likelihood;
+			debug_one_seq_Nmer_N_bg[ii]=0;
+		}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 	}
 
 	seq_mean_error_number = 0;
@@ -996,6 +1098,12 @@ void Hypermutation_global_errorrate::clean_all_counters(){
 
 	if(learn_on_j){
 
+	}
+
+	size_t array_size = pow(4,mutation_Nmer_size);
+	for(size_t ii=0 ; ii != array_size ; ++ii){
+		debug_Nmer_N_SHM[ii]=0;
+		debug_Nmer_N_bg[ii]=0;
 	}
 
 this->clean_seq_counters();
@@ -1085,9 +1193,9 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 
 
 
-	cout<<endl<<"Pbg,Pshm"<<endl;
+	cout<<endl<<"Pbg,Pshm,Nbg,Nshm"<<endl;
 	for(int zzz=0 ; zzz!=pow(4,mutation_Nmer_size) ; ++zzz){
-		cout<<zzz<<";"<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<endl;
+		cout<<zzz<<","<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<','<<debug_Nmer_N_bg[zzz]<<','<<debug_Nmer_N_SHM[zzz]<<endl;
 	}
 	cout<<endl;
 

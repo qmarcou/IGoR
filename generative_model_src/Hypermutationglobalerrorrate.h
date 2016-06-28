@@ -151,6 +151,12 @@ private:
 	double* debug_v_seq_coverage;
 	double* debug_mismatch_seq_coverage;
 	std::string debug_current_string;
+///////////////
+	//Ddddebug shit
+	double* debug_one_seq_Nmer_N_SHM;
+	double* debug_one_seq_Nmer_N_bg;
+	double* debug_Nmer_N_SHM;
+	double* debug_Nmer_N_bg;
 
 };
 

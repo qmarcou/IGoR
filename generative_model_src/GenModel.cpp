@@ -244,6 +244,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 					first_event->iterate(init_proba , downstream_proba_map , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_smart_p , single_thread_model_marginals.marginal_array_smart_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
 
 				}
+
 				catch(exception& except){
 					general_logs<<"Exception caught calling iterate() on sequence:"<<endl;
 					general_logs<<(*seq_it).first<<endl;
@@ -384,7 +385,8 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		//TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		//string tmp = sequence.first.substr(sequence.first.size()-101,100);
 		//string tmp = sequence.first.substr(sequence.first.size()-128,127);
-		string tmp = sequence.first.substr(sequence.first.size()-131,130);//Harlan BCR
+		//string tmp = sequence.first.substr(sequence.first.size()-130,130);//Harlan BCR with too much J not enough V
+		string tmp = sequence.first.substr(sequence.first.size()-160,160);
 		sequence.first = tmp;
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
