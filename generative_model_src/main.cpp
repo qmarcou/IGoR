@@ -16,6 +16,7 @@
 #include "Aligner.h"
 #include "GenModel.h"
 #include "Dinuclmarkov.h"
+#include <chrono>
 
 
 using namespace std;
@@ -118,6 +119,12 @@ int main(int argc , char* argv[]){
 		j_aligner.set_genomic_sequences(j_genomic);
 
 		cout<<"Reading sequences and aligning"<<endl;
+		typedef std::chrono::system_clock myclock;
+		myclock::time_point begin_time, end_time;
+
+		begin_time = myclock::now();
+
+
 		vector<pair<const int, const string>> indexed_seqlist = read_txt( string("../demo/murugan_naive1_noncoding_demo_seqs.txt") ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
 
 
@@ -129,7 +136,11 @@ int main(int argc , char* argv[]){
 
 		j_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
 
-
+		end_time= myclock::now();
+		chrono::duration<double> elapsed = end_time - begin_time;
+		cout<<"Alignments procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
+		cout<<"for "<<indexed_seqlist.size()<<" TCRb sequences of 60bp(from murugan and al), against ";
+		cout<<v_genomic.size()<<" Vs,"<<d_genomic.size()<<" Ds, and "<<j_genomic.size()<<" Js full sequences"<<endl;
 
 		//unordered_map<int,forward_list<Alignment_data>> j_alignments = j_aligner.align_seqs(indexed_seqlist,10,true,42,48);
 		//j_aligner.write_alignments_seq_csv(path + string("alignments_J.csv") , j_alignments);
@@ -247,7 +258,14 @@ int main(int argc , char* argv[]){
 
 		//Infer the model
 		cout<<"Infer model"<<endl;
+
+		begin_time = myclock::now();
+
 		gen_model.infer_model(sorted_alignments_vec , 10 , string("../demo/run_demo/") ,1e-35,0.001);
+
+		end_time= myclock::now();
+		elapsed = end_time - begin_time;
+		cout<<"Model inference procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
 
 
 		//Generate sequences
