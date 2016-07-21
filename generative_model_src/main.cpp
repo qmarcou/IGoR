@@ -297,7 +297,7 @@ int main(int argc , char* argv[]){
 	else{
 		//Write your custom procedure here
 
-		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_no_del/";
+		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_no_del/low_err/";
 
 
 
@@ -309,7 +309,7 @@ int main(int argc , char* argv[]){
 
 /*
 		//Instantiate a Hypermutation model and set it as the new error rate
-		Hypermutation_global_errorrate shm_err_rate (3,V_gene,VDJ_genes,.005);
+		Hypermutation_global_errorrate shm_err_rate (3,V_gene,VDJ_genes,.05);
 		shm_err_rate.generate_random_contributions(1);
 		alpha_model_parms.set_error_ratep(&shm_err_rate);
 		alpha_model_parms.write_model_parms(path + "random_alpha_hyperm_model.txt");
@@ -318,8 +318,8 @@ int main(int argc , char* argv[]){
 		Model_marginals alpha_model_marginals(alpha_model_parms);
 		alpha_model_marginals.txt2marginals(path + "iteration_20.txt",alpha_model_parms);
 
-/*
 
+/*
 		GenModel genmodel_gen(alpha_model_parms,alpha_model_marginals);
 
 		genmodel_gen.generate_sequences(100000,true,path + "gen_hyper_indexed.csv",path + "gen_hyper_indexed_real.csv");
@@ -333,7 +333,7 @@ int main(int argc , char* argv[]){
 		//alpha_model_marginals.txt2marginals("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/iteration_20.txt",alpha_read_parms);
 
 		//introduce errors in an out of frame naive sequences sample
-		auto mutated_indexed_seq = read_indexed_csv("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_no_del/gen_hyper_indexed.csv");
+		auto mutated_indexed_seq = read_indexed_csv(path + "gen_hyper_indexed.csv");
 
 
 		//infer back a model keeping everything fixed but the hypermutation error rate
@@ -347,8 +347,8 @@ int main(int argc , char* argv[]){
         vector<pair<string,string>> j_genomic = read_genomic_fasta(string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/GEN_DATA/AJ_alleles_final/genomicJs.fasta"));
 
 
-/*
 
+/*
 		//Declare substitution matrix used for alignments(nuc44 here)
 
 		double nuc44_vect [] = {5,-4,-4,-4,1,-4,-4,1,-4,1,-4,-1,-1,-1,-2,-4,5,-4,-4,-4,1,-4,1,1,-4,-1,-4,-1,-1,-2,-4,-4,5,-4,1,-4,1,-4,1,-4,-1,-1,-4,-1,-2,-4,-4,-4,5,-4,1,1,-4,-4,1,-1,-1,-1,-4,-2,1,-4,1,-4,-1,-4,-2,-2,-2,-2,-3,-1,-3,-1,-1,-4,1,-4,1,-4,-1,-2,-2,-2,-2,-1,-3,-1,-3,-1,-4,-4,1,1,-2,-2,-1,-4,-2,-2,-1,-1,-3,-3,-1,1,1,-4,-4,-2,-2,-4,-1,-2,-2,-3,-3,-1,-1,-1,-4,1,1,-4,-2,-2,-2,-2,-1,-4,-1,-3,-3,-1,-1,1,-4,-4,1,-2,-2,-2,-2,-4,-1,-3,-1,-1,-3,-1,-4,-1,-1,-1,-3,-1,-1,-3,-1,-3,-1,-2,-2,-2,-1,-1,-4,-1,-1,-1,-3,-1,-3,-3,-1,-2,-1,-2,-2,-1,-1,-1,-4,-1,-3,-1,-3,-1,-3,-1,-2,-2,-1,-2,-1,-1,-1,-1,-4,-1,-3,-3,-1,-1,-3,-2,-2,-2,-1,-1,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
@@ -372,9 +372,10 @@ int main(int argc , char* argv[]){
 
 		//read alignments
 
-        auto sample_mutated_indexed_seq = sample_indexed_seq(mutated_indexed_seq,500);
+        auto sample_mutated_indexed_seq = sample_indexed_seq(mutated_indexed_seq,100000);
 
 		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_true_delta_prior.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
+       // unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_non_coding_mutated.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
 
 		sorted_alignments = read_alignments_seq_csv_score_range(path + "J_alignments_non_coding_mutated.csv", J_gene , 10 , false , sample_mutated_indexed_seq , sorted_alignments);//30//20
 
@@ -389,7 +390,7 @@ int main(int argc , char* argv[]){
 
 		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
-		genmodel_infer.infer_model(sorted_alignments_vec , 10 , path+"/run_forced_prior_500/" ,1e-300,0.001);
+		genmodel_infer.infer_model(sorted_alignments_vec , 10 , path+"/run_low_err_forced_prior/" ,1e-300,0.001);
 
 	}
 

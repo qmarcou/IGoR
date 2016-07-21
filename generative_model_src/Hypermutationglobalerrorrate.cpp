@@ -576,7 +576,9 @@ void Hypermutation_global_errorrate::update(){
 
 	double j_norm = INFINITY;
 
-	while(j_norm>1e-10){
+	size_t counter = 0;
+
+	while(j_norm>1e-9 && counter<50000){
 
 		double error_model_likelihood = 0;
 
@@ -594,13 +596,13 @@ void Hypermutation_global_errorrate::update(){
 		}
 		gsl_matrix_view H = gsl_matrix_view_array (H_data, 3*mutation_Nmer_size+1,3*mutation_Nmer_size+1);
 
-		for(int yyy = 0 ; yyy !=(3*mutation_Nmer_size)+1 ; ++yyy){
+/*		for(int yyy = 0 ; yyy !=(3*mutation_Nmer_size)+1 ; ++yyy){
 			for(int zzz = 0 ; zzz !=(3*mutation_Nmer_size)+1 ; ++zzz){
 				cout<<gsl_matrix_get(&H.matrix , zzz , yyy)<<";";
 			}
 			cout<<endl;
 		}
-		cout<<endl;
+		cout<<endl;*/
 
 		//Compute the values for the Jacobian and Hessian entries
 		int base_4_address[mutation_Nmer_size];
@@ -708,7 +710,7 @@ void Hypermutation_global_errorrate::update(){
 			}
 			error_model_likelihood+=current_Nmer_P_SHM*(log(R)+log(current_Nmer_unorm_score) - log(3)) - current_Nmer_P_bg*log(1+R*current_Nmer_unorm_score);
 		}
-		cout<<"current hypermutation model likelihood: "<<error_model_likelihood<<endl;
+		//cout<<"current hypermutation model likelihood: "<<error_model_likelihood<<endl;
 
 		j_norm = 0;
 		for(int kk=0 ; kk != (3*mutation_Nmer_size+1) ; ++kk){
@@ -723,7 +725,7 @@ void Hypermutation_global_errorrate::update(){
 			throw runtime_error("Optimization of the hypermutation model failed");
 		}
 		else{
-			cout<<"jacobian norm: "<<j_norm<<endl;
+			//cout<<"jacobian norm: "<<j_norm<<endl;
 		}
 
 		//Set J to -J and then solve H\deltax = J
@@ -731,7 +733,7 @@ void Hypermutation_global_errorrate::update(){
 			J_data[i] = -J_data[i];
 		}
 
-		cout<<"Jacobian"<<endl;
+/*		cout<<"Jacobian"<<endl;
 		for(int zzz = 0 ; zzz !=(3*mutation_Nmer_size)+1 ; ++zzz){
 			cout<<gsl_vector_get(&J.vector , zzz )<<";";
 		}
@@ -744,7 +746,7 @@ void Hypermutation_global_errorrate::update(){
 			}
 			cout<<endl;
 		}
-		cout<<endl;
+		cout<<endl;*/
 
 		//Solve the system
 		gsl_vector *x = gsl_vector_alloc (3*mutation_Nmer_size+1);
@@ -761,11 +763,11 @@ void Hypermutation_global_errorrate::update(){
 
 		gsl_linalg_SV_solve (&H.matrix, V , S , &J.vector, x );	*/
 
-		cout<<"\\deltaX vector"<<endl;
+/*		cout<<"\\deltaX vector"<<endl;
 		for(int ii= 0 ; ii != mutation_Nmer_size*3+1 ; ++ii){
 			cout<<gsl_vector_get(x,ii)<<";";
 		}
-		cout<<endl;
+		cout<<endl;*/
 
 		//Update the parameters values
 		for(i=0 ; i != mutation_Nmer_size ; ++i){
@@ -779,15 +781,17 @@ void Hypermutation_global_errorrate::update(){
 			}
 		}
 		//Update the normalization factor
-		R += gsl_vector_get(x,(3*mutation_Nmer_size));
+		R += .1*gsl_vector_get(x,(3*mutation_Nmer_size));
 
-		cout<<"new model parms"<<endl;
+/*		cout<<"new model parms"<<endl;
 		cout<<R<<endl;
 		for(int zzz=0 ; zzz!=4*mutation_Nmer_size ; ++zzz){
 			cout<<ei_nucleotide_contributions[zzz]<<";";
 		}
 		cout<<endl;
-		cout<<endl;
+		cout<<endl;*/
+
+		++counter;
 
 	}
 	//this->R = .05;
@@ -1213,7 +1217,7 @@ double Hypermutation_global_errorrate::compute_Nmer_unorm_score(int* base_4_addr
 	for(int ii = 0 ; ii != mutation_Nmer_size ; ++ii){
 		unorm_score*=exp(ei_nucleotide_contributions[4*ii+base_4_address[ii]]);
 	}
-	cout<<"unorm score b4 address:"<<base_4_address[0]<<base_4_address[1]<<base_4_address[2]<<";"<<unorm_score<<endl;
+	//cout<<"unorm score b4 address:"<<base_4_address[0]<<base_4_address[1]<<base_4_address[2]<<";"<<unorm_score<<endl;
 	return unorm_score;
 }
 
