@@ -43,7 +43,10 @@ Int_Str Int_Str::operator+(const Int_Str& other) const{
 Int_Str Int_Str::substr(size_t pos /*= 0*/, size_t len /*= 99999999999999*/) const{
 	Int_Str::const_iterator begin = this->begin() + pos;
 	Int_Str::const_iterator last;
-	if( pos+len>=this->size()){
+	if(len == npos){
+		last = this->end();
+	}
+	else if( pos+len>=this->size()){
 		last = this->end();
 	}
 	else{
@@ -57,7 +60,10 @@ Int_Str Int_Str::substr(size_t pos /*= 0*/, size_t len /*= 99999999999999*/) con
 Int_Str& Int_Str::erase(size_t pos , size_t len){
 	Int_Str::iterator begin = this->begin() + pos;
 	Int_Str::iterator last;
-	if( pos+len>=this->size()){
+	if(len == npos){
+		last = this->end();
+	}
+	else if( pos+len>=this->size()){
 		last = this->end();
 	}
 	else{
