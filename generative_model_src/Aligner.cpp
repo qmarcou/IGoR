@@ -216,9 +216,9 @@ vector<pair<const int , const string>> read_indexed_csv(string filename){
  * This method aligns every genomic template to one sequence
  */
 forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , int min_offset , int max_offset){
-	string int_seq = nt2int(nt_seq);
+	Int_Str int_seq = nt2int(nt_seq);
 	forward_list<Alignment_data> alignment_list;// = *(new forward_list<Alignment_data>());
-	for(forward_list<pair<string,string>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
+	for(forward_list<pair<string,Int_Str>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
 		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_only , min_offset , max_offset);
 		//TODO quick and dirty fix for D genes alignments
 		//alignment.second.gene_name = (*iter).first;
@@ -569,7 +569,7 @@ vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> map2vect(u
 
 void Aligner::set_genomic_sequences(vector< pair <string,string> > nt_genomic_seq){
 	this->nt_genomic_sequences = *(new forward_list<pair<string,string>>);
-	this->int_genomic_sequences = *(new forward_list<pair<string,string>>);
+	this->int_genomic_sequences = *(new forward_list<pair<string,Int_Str>>);
 	for(vector<pair<string,string>>::const_iterator iter = nt_genomic_seq.begin() ; iter != nt_genomic_seq.end() ; ++iter){
 		nt_genomic_sequences.emplace_front((*iter).first,(*iter).second);
 		int_genomic_sequences.emplace_front((*iter).first , nt2int((*iter).second));
@@ -593,24 +593,24 @@ int Aligner::incorporate_in_dels(string& data_seq , string& genomic_seq , const 
  * Convert nucleotide alphabet sequence into int sequence
  * Conventions are the same as nt2int matlab function
  */
-string nt2int(string nt_sequence){
-	string int_seq;
+Int_Str nt2int(string nt_sequence){
+	Int_Str int_seq;
 	for(size_t i=0 ; i!= nt_sequence.size() ; ++i){
-		if(nt_sequence[i]=='A'){int_seq.append("0");}
-		else if(nt_sequence[i]=='C'){int_seq.append("1");}
-		else if(nt_sequence[i]=='G'){int_seq.append("2");}
-		else if(nt_sequence[i]=='T'){int_seq.append("3");}
-		else if(nt_sequence[i]=='R'){int_seq.append("4");}
-		else if(nt_sequence[i]=='Y'){int_seq.append("5");}
-		else if(nt_sequence[i]=='K'){int_seq.append("6");}
-		else if(nt_sequence[i]=='M'){int_seq.append("7");}
-		else if(nt_sequence[i]=='S'){int_seq.append("8");}
-		else if(nt_sequence[i]=='W'){int_seq.append("9");}
-		else if(nt_sequence[i]=='B'){int_seq.append("10");}
-		else if(nt_sequence[i]=='D'){int_seq.append("11");}
-		else if(nt_sequence[i]=='H'){int_seq.append("12");}
-		else if(nt_sequence[i]=='V'){int_seq.append("13");}
-		else if(nt_sequence[i]=='N'){int_seq.append("14");}
+		if(nt_sequence[i]=='A'){int_seq.append(0);}
+		else if(nt_sequence[i]=='C'){int_seq.append(1);}
+		else if(nt_sequence[i]=='G'){int_seq.append(2);}
+		else if(nt_sequence[i]=='T'){int_seq.append(3);}
+		else if(nt_sequence[i]=='R'){int_seq.append(4);}
+		else if(nt_sequence[i]=='Y'){int_seq.append(5);}
+		else if(nt_sequence[i]=='K'){int_seq.append(6);}
+		else if(nt_sequence[i]=='M'){int_seq.append(7);}
+		else if(nt_sequence[i]=='S'){int_seq.append(8);}
+		else if(nt_sequence[i]=='W'){int_seq.append(9);}
+		else if(nt_sequence[i]=='B'){int_seq.append(10);}
+		else if(nt_sequence[i]=='D'){int_seq.append(11);}
+		else if(nt_sequence[i]=='H'){int_seq.append(12);}
+		else if(nt_sequence[i]=='V'){int_seq.append(13);}
+		else if(nt_sequence[i]=='N'){int_seq.append(14);}
 		else{
 			cout<<"print:"<<nt_sequence<<endl;
 			cout<<i<<endl;
@@ -653,10 +653,10 @@ vector<pair<const int , const string>> sample_indexed_seq(vector<pair<const int 
 
 }
 
-void Aligner::sw_align_common(const string& int_data_sequence, const string& int_genomic_sequence ,const int i ,const int j , Matrix<double>& score_matrix , Matrix<int>& row_memory_matrix , Matrix<int>& col_memory_matrix , Matrix<int>& alignment_numb_tracker ,vector<int>& max_score, vector<int>& max_row_coord , vector<int>& max_col_coord){
+void Aligner::sw_align_common(const Int_Str& int_data_sequence, const Int_Str& int_genomic_sequence ,const int i ,const int j , Matrix<double>& score_matrix , Matrix<int>& row_memory_matrix , Matrix<int>& col_memory_matrix , Matrix<int>& alignment_numb_tracker ,vector<int>& max_score, vector<int>& max_row_coord , vector<int>& max_col_coord){
 	int genomic_gap_score = score_matrix(i,j-1) - gap_penalty;
 	int data_gap_score = score_matrix(i-1,j) - gap_penalty;
-	int subs_score = score_matrix(i-1,j-1) + substitution_matrix(stoi(int_data_sequence.substr(i,1)) , stoi(int_genomic_sequence.substr(j,1)));
+	int subs_score = score_matrix(i-1,j-1) + substitution_matrix(int_data_sequence.at(i) , int_genomic_sequence.at(j));
 
 	if ( (subs_score>= data_gap_score) & (subs_score>=genomic_gap_score) & ( (subs_score>0) | (!local_align) ) ){
 		score_matrix(i,j) = subs_score;
@@ -716,12 +716,12 @@ void Aligner::sw_align_common(const string& int_data_sequence, const string& int
  * Alignment_data: comprises offset, insertions and deletions locations.
  * Note: the gene_name field of the Alignment_data object is left blank and should be completed in a higher level method
  */
-list<pair<int,Alignment_data>> Aligner::sw_align(const string& int_data_sequence ,const string& int_genomic_sequence , double score_threshold , bool best_only , int min_offset , int max_offset){
+list<pair<int,Alignment_data>> Aligner::sw_align(const Int_Str& int_data_sequence ,const Int_Str& int_genomic_sequence , double score_threshold , bool best_only , int min_offset , int max_offset){
 
 
 
-	string int_data_sequence_copy = int_data_sequence;
-	string int_genomic_sequence_copy = int_genomic_sequence;
+	Int_Str int_data_sequence_copy = int_data_sequence;
+	Int_Str int_genomic_sequence_copy = int_genomic_sequence;
 	int offset_change = 0;
 
 	if(flip_seqs){
@@ -928,18 +928,18 @@ list<pair<int,Alignment_data>> Aligner::sw_align(const string& int_data_sequence
 				if( (offset>=min_offset) & (offset<=max_offset)){ //TODO reduce computation time by truncating the alignment from the beginning?
 					//TODO change this and use incorporate_in_dels(), should probably change the list inside alignment data also to have the actual corresponding indices
 					//TODO return the actual inserted/deleted sequences in the alignment data??
-					string dat_seq;
-					string gen_seq;
+					Int_Str dat_seq;
+					Int_Str gen_seq;
 					vector<int> mismatches;
 					bool neg_offset = offset<0;
 					size_t n_del = distance(deletions.begin(),deletions.end());
 					size_t n_ins = distance(insertions.begin(),insertions.end());
 					if(neg_offset){
-						gen_seq = int_genomic_sequence.substr(-offset,string::npos);
+						gen_seq = int_genomic_sequence.substr(-offset,Int_Str::npos);
 						dat_seq = int_data_sequence.substr(0,gen_seq.size()+n_ins);
 					}
 					else{
-						dat_seq = int_data_sequence.substr(offset,string::npos);
+						dat_seq = int_data_sequence.substr(offset,Int_Str::npos);
 						gen_seq = int_genomic_sequence;
 
 					}

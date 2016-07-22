@@ -21,6 +21,8 @@
 #include <random>
 #include <chrono>
 
+#include "IntStr.h"
+
 
 template<typename T> struct Matrix {
 public:
@@ -96,15 +98,15 @@ public:
 
 private:
 	std::forward_list<std::pair<std::string,std::string>> nt_genomic_sequences;
-	std::forward_list<std::pair<std::string,std::string>> int_genomic_sequences;
+	std::forward_list<std::pair<std::string,Int_Str>> int_genomic_sequences;
 	Matrix<double> substitution_matrix;
 	int gap_penalty;
 	int score_threshold;
 	Gene_class gene;
 	bool local_align;
 	bool flip_seqs;
-	void sw_align_common(const std::string& ,const std::string& ,const int,const int , Matrix<double>& , Matrix<int>& , Matrix<int>& , Matrix<int>& , std::vector<int>& ,  std::vector<int>& , std::vector<int>&);
-	std::list<std::pair<int,Alignment_data>> sw_align(const std::string& ,const std::string& , double , bool , int , int);
+	void sw_align_common(const Int_Str& ,const Int_Str& ,const int,const int , Matrix<double>& , Matrix<int>& , Matrix<int>& , Matrix<int>& , std::vector<int>& ,  std::vector<int>& , std::vector<int>&);
+	std::list<std::pair<int,Alignment_data>> sw_align(const Int_Str& ,const Int_Str& , double , bool , int , int);
 
 
 };
@@ -121,7 +123,7 @@ std::vector<std::pair<const int,const std::string>> read_fasta(std::string);
 std::vector<std::pair<std::string,std::string>> read_genomic_fasta(std::string);
 std::vector<std::pair<const int,const std::string>> read_txt(std::string);
 void write_indexed_seq_csv(std::string , std::vector<std::pair<const int,const std::string>>);
-std::string nt2int(std::string);
+Int_Str nt2int(std::string);
 bool comp_nt_int(const char& , const char&);
 inline void write_single_seq_alignment( std::ofstream& , int , std::forward_list<Alignment_data> );
 //Compare alignments (sort by score)
