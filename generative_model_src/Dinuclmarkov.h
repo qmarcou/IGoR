@@ -33,7 +33,7 @@ public:
 	std::shared_ptr<Rec_Event> copy();
 	int size() const;
 
-	inline void iterate(double&, double& , const std::string& , const std::string& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::queue<std::shared_ptr<Rec_Event>>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& ,std::shared_ptr<Error_rate>&, const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Safety_bool_map& , Mismatch_vectors_map& , double& , double& );
+	inline void iterate(double&, double& , const std::string& , const Int_Str& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::queue<std::shared_ptr<Rec_Event>>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& ,std::shared_ptr<Error_rate>&, const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Safety_bool_map& , Mismatch_vectors_map& , double& , double& );
 	std::queue<int> draw_random_realization( const Marginal_array_p , std::unordered_map<Rec_Event_name,int>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::unordered_map<Seq_type , std::string>& , std::default_random_engine&)const;
 	void write2txt(std::ofstream&);
 	void ind_normalize(Marginal_array_p,size_t);
@@ -48,23 +48,23 @@ private:
 	double* updated_upper_bound_proba; //This points to a double modified by the Insertion event given the number of insertion
 
 	int total_nucl_count;
-	std::string vd_seq;//&
+	Int_Str vd_seq;//&
 	int max_vd_ins;
 	int* vd_realizations_indices;
 	size_t vd_seq_size;
-	std::string vj_seq;//&
+	Int_Str vj_seq;//&
 	int max_vj_ins;
 	int* vj_realizations_indices;
 	size_t vj_seq_size;
-	std::string dj_seq;//&
+	Int_Str dj_seq;//&
 	int max_dj_ins;
 	int* dj_realizations_indices;
 	size_t dj_seq_size;
 
-	std::string previous_seq;//&
+	Int_Str previous_seq;//&
 	size_t previous_seq_size;
-	std::string previous_nt_str;
-	std::string data_seq_substr;
+	int previous_nt_str;
+	Int_Str data_seq_substr;
 
 	int base_index;
 	double new_scenario_proba;
@@ -81,7 +81,7 @@ private:
 	int realization_final_index;
 
 
-	inline void iterate_common( int* , std::string& , std::string& , const Marginal_array_p);
+	inline void iterate_common( int* , int& , Int_Str& , const Marginal_array_p);
 	inline std::queue<int> draw_random_common(const std::string& , std::string& , const Marginal_array_p , int , std::uniform_real_distribution<double>& , std::default_random_engine&) const;
 	inline double compute_nt_freq( int , const Marginal_array_p) const;
 

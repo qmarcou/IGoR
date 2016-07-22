@@ -13,10 +13,10 @@ Dinucl_markov::Dinucl_markov(Gene_class gene): Rec_Event()  ,  total_nucl_count(
 	this->type = Event_type::Dinuclmarkov_t;
 	event_class = gene;
 	//Same indexes as Aligner::nt2int
-	event_realizations.emplace("A" ,*(new Event_realization("A",INT16_MAX,"A","",0)));
-	event_realizations.emplace("C" ,*(new Event_realization("C",INT16_MAX,"C","",1)));
-	event_realizations.emplace("G" ,*(new Event_realization("G",INT16_MAX,"G","",2)));
-	event_realizations.emplace("T" ,*(new Event_realization("T",INT16_MAX,"T","",3)));
+	event_realizations.emplace("A" ,*(new Event_realization("A",INT16_MAX,"A",Int_Str(),0)));
+	event_realizations.emplace("C" ,*(new Event_realization("C",INT16_MAX,"C",Int_Str(),1)));
+	event_realizations.emplace("G" ,*(new Event_realization("G",INT16_MAX,"G",Int_Str(),2)));
+	event_realizations.emplace("T" ,*(new Event_realization("T",INT16_MAX,"T",Int_Str(),3)));
 	updated = true;
 	updated_upper_bound_proba = new double;
 	this->update_event_name();
@@ -46,7 +46,7 @@ int Dinucl_markov::size()const{
 }
 
 
-void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,shared_ptr<Error_rate>& error_rate_p , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,shared_ptr<Error_rate>& error_rate_p , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 	new_scenario_proba = scenario_proba;
 	proba_contribution = 1;
@@ -65,7 +65,7 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 		//data_seq_substr = int_sequence.substr(seq_offsets.at(v_5_pair) + previous_seq_size , vd_seq.size());
 		data_seq_substr = int_sequence.substr(seq_offsets.at(V_gene_seq,Five_prime) + previous_seq_size , vd_seq.size());
 
-		previous_nt_str = previous_seq.substr(previous_seq_size-1,1);
+		previous_nt_str = previous_seq.back();
 		iterate_common( vd_realizations_indices , previous_nt_str  , vd_seq , model_parameters_point);
 		//constructed_sequences.at(VD_ins_seq) = &vd_seq;
 
@@ -93,7 +93,7 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 		data_seq_substr = int_sequence.substr(char_index , dj_seq.size());
 
 
-		previous_nt_str = previous_seq.substr(0,1);
+		previous_nt_str = previous_seq.front();
 		reverse(data_seq_substr.begin(),data_seq_substr.end());
 		iterate_common( dj_realizations_indices , previous_nt_str , dj_seq , model_parameters_point);
 		reverse(dj_seq.begin(),dj_seq.end());
@@ -109,7 +109,7 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 		data_seq_substr = int_sequence.substr(seq_offsets.at(V_gene_seq,Five_prime) + previous_seq_size , vj_seq.size());
 
 
-		previous_nt_str = previous_seq.substr(previous_seq_size-1,1);
+		previous_nt_str = previous_seq.back();
 		iterate_common( vj_realizations_indices , previous_nt_str , vj_seq , model_parameters_point);
 	}
 	if(!correct_class){
@@ -244,15 +244,15 @@ void Dinucl_markov::write2txt(ofstream& outfile){
 	}
 }
 
-void Dinucl_markov::iterate_common( int* indices_array , string& previous_assigned_nt  , string& ins_seq , const Marginal_array_p model_parameters_point){
+void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_nt  , Int_Str& ins_seq , const Marginal_array_p model_parameters_point){
 
 	if(!ins_seq.empty()){
-		if(ins_seq.at(0)=='I'){
+		if(ins_seq.at(0)==-1){
 			//first_nt_index = event_realizations.at(previous_assigned_nt).index;
 			//sec_nt_index = event_realizations.at(data_seq_substr.substr(0,1)).index;
 
-			first_nt_index = previous_assigned_nt[0] -'0';
-			sec_nt_index = data_seq_substr[0] -'0';
+			first_nt_index = previous_assigned_nt;//[0] -'0';
+			sec_nt_index = data_seq_substr[0] ;//-'0';
 
 			//For this Dinucl_Markov model the values on the marginal array represents the conditional probability of a couple of nucleotides (N2 | N1)
 			offset =  first_nt_index*event_realizations.size();
@@ -264,12 +264,12 @@ void Dinucl_markov::iterate_common( int* indices_array , string& previous_assign
 		}
 
 		for(size_t i = 1 ; i!= ins_seq.size() ; ++i){
-			if(ins_seq.at(i)=='I'){
+			if(ins_seq.at(i)==-1){
 				//first_nt_index = event_realizations.at(data_seq_substr.substr(i-1,1)).index;
 				//sec_nt_index = event_realizations.at(data_seq_substr.substr(i,1)).index;
 
-				first_nt_index = data_seq_substr[i-1] -'0';
-				sec_nt_index = data_seq_substr[i] -'0';
+				first_nt_index = data_seq_substr[i-1];// -'0';
+				sec_nt_index = data_seq_substr[i];// -'0';
 
 				//For this Dinucl_Markov model the values on the marginal array represents the joint probability of a couple of nucleotides (N1 , N2)
 				offset =  first_nt_index*event_realizations.size();

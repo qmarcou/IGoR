@@ -55,7 +55,7 @@ shared_ptr<Rec_Event> Deletion::copy(){
 
 
 void Deletion::add_realization(int del_number){
-	this->Rec_Event::add_realization(*(new Event_realization(to_string(del_number) , del_number , "" , "" , this->size())));//FIXME nonsense new
+	this->Rec_Event::add_realization(*(new Event_realization(to_string(del_number) , del_number , "" , Int_Str() , this->size())));//FIXME nonsense new
 	if(del_number > (-this->len_min)){this->len_min = (-del_number);}
 	else if (del_number < (-this->len_max)){this->len_max = (-del_number);}
 	this->update_event_name();
@@ -67,7 +67,7 @@ void Deletion::add_realization(int del_number){
  * -First check whether any of these number of deletions is possible given the current position and number of deletions on other genes
  * -Loop over # of deletions in decreasing order
  */
-void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p, const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p, const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
 
 	base_index = base_index_map.at(this->event_index);
 	//constructed_sequences_copy = constructed_sequences;
@@ -238,7 +238,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 								//Reverse them
 								//TODO revise this (perhaps not a good idea to perform these operations every time)
 								reverse(tmp_str.begin() , tmp_str.end());
-								make_transversions(tmp_str,true);
+								make_transversions(tmp_str);
 								//cout<<"rev_tmp_str: "<<tmp_str<<endl;
 								//Merge strings
 								new_str = previous_str + tmp_str;
@@ -426,7 +426,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 									//Reverse them
 									reverse(tmp_str.begin() , tmp_str.end());
-									make_transversions(tmp_str,true);
+									make_transversions(tmp_str);
 									//Merge strings
 									new_str =  tmp_str + previous_str ;
 
@@ -610,7 +610,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 									//Reverse them
 									reverse(tmp_str.begin() , tmp_str.end());
-									make_transversions(tmp_str,true);
+									make_transversions(tmp_str);
 
 									//Merge strings
 									new_str = previous_str + tmp_str;
@@ -844,7 +844,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 							//cout<<"tmp_str: "<<tmp_str<<endl;
 							//Reverse them
 							reverse(tmp_str.begin() , tmp_str.end());
-							make_transversions(tmp_str,true);
+							make_transversions(tmp_str);
 							//Merge strings
 							new_str =  tmp_str + previous_str ;
 
@@ -970,10 +970,10 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 				}
 				else{
 					string& v_gene_seq = constructed_sequences.at(V_gene_seq);
-					tmp_str = v_gene_seq.substr(v_gene_seq.size() + (*iter).second.value_int , string::npos);
-					reverse(tmp_str.begin(),tmp_str.end());
-					make_transversions(tmp_str,false);
-					v_gene_seq+=tmp_str;
+					gen_tmp_str = v_gene_seq.substr(v_gene_seq.size() + (*iter).second.value_int , string::npos);
+					reverse(gen_tmp_str.begin(),gen_tmp_str.end());
+					make_transversions(gen_tmp_str,false);
+					v_gene_seq+=gen_tmp_str;
 				}
 
 				break;
@@ -987,11 +987,11 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 					}
 					else{
 						string& d_gene_seq = constructed_sequences.at(D_gene_seq);
-						tmp_str = d_gene_seq.substr(0 , -(*iter).second.value_int );
-						reverse(tmp_str.begin(),tmp_str.end());
-						make_transversions(tmp_str,false);
-						new_str = tmp_str + d_gene_seq;
-						d_gene_seq = new_str;
+						gen_tmp_str = d_gene_seq.substr(0 , -(*iter).second.value_int );
+						reverse(gen_tmp_str.begin(),gen_tmp_str.end());
+						make_transversions(gen_tmp_str,false);
+						gen_new_str = gen_tmp_str + d_gene_seq;
+						d_gene_seq = gen_new_str;
 
 					}
 
@@ -1003,10 +1003,10 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 					}
 					else{
 						string& d_gene_seq = constructed_sequences.at(D_gene_seq);
-						tmp_str = d_gene_seq.substr(d_gene_seq.size() + (*iter).second.value_int , string::npos);
-						reverse(tmp_str.begin(),tmp_str.end());
-						make_transversions(tmp_str,false);
-						d_gene_seq+=tmp_str;
+						gen_tmp_str = d_gene_seq.substr(d_gene_seq.size() + (*iter).second.value_int , string::npos);
+						reverse(gen_tmp_str.begin(),gen_tmp_str.end());
+						make_transversions(gen_tmp_str,false);
+						d_gene_seq+=gen_tmp_str;
 
 					}
 
@@ -1022,11 +1022,11 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 				}
 				else{
 					string& j_gene_seq = constructed_sequences.at(J_gene_seq);
-					tmp_str = j_gene_seq.substr(0 , -(*iter).second.value_int );
-					reverse(tmp_str.begin(),tmp_str.end());
-					make_transversions(tmp_str,false);
-					new_str = tmp_str + j_gene_seq;
-					j_gene_seq = new_str;
+					gen_tmp_str = j_gene_seq.substr(0 , -(*iter).second.value_int );
+					reverse(gen_tmp_str.begin(),gen_tmp_str.end());
+					make_transversions(gen_tmp_str,false);
+					gen_new_str = gen_tmp_str + j_gene_seq;
+					j_gene_seq = gen_new_str;
 				}
 
 				break;
@@ -1327,6 +1327,50 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 	 return init_sequence;
  }
 
+ Int_Str& make_transversions(Int_Str& init_sequence){
+
+	for(Int_Str::iterator iter = init_sequence.begin() ; iter != init_sequence.end() ; ++iter){
+		 if((*iter)==0){
+			 (*iter) = 3;
+		 }
+		 else if ((*iter)==1){
+			 (*iter) = 2;
+		 }
+		 else if ((*iter)==2){
+			 (*iter) = 1;
+		 }
+		 else if ((*iter)==3){
+			 (*iter)=0;
+		 }
+		 else if ((*iter)==4){
+			 (*iter)=5;
+		 }
+		 else if ((*iter)==5){
+			 (*iter)=4;
+		 }
+		 else if ((*iter)==8){
+			 //Nothing to do
+		 }
+		 else if ((*iter)==9){
+			 //Nothing to do
+		 }
+		 else if ((*iter)==14){
+			 //Nothing to do
+		 }
+		 else{
+
+			 string error_str ("Unknown int nucleotide " + to_string((*iter)) + " in seq ");
+			 for(Int_Str::iterator jiter = init_sequence.begin() ; jiter != init_sequence.end() ; ++jiter){
+				 error_str+=to_string((*jiter));
+			 }
+			 error_str+=" in make_transversions()";
+			 throw runtime_error(error_str);
+		 }
+	 }
+
+
+	 return init_sequence;
+ }
 
  bool del_numb_compare(const Event_realization& real1 , const Event_realization& real2) {
 	 return real1.value_int > real2.value_int;

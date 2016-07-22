@@ -17,6 +17,7 @@
 #include <forward_list>
 #include <queue>
 #include "Errorrate.h"
+#include "IntStr.h"
 #include <random>
 #include"Aligner.h"
 #include <fstream>
@@ -33,10 +34,10 @@ struct Event_realization {
 	const std::string name;
 	const int value_int; //union? template? inheritance and reference? just use a virtual class containing two types of events:str and int
 	const std::string value_str;
-	const std::string value_str_int;
+	const Int_Str value_str_int;
 	int index; //Not defined by the user but at the creation of the event, not quite sure about the mutable
 
-	Event_realization(std::string real_name , int val_int , std::string val_str , std::string val_str_int , int index_val): name(real_name) , value_int(val_int) , value_str(val_str) , value_str_int(val_str_int) , index(index_val){}
+	Event_realization(std::string real_name , int val_int , std::string val_str , Int_Str val_str_int , int index_val): name(real_name) , value_int(val_int) , value_str(val_str) , value_str_int(val_str_int) , index(index_val){}
 
 };
 
@@ -55,7 +56,7 @@ public:
 	virtual std::shared_ptr<Rec_Event> copy() = 0;//TODO make it const somehow
 	virtual int size()const;
 	//TODO get rid of deletion map and chosen gene map
-	virtual void iterate(double& , double& , const std::string& , const std::string& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::queue<std::shared_ptr<Rec_Event>>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& , std::shared_ptr<Error_rate>&  , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>> & , Safety_bool_map& , Mismatch_vectors_map& , double& , double&)=0 ;
+	virtual void iterate(double& , double& , const std::string& , const Int_Str& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::queue<std::shared_ptr<Rec_Event>>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& , std::shared_ptr<Error_rate>&  , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>> & , Safety_bool_map& , Mismatch_vectors_map& , double& , double&)=0 ;
 	bool set_priority(int);
 
 	//Accessors
@@ -117,7 +118,7 @@ protected:
 	int compare_sequences(std::string,std::string);//TODO should probably not be a member functino
 	void add_realization(const Event_realization&);
 	//inline void iterate_wrap_up(double& , double& , const std::string& , const std::string& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const Rec_Event*,int>>>& , std::queue<Rec_Event*>  , Marginal_array_p&  , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& ,std::shared_ptr<Error_rate>&,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>,const Rec_Event*>&  , Safety_bool_map& , Mismatch_vectors_map& , double& , double&);
-	inline void iterate_wrap_up(double& scenario_proba , double& tmp_err_w_proba , const std::string& sequence , const std::string& int_sequence , Index_map& index_map , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& offset_map , std::queue<std::shared_ptr<Rec_Event>> model_queue  , Marginal_array_p& updated_marginal_array_p , const Marginal_array_p& model_parameters_point ,const std::unordered_map<Gene_class , std::vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences  , Seq_offsets_map& seq_offsets , std::shared_ptr<Error_rate>& error_rate_p,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
+	inline void iterate_wrap_up(double& scenario_proba , double& tmp_err_w_proba , const std::string& sequence , const Int_Str& int_sequence , Index_map& index_map , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& offset_map , std::queue<std::shared_ptr<Rec_Event>> model_queue  , Marginal_array_p& updated_marginal_array_p , const Marginal_array_p& model_parameters_point ,const std::unordered_map<Gene_class , std::vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences  , Seq_offsets_map& seq_offsets , std::shared_ptr<Error_rate>& error_rate_p,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
 
 
 	/*			if(seq_offsets.count(make_pair(J_gene_seq, Three_prime))!=0){

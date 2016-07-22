@@ -14,14 +14,14 @@ class Int_Str: public std::vector<int> {
 
 public:
 
-	static const size_t npos = -1;
+	static const std::size_t npos = -1;
 
 	Int_Str& operator+=(const Int_Str&);
 	Int_Str& operator+=(const int&);
 	Int_Str& operator+=( int&& );
-	Int_Str& operator+=(int);
+	//Int_Str& operator+=(int);
 	Int_Str& append(const Int_Str&);
-	Int_Str& append(const int);
+	Int_Str& append(const int&);
 
 	Int_Str operator+(const Int_Str&) const;
 	Int_Str operator+(const int&) const;

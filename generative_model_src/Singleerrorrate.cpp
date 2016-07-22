@@ -52,9 +52,9 @@ double Single_error_rate::compare_sequences_error_prob (double scenario_probabil
 	//cout<<constructed_sequences.at(V_gene_seq);
 	genomic_nucl=0;
 
-	string& v_gene_seq = (*constructed_sequences[V_gene_seq]);
-	string& d_gene_seq = (*constructed_sequences[D_gene_seq]);
-	string& j_gene_seq = (*constructed_sequences[J_gene_seq]);
+	Int_Str& v_gene_seq = (*constructed_sequences[V_gene_seq]);
+	Int_Str& d_gene_seq = (*constructed_sequences[D_gene_seq]);
+	Int_Str& j_gene_seq = (*constructed_sequences[J_gene_seq]);
 
 	vector<int>& v_mismatch_list = *mismatches_lists[V_gene_seq];
 	if(mismatches_lists.exist(D_gene_seq)){

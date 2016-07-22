@@ -54,14 +54,14 @@ shared_ptr<Rec_Event> Insertion::copy(){
 
 
 bool Insertion::add_realization(int insertion_number){
-	this->Rec_Event::add_realization(*(new Event_realization(to_string(insertion_number),insertion_number ,"","",this->size() ))); //FIXME nonsense new
+	this->Rec_Event::add_realization(*(new Event_realization(to_string(insertion_number),insertion_number ,"",Int_Str(),this->size() ))); //FIXME nonsense new
 	if(insertion_number>this->len_max){this->len_max = insertion_number;}
 	else if(insertion_number < this->len_min){this->len_min = insertion_number;}
 	this->update_event_name();
 	return 0;
 }
 
-void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const string& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p, const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p, const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 	new_scenario_proba = scenario_proba;
 	proba_contribution = 1;
@@ -106,7 +106,7 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 
 						proba_contribution = (*this).iterate_common( proba_contribution , insertions , base_index , base_index_map , offset_map , model_parameters_point);
 						if(proba_contribution!=0){
-							inserted_str = string(insertions , 'I');
+							inserted_str.assign(insertions , -1);
 							new_index = base_index + this->event_realizations.at(to_string(insertions)).index;
 							constructed_sequences[VD_ins_seq]= &inserted_str;
 						}
@@ -147,7 +147,7 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 
 
 					if(proba_contribution!=0){
-						inserted_str =  string(insertions , 'I');
+						inserted_str.assign(insertions , -1);
 						new_index = base_index + this->event_realizations.at(to_string(insertions)).index;
 						constructed_sequences[DJ_ins_seq]= &inserted_str;
 					}
@@ -196,7 +196,7 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 
 
 				if(proba_contribution!=0){
-					inserted_str = string(insertions , 'I');
+					inserted_str.assign(insertions , -1);
 					new_index = base_index + realization_index;//this->event_realizations.at(to_string(insertions)).index;
 					constructed_sequences[VJ_ins_seq] = &inserted_str;
 				}

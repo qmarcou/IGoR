@@ -28,7 +28,7 @@ Int_Str& Int_Str::append(const Int_Str& other){
 	return (*this)+= other;
 }
 
-Int_Str& Int_Str::append(const int a){
+Int_Str& Int_Str::append(const int& a){
 	return (*this)+=a;
 }
 

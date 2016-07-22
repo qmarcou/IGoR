@@ -15,6 +15,7 @@
 #include <tuple>
 #include <stdexcept>
 #include <iostream>
+#include "IntStr.h"
 
 enum Event_type {GeneChoice_t , Deletion_t , Insertion_t , Dinuclmarkov_t,Undefined_t};
 enum Event_safety{VD_safe = 0  , DJ_safe = 1  , VJ_safe = 2 };
@@ -36,7 +37,7 @@ typedef std::string Rec_Event_name;
 
 //Type used for offset of alignmed sequences in sequence_offsets maps. Used to characterize the beginning and the end of a sequence on the data sequence
 typedef int Seq_Offset;
-typedef std::string* Str_ptr;
+typedef Int_Str* Int_Str_ptr;
 
 /*Declare a null_delete function
  * This function is not performing any task, it's purpose is to supply a "null_delete" function
@@ -177,7 +178,7 @@ protected:
 
 
 
-typedef Enum_fast_memory_map<Seq_type,Str_ptr> Seq_type_str_p_map;
+typedef Enum_fast_memory_map<Seq_type,Int_Str_ptr> Seq_type_str_p_map;
 
 typedef Enum_fast_memory_map<Event_safety,bool> Safety_bool_map;
 

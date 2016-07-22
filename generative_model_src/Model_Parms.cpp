@@ -330,7 +330,7 @@ void Model_Parms::read_model_parms(string filename){
 					semicolon_index = line_str.find(";",0);
 					int value_int = stoi(line_str.substr(1,semicolon_index));
 					int index = stoi(line_str.substr(semicolon_index+1,string::npos));
-					event_realizations.emplace(pair<string,Event_realization>(to_string(value_int) , Event_realization(to_string(value_int) , value_int , "","" , index)));
+					event_realizations.emplace(pair<string,Event_realization>(to_string(value_int) , Event_realization(to_string(value_int) , value_int , "",Int_Str() , index)));
 					getline(infile,line_str);
 				}
 				//TODO check this for enum writing
@@ -347,7 +347,7 @@ void Model_Parms::read_model_parms(string filename){
 					semicolon_index = line_str.find(";",0);
 					int value_int = stoi(line_str.substr(1,semicolon_index));
 					int index = stoi(line_str.substr(semicolon_index+1,string::npos));
-					event_realizations.emplace(pair<string,Event_realization>(to_string(value_int) , Event_realization(to_string(value_int) , value_int , "","" , index))) ;
+					event_realizations.emplace(pair<string,Event_realization>(to_string(value_int) , Event_realization(to_string(value_int) , value_int , "",Int_Str() , index))) ;
 					getline(infile,line_str);
 				}
 				//TODO check this for enum writing

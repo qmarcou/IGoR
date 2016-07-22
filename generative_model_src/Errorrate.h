@@ -9,6 +9,7 @@
 #define ERRORRATE_H_
 
 #include "Utils.h"
+#include "IntStr.h"
 #include <unordered_map>
 #include <utility>
 #include <string>

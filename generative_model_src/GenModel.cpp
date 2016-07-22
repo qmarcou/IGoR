@@ -144,7 +144,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				double init_proba = 1;
 				double init_tmp_err_w_proba = 1;
 				double max_proba_scenario = likelihood_threshold/proba_threshold_factor;
-				string int_sequence = nt2int(seq_it->first);
+				Int_Str int_sequence = nt2int(seq_it->first);
 				//cout<<int_sequence<<endl;
 
 

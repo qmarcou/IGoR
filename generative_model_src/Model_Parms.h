@@ -14,6 +14,7 @@
 
 #include "Rec_Event.h"
 #include "Utils.h"
+#include "IntStr.h"
 #include <list>
 #include <unordered_map>
 #include <string>
