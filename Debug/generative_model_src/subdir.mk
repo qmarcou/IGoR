@@ -11,6 +11,7 @@ CPP_SRCS += \
 ../generative_model_src/GenModel.cpp \
 ../generative_model_src/Genechoice.cpp \
 ../generative_model_src/Insertion.cpp \
+../generative_model_src/IntStr.cpp \
 ../generative_model_src/Model_Parms.cpp \
 ../generative_model_src/Model_marginals.cpp \
 ../generative_model_src/Rec_Event.cpp \
@@ -26,6 +27,7 @@ OBJS += \
 ./generative_model_src/GenModel.o \
 ./generative_model_src/Genechoice.o \
 ./generative_model_src/Insertion.o \
+./generative_model_src/IntStr.o \
 ./generative_model_src/Model_Parms.o \
 ./generative_model_src/Model_marginals.o \
 ./generative_model_src/Rec_Event.o \
@@ -41,6 +43,7 @@ CPP_DEPS += \
 ./generative_model_src/GenModel.d \
 ./generative_model_src/Genechoice.d \
 ./generative_model_src/Insertion.d \
+./generative_model_src/IntStr.d \
 ./generative_model_src/Model_Parms.d \
 ./generative_model_src/Model_marginals.d \
 ./generative_model_src/Rec_Event.d \
