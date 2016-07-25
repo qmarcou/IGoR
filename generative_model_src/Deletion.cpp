@@ -131,7 +131,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 			else{
 				vj_check = false;
 			}
-			previous_str = (*constructed_sequences.at(V_gene_seq,memory_layer_cs-1));
+			Int_Str& previous_str = (*constructed_sequences.at(V_gene_seq,memory_layer_cs-1));
 			vector<int>& v_mismatch_list = *mismatches_lists.at(V_gene_seq , memory_layer_mismatches-1);
 
 
@@ -349,7 +349,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 					vd_check = false;
 				}
 
-				previous_str = (*constructed_sequences.at(D_gene_seq,memory_layer_cs-1));
+				Int_Str& previous_str = (*constructed_sequences.at(D_gene_seq,memory_layer_cs-1));
 				vector<int>& d_mismatch_list = *mismatches_lists.at(D_gene_seq , memory_layer_mismatches-1);
 
 
@@ -529,7 +529,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 					dj_check = false;
 				}
 
-				previous_str = (*constructed_sequences.at(D_gene_seq,memory_layer_cs-1));
+				Int_Str& previous_str = (*constructed_sequences.at(D_gene_seq,memory_layer_cs-1));
 				vector<int>& d_mismatch_list = *mismatches_lists.at(D_gene_seq , memory_layer_mismatches-1);
 
 				for(forward_list<Event_realization>::const_iterator iter=(*this).int_value_and_index.begin() ; iter != (*this).int_value_and_index.end() ; ++iter){
@@ -755,7 +755,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 				vj_check = false;
 			}
 
-			previous_str = (*constructed_sequences.at(J_gene_seq,memory_layer_cs-1));
+			Int_Str& previous_str = (*constructed_sequences.at(J_gene_seq,memory_layer_cs-1));
 			vector<int>& j_mismatch_list = *mismatches_lists.at(J_gene_seq , memory_layer_mismatches-1);
 			for(forward_list<Event_realization>::const_iterator iter=(*this).int_value_and_index.begin() ; iter != (*this).int_value_and_index.end() ; ++iter){
 				if( (int) previous_str.size()>(*iter).value_int){

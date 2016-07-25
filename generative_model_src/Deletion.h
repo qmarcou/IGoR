@@ -105,7 +105,7 @@ private:
 	double new_tmp_err_w_proba;
 	double proba_contribution;
 	int new_index;
-	Int_Str previous_str;//&
+	//Int_Str previous_str;//&
 	mutable Int_Str new_str;
 	mutable Int_Str tmp_str;
 	mutable std::string gen_new_str;
