@@ -297,7 +297,7 @@ int main(int argc , char* argv[]){
 	else{
 		//Write your custom procedure here
 
-		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_no_del/low_err/";
+		string path = "/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/bcr_harlan/memory_non_coding/alignments/NAIVE_03-AJ-N_A_026-050/run_no_d/shm_test/fully_synth_no_del/high_err/";
 
 
 
@@ -374,7 +374,8 @@ int main(int argc , char* argv[]){
 
         auto sample_mutated_indexed_seq = sample_indexed_seq(mutated_indexed_seq,100000);
 
-		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_true_delta_prior.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
+        unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_toy_model_equivalent.csv", V_gene , 9999999 , false , sample_mutated_indexed_seq  );//40//35
+        //unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_true_delta_prior.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
        // unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_non_coding_mutated.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
 
 		sorted_alignments = read_alignments_seq_csv_score_range(path + "J_alignments_non_coding_mutated.csv", J_gene , 10 , false , sample_mutated_indexed_seq , sorted_alignments);//30//20
@@ -390,7 +391,7 @@ int main(int argc , char* argv[]){
 
 		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
-		genmodel_infer.infer_model(sorted_alignments_vec , 10 , path+"/run_low_err_forced_prior/" ,1e-300,0.001);
+		genmodel_infer.infer_model(sorted_alignments_vec , 10 , path+"/run_high_err_toy_aligns/" ,1e-300,0.001);
 
 	}
 
