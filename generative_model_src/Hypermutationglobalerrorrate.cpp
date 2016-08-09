@@ -288,6 +288,14 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			Nmer_index+=adressing_vector[i]*tmp_int_nt;
 		}
 		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
+		while((current_mismatch!=v_mismatch_list.end())
+				&& (*current_mismatch)<(mutation_Nmer_size-1)/2){
+			++current_mismatch;
+			//Takes care of the fact that current_mismatch is never incremented if there's a mutation at 0 for instance
+			//this needs a true correct fix
+		}
+		//FIXME more!!!!
+
 
 		//Check if there's an error and apply the cost accordingly
 
@@ -305,7 +313,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//Look at all Nmers in the scenario_resulting_sequence by sliding window
 		//Removing the contribution of the first and adding the contribution of the new last
 
-		for( i = (mutation_Nmer_size+1)/2 ; i!=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2 ; ++i){
+		for( i = (mutation_Nmer_size-1)/2 +1 ; i!=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2  ; ++i){
 			//Remove the previous first nucleotide of the Nmer and it's contribution to the index
 			Nmer_index-=current_Nmer.front()*adressing_vector[0];
 			current_Nmer.pop();
@@ -398,6 +406,16 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			current_Nmer.push(tmp_int_nt);
 			Nmer_index+=adressing_vector[i]*tmp_int_nt;
 		}
+
+		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
+		while((current_mismatch!=v_mismatch_list.end())
+				&& (*current_mismatch)<(mutation_Nmer_size-1)/2){
+			++current_mismatch;
+			//Takes care of the fact that current_mismatch is never incremented if there's a mutation at 0 for instance
+			//this needs a true correct fix
+		}
+		//FIXME more!!!!
+
 		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
 
 		//Check if there's an error and apply the cost accordingly
@@ -417,7 +435,8 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//Look at all Nmers in the scenario_resulting_sequence by sliding window
 		//Removing the contribution of the first and adding the contribution of the new last
 
-		for( i = (mutation_Nmer_size+1)/2 ; i!=seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 ; ++i){
+		for( i = (mutation_Nmer_size-1)/2 +1 ; i!=seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1  ; ++i){
+			//FIXME seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1 ??
 			//Remove the previous first nucleotide of the Nmer and it's contribution to the index
 			Nmer_index-=current_Nmer.front()*adressing_vector[0];
 			current_Nmer.pop();
@@ -463,7 +482,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		debug_v_seq_coverage[zz]+=scenario_new_proba;
 	}
 	this->debug_current_string = original_sequence;
-
+	cout<<scenario_new_proba<<endl;
 	this->seq_likelihood += scenario_new_proba;
 	this->seq_probability+=scenario_probability;
 	++debug_number_scenarios;
