@@ -482,7 +482,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		debug_v_seq_coverage[zz]+=scenario_new_proba;
 	}
 	this->debug_current_string = original_sequence;
-	cout<<scenario_new_proba<<endl;
+	//cout<<scenario_new_proba<<endl;
 	this->seq_likelihood += scenario_new_proba;
 	this->seq_probability+=scenario_probability;
 	++debug_number_scenarios;
@@ -793,14 +793,14 @@ void Hypermutation_global_errorrate::update(){
 			//ei_nucleotide_contributions[i*mutation_Nmer_size+3] = 0;
 			for(j=0 ; j!=3 ; ++j){
 				//Update the contribution of the nucleotide
-				ei_nucleotide_contributions[i*4+j] += .1*gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+j] += .05*gsl_vector_get(x,(i*3 + j));
 
 				//Compute the contribution of the constrained nucleotide
-				ei_nucleotide_contributions[i*4+3] -= .1*gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+3] -= .05*gsl_vector_get(x,(i*3 + j));
 			}
 		}
 		//Update the normalization factor
-		R += .1*gsl_vector_get(x,(3*mutation_Nmer_size));
+		R += .05*gsl_vector_get(x,(3*mutation_Nmer_size));
 
 /*		cout<<"new model parms"<<endl;
 		cout<<R<<endl;
@@ -1024,7 +1024,7 @@ void Hypermutation_global_errorrate::add_to_norm_counter(){
 		number_seq+=1;
 /////////////////////////////////////////////////////////////////////////////////////////////
 		//Debug
-		debug_stream<<debug_current_string<<";{"<<debug_v_seq_coverage[0]/seq_likelihood;
+/*		debug_stream<<debug_current_string<<";{"<<debug_v_seq_coverage[0]/seq_likelihood;
 		debug_v_seq_coverage[0]=0;
 		for(int zz=1 ; zz!=130 ; ++zz){
 			debug_stream<<","<<debug_v_seq_coverage[zz]/seq_likelihood;
@@ -1036,7 +1036,7 @@ void Hypermutation_global_errorrate::add_to_norm_counter(){
 			debug_stream<<","<<debug_mismatch_seq_coverage[zz]/seq_likelihood;
 			debug_mismatch_seq_coverage[zz] = 0;
 		}
-		debug_stream<<"}"<<endl;
+		debug_stream<<"}"<<endl;*/
 
 		size_t array_size = pow(4,mutation_Nmer_size);
 		for(size_t ii=0 ; ii != array_size ; ++ii){
@@ -1216,11 +1216,11 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 
 
 
-	cout<<endl<<"Pbg,Pshm,Nbg,Nshm"<<endl;
+	debug_stream<<endl<<"Pbg,Pshm,Nbg,Nshm"<<endl;
 	for(int zzz=0 ; zzz!=pow(4,mutation_Nmer_size) ; ++zzz){
-		cout<<zzz<<","<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<','<<debug_Nmer_N_bg[zzz]<<','<<debug_Nmer_N_SHM[zzz]<<endl;
+		debug_stream<<zzz<<","<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<','<<debug_Nmer_N_bg[zzz]<<','<<debug_Nmer_N_SHM[zzz]<<endl;
 	}
-	cout<<endl;
+	debug_stream<<endl;
 
 	if(learn_on_d){
 
