@@ -22,7 +22,7 @@ GenModel::~GenModel() {
 	// TODO Auto-generated destructor stub
 }
 
-bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , double likelihood_threshold/*=1e-25 by default*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
+bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , bool fast_iter/*=true*/ ,double likelihood_threshold/*=1e-25 by default*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = model_marginals.get_index_map(model_parms,model_queue);
 	unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> inv_offset_map = model_marginals.get_inverse_offset_map(model_parms,model_queue);
@@ -123,13 +123,27 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				(*last_proba_init_event).initialize_scenario_proba_bound(downstream_proba_bound , updated_proba_list , events_map);
 			}
 
+			const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
+
+			//Take only best alignments if fast_iter
+			vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> fast_iter_sequences;
+			if(fast_iter && iteration_accomplished==0){
+				fast_iter_sequences = sequences;
+				for(unordered_map<Gene_class , vector<Alignment_data>>::const_iterator gc_align_iter = sequences.at(0).second.begin() ; gc_align_iter != sequences.at(0).second.end() ; ++gc_align_iter){
+					fast_iter_sequences = get_best_aligns(fast_iter_sequences,(*gc_align_iter).first);
+				}
+				sequence_util_ptr = &fast_iter_sequences;
+			}
+			else{
+				sequence_util_ptr = &sequences;
+			}
 
 
 
 			//Loop over sequences in parallel, using the number of threads declared previously when declaring the parallel section
 			//Use dynamic scheduling to avoid loss of time due to synchronization
 			#pragma omp for schedule(guided) nowait
-			for(vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>::const_iterator seq_it = sequences.begin() ; seq_it < sequences.end() ; ++seq_it){
+			for(vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>::const_iterator seq_it = (*sequence_util_ptr).begin() ; seq_it < (*sequence_util_ptr).end() ; ++seq_it){
 
 				//Make a copy of the queue that can be modified in iterate
 				queue<shared_ptr<Rec_Event>> model_queue_copy(single_thread_model_queue);
@@ -372,4 +386,30 @@ void GenModel::write_seq_real2txt(string filename_ind_seq , string filename_ind_
 		index++;
 	}
 
+}
+
+/*
+ * Extract the best alignment for each sequence for a given gene class (used for the fast iter)
+ */
+vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> get_best_aligns (const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& all_aligns, Gene_class gc){
+
+	vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> all_aligns_copy (all_aligns);
+	for(vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>::iterator seq_iter = all_aligns_copy.begin() ; seq_iter!=all_aligns_copy.end() ; ++seq_iter){
+		vector<Alignment_data>& align_vect = (*seq_iter).second.at(gc); //TODO add exception
+
+		//Get align best score
+		double best_score = -1;
+		for(vector<Alignment_data>::const_iterator align_iter = align_vect.begin() ; align_iter!=align_vect.end() ; ++align_iter){
+			if((*align_iter).score>best_score){best_score=(*align_iter).score;}
+		}
+
+		vector<Alignment_data> new_align_vect ;
+		for(vector<Alignment_data>::const_iterator align_iter = align_vect.begin() ; align_iter!=align_vect.end() ; ++align_iter){
+			if((*align_iter).score==best_score){new_align_vect.push_back((*align_iter));}
+		}
+
+		align_vect = new_align_vect;
+	}
+
+	return all_aligns_copy;
 }

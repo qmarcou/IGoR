@@ -31,7 +31,7 @@ public:
 	GenModel(const Model_Parms& , const Model_marginals&);
 	//TODO: add all the necessary constructors: with just model_parms, with model_parms and marginals
 	virtual ~GenModel();
-	bool infer_model(const std::vector<std::pair<std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path , double likelihood_threshold=1e-25 , double proba_threshold_factor=0.001 , double mean_number_seq_err_thresh = INFINITY);
+	bool infer_model(const std::vector<std::pair<std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter=true , double likelihood_threshold=1e-25 , double proba_threshold_factor=0.001 , double mean_number_seq_err_thresh = INFINITY);
 	std::forward_list<std::pair<std::string , std::queue<std::queue<int>>>> generate_sequences (int,bool);
 	void generate_sequences(int,bool,std::string,std::string);
 	bool load_genmodel();
@@ -52,6 +52,6 @@ private:
 
 };
 
-
+std::vector<std::pair<std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>> get_best_aligns (const std::vector<std::pair<std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>&, Gene_class);
 
 #endif /* GENMODEL_H_ */
