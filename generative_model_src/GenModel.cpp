@@ -130,6 +130,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			if(fast_iter && iteration_accomplished==0){
 				fast_iter_sequences = sequences;
 				for(unordered_map<Gene_class , vector<Alignment_data>>::const_iterator gc_align_iter = sequences.at(0).second.begin() ; gc_align_iter != sequences.at(0).second.end() ; ++gc_align_iter){
+					if ((*gc_align_iter).first == D_gene)continue;
 					fast_iter_sequences = get_best_aligns(fast_iter_sequences,(*gc_align_iter).first);
 				}
 				sequence_util_ptr = &fast_iter_sequences;
