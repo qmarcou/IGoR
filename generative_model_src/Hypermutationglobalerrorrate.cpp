@@ -186,6 +186,18 @@ Hypermutation_global_errorrate& Hypermutation_global_errorrate::operator +=(Hype
 		}
 
 		//Copy J gene error and coverage
+		for( i=0 ; i!= n_j_real ; ++i){
+			//Get the length of the gene and a pointer to the right array to write on
+			tmp_corr_len = j_gene_nucleotide_coverage_p[i].first;
+			tmp_cov_p = j_gene_nucleotide_coverage_p[i].second;
+			double * tmp_cov_p_other = err_r.j_gene_nucleotide_coverage_p[i].second;
+			tmp_err_p = j_gene_per_nucleotide_error_p[i].second;
+			double * tmp_err_p_other = err_r.j_gene_per_nucleotide_error_p[i].second;
+			for(j=0 ; j!= tmp_corr_len ; ++j){
+				tmp_cov_p[j]+=tmp_cov_p_other[j];
+				tmp_err_p[j]+=tmp_err_p_other[j];
+			}
+		}
 
 		//Copy D gene error and coverage
 
@@ -259,11 +271,10 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 
 	vector<int>& v_mismatch_list = *mismatches_lists.at(V_gene_seq);
-	if(mismatches_lists.exist(D_gene_seq)){ //Remove check? ensured by initialization
-		vector<int>& d_mismatch_list = *mismatches_lists[D_gene_seq];
-	}
 
-	vector<int>& j_mismatch_list = *mismatches_lists[J_gene_seq];
+	vector<int>& d_mismatch_list = *mismatches_lists[D_gene_seq];//No check needed empty initialization if needed
+
+	vector<int>& j_mismatch_list = *mismatches_lists.at(J_gene_seq);
 
 	scenario_new_proba = scenario_probability;
 
@@ -273,6 +284,10 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	tmp_len_util = scenario_resulting_sequence.size();
 	if(tmp_len_util>=mutation_Nmer_size){
 		current_mismatch = v_mismatch_list.begin();
+		if(current_mismatch == v_mismatch_list.end()){
+			//If the v_mismatch list is empty
+			--current_mismatch; //decrement so it will test equal to .end() after being incremented
+		}
 
 		//TODO Need to get the previous V nucleotides and last J ones
 
@@ -288,21 +303,36 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			Nmer_index+=adressing_vector[i]*tmp_int_nt;
 		}
 		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
-		while((current_mismatch!=v_mismatch_list.end())
+		while((current_mismatch!=j_mismatch_list.end())
 				&& (*current_mismatch)<(mutation_Nmer_size-1)/2){
 			++current_mismatch;
+
+			if(current_mismatch==v_mismatch_list.end()){
+				current_mismatch = d_mismatch_list.begin();
+			}
+			if(current_mismatch==d_mismatch_list.end()){ //no else if in case d_mismatch list is empty
+				current_mismatch = j_mismatch_list.begin();
+			}
+
 			//Takes care of the fact that current_mismatch is never incremented if there's a mutation at 0 for instance
 			//this needs a true correct fix
 		}
-		//FIXME more!!!!
+		//FIXME more!!!!(properly take into account errors at the beginning and the end of the sequence)
 
 
 		//Check if there's an error and apply the cost accordingly
 
-		if( (current_mismatch!=v_mismatch_list.end())
+		if( (current_mismatch!=j_mismatch_list.end())
 			&& ((*current_mismatch)==(mutation_Nmer_size-1)/2) ){
 			scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
 			++current_mismatch;
+
+			if(current_mismatch==v_mismatch_list.end()){
+				current_mismatch = d_mismatch_list.begin();
+			}
+			if(current_mismatch==d_mismatch_list.end()){ //no else if in case d_mismatch list is empty
+				current_mismatch = j_mismatch_list.begin();
+			}
 		}
 		else{
 			scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
@@ -325,10 +355,17 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			current_Nmer.push(tmp_int_nt);
 
 			//Apply the error cost
-			if( (current_mismatch!=v_mismatch_list.end())
+			if( (current_mismatch!=j_mismatch_list.end())
 					&& ((*current_mismatch)==i)){
 				scenario_new_proba*=Nmer_mutation_proba[Nmer_index];
 				++current_mismatch;
+
+				if(current_mismatch==v_mismatch_list.end()){
+					current_mismatch = d_mismatch_list.begin();
+				}
+				if(current_mismatch==d_mismatch_list.end()){ //no else if in case d_mismatch list is empty
+					current_mismatch = j_mismatch_list.begin();
+				}
 			}
 			else{
 				scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
@@ -850,7 +887,20 @@ void Hypermutation_global_errorrate::update(){
 	}
 
 	if(learn_on_j){
+		for(i = 0 ; i!=n_j_real ; ++i){
+			//Get the length of the gene and a pointer to the right array to write on
+			tmp_corr_len = j_gene_nucleotide_coverage_p[i].first;
+			tmp_cov_p = j_gene_nucleotide_coverage_p[i].second;
+			tmp_err_p = j_gene_per_nucleotide_error_p[i].second;
 
+			for(j = 0 ; j!= tmp_corr_len ; j++){
+				//reset coverage
+				tmp_cov_p[j] = 0;
+
+				//Same for errors
+				tmp_err_p[j] = 0;
+			}
+		}
 	}
 
 
@@ -942,7 +992,27 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			j_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
 			jgene_offset_p = &j_gene_event_p->alignment_offset_p;
 			jgene_real_index_p = &j_gene_event_p->current_realization_index;
+
 			//Initialize gene counters
+			j_realizations = j_gene_event_p->get_realizations_map();
+			//Get the number of realizations
+			n_j_real = j_realizations.size();
+			//Create arrays
+			j_gene_nucleotide_coverage_p = new pair<size_t,double*>[n_j_real];
+			j_gene_per_nucleotide_error_p = new pair<size_t,double*>[n_j_real];
+			j_gene_nucleotide_coverage_seq_p = new pair<size_t,double*>[n_j_real];
+			j_gene_per_nucleotide_error_seq_p = new pair<size_t,double*>[n_j_real];
+
+			for(unordered_map<string , Event_realization>::const_iterator iter = j_realizations.begin() ; iter != j_realizations.end() ; iter++){
+
+				//Initialize normalized counters
+				j_gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				j_gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+
+				//Initialize sequence counters
+				j_gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+				j_gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+			}
 
 		}
 		catch(exception& except){
@@ -1026,7 +1096,29 @@ void Hypermutation_global_errorrate::add_to_norm_counter(){
 		}
 
 		if(learn_on_j){
+			for(i = 0 ; i!=n_j_real ; ++i){
+				//Get the length of the gene and a pointer to the right array to write on
+				tmp_corr_len = j_gene_nucleotide_coverage_seq_p[i].first;
+				tmp_cov_p = j_gene_nucleotide_coverage_seq_p[i].second;
+				tmp_err_p = j_gene_per_nucleotide_error_seq_p[i].second;
 
+				double* tmp_cov_mod_p = j_gene_nucleotide_coverage_p[i].second;
+				double* tmp_err_mod_p = j_gene_per_nucleotide_error_p[i].second;
+
+
+
+				for(j = 0 ; j!= tmp_corr_len ; j++){
+
+					//Add to normalize counter and reset coverage
+					tmp_cov_mod_p[j] += tmp_cov_p[j]/seq_likelihood;
+					tmp_cov_p[j] = 0;
+
+
+					//Same for errors
+					tmp_err_mod_p[j] += tmp_err_p[j]/seq_likelihood;
+					tmp_err_p[j] = 0;
+				}
+			}
 		}
 
 		model_log_likelihood+=log10(seq_likelihood);
@@ -1094,7 +1186,20 @@ void Hypermutation_global_errorrate::clean_seq_counters(){
 			}
 
 			if(learn_on_j){
+				for(i = 0 ; i!=n_j_real ; ++i){
+					//Get the length of the gene and a pointer to the right array to write on
+					tmp_corr_len = j_gene_nucleotide_coverage_seq_p[i].first;
+					tmp_cov_p = j_gene_nucleotide_coverage_seq_p[i].second;
+					tmp_err_p = j_gene_per_nucleotide_error_seq_p[i].second;
 
+					for(j = 0 ; j!= tmp_corr_len ; j++){
+						//reset coverage
+						tmp_cov_p[j] = 0;
+
+						//Same for errors
+						tmp_err_p[j] = 0;
+					}
+				}
 			}
 //	}
 
@@ -1129,7 +1234,20 @@ void Hypermutation_global_errorrate::clean_all_counters(){
 	}
 
 	if(learn_on_j){
+		for(i = 0 ; i!=n_j_real ; ++i){
+			//Get the length of the gene and a pointer to the right array to write on
+			tmp_corr_len = j_gene_nucleotide_coverage_p[i].first;
+			tmp_cov_p = j_gene_nucleotide_coverage_p[i].second;
+			tmp_err_p = j_gene_per_nucleotide_error_p[i].second;
 
+			for(j = 0 ; j!= tmp_corr_len ; j++){
+				//reset coverage
+				tmp_cov_p[j] = 0;
+
+				//Same for errors
+				tmp_err_p[j] = 0;
+			}
+		}
 	}
 
 	size_t array_size = pow(4,mutation_Nmer_size);
@@ -1223,21 +1341,67 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 		}
 	}
 
+	if(learn_on_d){
 
+	}
+	//TODO remove code duplication this should be only one function taking nucleotide coverage and nucleotide error as arguments
+
+	if(learn_on_j){
+		for(unordered_map<string,Event_realization>::const_iterator real_iter = j_realizations.begin() ; real_iter!=j_realizations.end() ; real_iter++){
+			pair<size_t,double*> nucleotide_coverage = j_gene_nucleotide_coverage_p[(*real_iter).second.index];
+			pair<size_t,double*> nucleotide_error = j_gene_per_nucleotide_error_p[(*real_iter).second.index];
+
+			//Get the first Nmer on the gene
+			Nmer_index = 0;
+			current_Nmer = queue<size_t>();
+			//and get min coverage for the first Nmer
+			double min_coverage = INT16_MAX;
+			for(j=0 ; j!=mutation_Nmer_size ; j++){
+				tmp_int_nt = stoi((*real_iter).second.value_str_int.substr(j,1));
+				current_Nmer.push(tmp_int_nt);
+				Nmer_index+=adressing_vector[j]*tmp_int_nt;
+
+				if(nucleotide_coverage.second[j]<min_coverage){
+					min_coverage = nucleotide_coverage.second[j];
+				}
+			}
+
+			Nmer_P_BG[Nmer_index] += min_coverage; //The coverage of the Nmer is only as high as the lowest covered nt
+			Nmer_P_SHM[Nmer_index] += nucleotide_error.second[(mutation_Nmer_size-1)/2];
+
+			for(i=(mutation_Nmer_size-1)/2 +1 ; i!=(*real_iter).second.value_str_int.size() - (mutation_Nmer_size-1)/2; ++i){
+
+				//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+				Nmer_index-=current_Nmer.front()*adressing_vector[0];
+				current_Nmer.pop();
+				//Shift the index
+				Nmer_index*=4;
+				//Add the contribution of the new nucleotide
+
+				tmp_int_nt = stoi((*real_iter).second.value_str_int.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+
+				Nmer_index+=tmp_int_nt;
+				current_Nmer.push(tmp_int_nt);
+
+				double min_coverage = INT16_MAX;
+				for(j=-(mutation_Nmer_size-1)/2 ; j!= (mutation_Nmer_size-1)/2 +1 ; j++){
+					if(nucleotide_coverage.second[j+i]<min_coverage){
+						min_coverage = nucleotide_coverage.second[j+i];
+					}
+				}
+
+				Nmer_P_BG[Nmer_index] += min_coverage; //The coverage of the Nmer is only as high as the lowest covered nt
+				Nmer_P_SHM[Nmer_index] += nucleotide_error.second[i];
+
+			}
+		}
+	}
 
 	debug_stream<<endl<<"Pbg,Pshm,Nbg,Nshm"<<endl;
 	for(int zzz=0 ; zzz!=pow(4,mutation_Nmer_size) ; ++zzz){
 		debug_stream<<zzz<<","<<Nmer_P_BG[zzz]<<","<<Nmer_P_SHM[zzz]<<','<<debug_Nmer_N_bg[zzz]<<','<<debug_Nmer_N_SHM[zzz]<<endl;
 	}
 	debug_stream<<endl;
-
-	if(learn_on_d){
-
-	}
-
-	if(learn_on_j){
-
-	}
 }
 
 double Hypermutation_global_errorrate::compute_Nmer_unorm_score(int* base_4_address){
