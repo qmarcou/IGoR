@@ -340,25 +340,6 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	}
 
 
-/*	In order to be self consistent the error rate should be applied everywhere
- * //V gene
-	if(apply_to_v){
-
-
-	}
-
-
-	//D gene
-	if(apply_to_d){
-
-	}
-
-
-	//J gene
-	if(apply_to_j){
-
-	}*/
-
 	//Record genomic nucleotides coverage and errors
 
 	if(learn_on_v){
@@ -391,7 +372,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 /////////////////////////////////////////////////////////////////////////////////////////////
 		//Debug shit
 /////////////////////////////////////////////////////////////////////////////////////////////
-		current_mismatch = v_mismatch_list.begin();
+/*		current_mismatch = v_mismatch_list.begin();
 
 		//TODO Need to get the previous V nucleotides and last J ones
 
@@ -459,7 +440,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			}
 
 
-		}
+		}*/
 
 /////////////////////////////////////////////////////////////////////////////////////////
 		//End of debug shit
@@ -469,13 +450,39 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	}
 
 	if(learn_on_d){
-
+		//Probably should not exist
+		throw runtime_error("Cannot learn a hypermutation model on D so far");
 	}
 
 	if(learn_on_j){
+		//Get the coverage
+		//Get the length of the gene and a pointer to the right array to write on
+		tmp_corr_len = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].first;
+		tmp_cov_p = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].second;
+		tmp_err_p = j_gene_per_nucleotide_error_seq_p[**jgene_real_index_p].second;
 
+		//Get the corrected number of deletions(no negative deletion)
+		tmp_corr_len = min(tmp_corr_len,(int)scenario_resulting_sequence.size()-(**jgene_offset_p));//TODO remove this dirty cast
+
+		// Compute the coverage
+		for( i = max(0,*j_5_del_value_p) ; i != tmp_corr_len ; ++i ){
+			tmp_cov_p[i]+=scenario_new_proba;
+		}
+
+		//Compute the error per nucleotide on the gene
+		tmp_len_util = j_mismatch_list.size();
+		for( i = 0 ; i != tmp_len_util ; ++i){
+			//Disregard mismatches due to P nucleotides
+			if(	(j_mismatch_list[i] < scenario_resulting_sequence.size() - (mutation_Nmer_size-1)/2) //is this criterion necessary?
+					&& (j_mismatch_list[i]-(**jgene_offset_p)) >= (**jgene_offset_p) + max(0,*j_5_del_value_p)+ (mutation_Nmer_size-1)/2){
+				tmp_err_p[j_mismatch_list[i]-(**jgene_offset_p)]+=scenario_new_proba;
+				//Debug
+				//debug_mismatch_seq_coverage[j_mismatch_list[i]]+=scenario_new_proba;
+			}
+		}
 	}
 
+/*
 	//Debug coverage and mismatches
 	Seq_Offset tmp_offset = seq_offsets.at(V_gene_seq,Three_prime);
 	for(int zz = 0 ; zz != (tmp_offset+1) ; ++zz){
@@ -483,6 +490,8 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	}
 	this->debug_current_string = original_sequence;
 	//cout<<scenario_new_proba<<endl;
+*/
+
 	this->seq_likelihood += scenario_new_proba;
 	this->seq_probability+=scenario_probability;
 	++debug_number_scenarios;
