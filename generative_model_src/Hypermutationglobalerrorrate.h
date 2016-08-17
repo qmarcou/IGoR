@@ -148,6 +148,9 @@ private:
 	mutable int Nmer_index;
 	std::vector<int>::const_iterator current_mismatch;
 
+	std::vector<int> empty_vec_util;
+	std::vector<int>* vec_ptr_util;
+
 	double* debug_v_seq_coverage;
 	double* debug_mismatch_seq_coverage;
 	std::string debug_current_string;

@@ -76,7 +76,7 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 
 	//Initialize adressing vector
 	for(int ii = (mutation_Nmer_size-1) ; ii != -1 ; --ii){
-		adressing_vector.push_back(pow(4,ii));
+		adressing_vector.emplace_back(pow(4,ii));
 	}
 
 
@@ -97,6 +97,9 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 		debug_Nmer_N_SHM[ii] = 0;
 		debug_Nmer_N_bg[ii] = 0;
 	}
+
+	empty_vec_util = vector<int>();
+	vec_ptr_util = NULL;
 }
 
 Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value , vector<double> ei_contributions): Hypermutation_global_errorrate(nmer_width , learn , apply , starting_flat_value){
@@ -272,7 +275,13 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 	vector<int>& v_mismatch_list = *mismatches_lists.at(V_gene_seq);
 
-	vector<int>& d_mismatch_list = *mismatches_lists[D_gene_seq];//No check needed empty initialization if needed
+	if(mismatches_lists.exist(D_gene_seq)){
+		vec_ptr_util = mismatches_lists[D_gene_seq];//Should not have to check this and default initialization should be sufficient
+	}
+	else{
+		vec_ptr_util = &empty_vec_util;
+	}
+	vector<int>& d_mismatch_list = *vec_ptr_util;
 
 	vector<int>& j_mismatch_list = *mismatches_lists.at(J_gene_seq);
 
@@ -284,10 +293,14 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	tmp_len_util = scenario_resulting_sequence.size();
 	if(tmp_len_util>=mutation_Nmer_size){
 		current_mismatch = v_mismatch_list.begin();
-		if(current_mismatch == v_mismatch_list.end()){
-			//If the v_mismatch list is empty
-			--current_mismatch; //decrement so it will test equal to .end() after being incremented
+		//In case v_mismatch list is empty cannot de-reference afterwards
+		if(current_mismatch==v_mismatch_list.end()){
+			current_mismatch = d_mismatch_list.begin();
 		}
+		if(current_mismatch==d_mismatch_list.end()){ //no else if in case d_mismatch list is empty
+			current_mismatch = j_mismatch_list.begin();
+		}
+
 
 		//TODO Need to get the previous V nucleotides and last J ones
 
@@ -511,8 +524,9 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		for( i = 0 ; i != tmp_len_util ; ++i){
 			//Disregard mismatches due to P nucleotides
 			if(	(j_mismatch_list[i] < scenario_resulting_sequence.size() - (mutation_Nmer_size-1)/2) //is this criterion necessary?
-					&& (j_mismatch_list[i]-(**jgene_offset_p)) >= (**jgene_offset_p) + max(0,*j_5_del_value_p)+ (mutation_Nmer_size-1)/2){
-				tmp_err_p[j_mismatch_list[i]-(**jgene_offset_p)]+=scenario_new_proba;
+					&& (j_mismatch_list[i] >= (**jgene_offset_p) + max(0,*j_5_del_value_p)+ (mutation_Nmer_size-1)/2) ){
+
+				tmp_err_p[j_mismatch_list[i]-(**jgene_offset_p)]+=scenario_new_proba; //=> ths is a problem with P ins
 				//Debug
 				//debug_mismatch_seq_coverage[j_mismatch_list[i]]+=scenario_new_proba;
 			}
@@ -682,78 +696,81 @@ void Hypermutation_global_errorrate::update(){
 			double current_Nmer_P_SHM = Nmer_P_SHM[j];
 			double current_Nmer_P_bg = Nmer_P_BG[j];
 			double current_Nmer_unorm_score = compute_Nmer_unorm_score(base_4_address);
-			for(i=0;i!=mutation_Nmer_size;++i){
-				if(base_4_address[i]==3){
-					//Add contribution to the 3 constraining nucleotides
-					for(size_t jj=0 ; jj!=3 ; ++jj){
+			if(current_Nmer_P_bg!=0){
+				for(i=0;i!=mutation_Nmer_size;++i){
+					if(base_4_address[i]==3){
+						//Add contribution to the 3 constraining nucleotides
+						for(size_t jj=0 ; jj!=3 ; ++jj){
 
+							//Add contribution to dQ/dei
+							J_data[i*3 + jj] -= current_Nmer_P_SHM - current_Nmer_P_bg*(R*current_Nmer_unorm_score)/(1+R*current_Nmer_unorm_score) ;
+
+							//Add contribution to d²Q/dei²
+							*(gsl_matrix_ptr( &H.matrix, i*3 + jj,i*3 + jj)) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+
+							//Add contributions to the two other constrained nucleotides
+							for(size_t jjj=(jj+1) ; jjj != 3 ; ++jjj){
+								*(gsl_matrix_ptr( &H.matrix, i*3 + jj,i*3 + jjj)) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+							}
+
+							//Add contribution to d²Q/dejdei
+							for(size_t ii=(i+1) ; ii!=mutation_Nmer_size ; ++ii){
+								//Since the Hessian is symmetric no need to go over everything twice(only fill the lower triangular matrix)
+								if(base_4_address[ii]==3){
+									for(size_t jjj=0 ; jjj!=3 ; ++jjj){
+										*(gsl_matrix_ptr(&H.matrix,i*3 + jj ,ii*3 + jjj)) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+									}
+								}
+								else{
+									*(gsl_matrix_ptr(&H.matrix , i*3 + jj  , ii*3 + base_4_address[ii])) -= -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+								}
+							}
+
+							//Add contribution to d²Q/dRdei
+							*(gsl_matrix_ptr( &H.matrix , i*3 + jj , 3*mutation_Nmer_size)) -= -current_Nmer_P_bg *(current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+
+						}
+					}
+					else{
 						//Add contribution to dQ/dei
-						J_data[i*3 + jj] -= current_Nmer_P_SHM - current_Nmer_P_bg*(R*current_Nmer_unorm_score)/(1+R*current_Nmer_unorm_score) ;
+						J_data[i*3 + base_4_address[i]] += current_Nmer_P_SHM - current_Nmer_P_bg*(R*current_Nmer_unorm_score)/(1+R*current_Nmer_unorm_score) ;
 
 						//Add contribution to d²Q/dei²
-						*(gsl_matrix_ptr( &H.matrix, i*3 + jj,i*3 + jj)) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+						*(gsl_matrix_ptr( &H.matrix ,i*3 + base_4_address[i] , i*3 + base_4_address[i])) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
 
-						//Add contributions to the two other constrained nucleotides
-						for(size_t jjj=(jj+1) ; jjj != 3 ; ++jjj){
-							*(gsl_matrix_ptr( &H.matrix, i*3 + jj,i*3 + jjj)) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
-						}
 
 						//Add contribution to d²Q/dejdei
 						for(size_t ii=(i+1) ; ii!=mutation_Nmer_size ; ++ii){
 							//Since the Hessian is symmetric no need to go over everything twice(only fill the lower triangular matrix)
 							if(base_4_address[ii]==3){
-								for(size_t jjj=0 ; jjj!=3 ; ++jjj){
-									*(gsl_matrix_ptr(&H.matrix,i*3 + jj ,ii*3 + jjj)) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+								for(size_t jj=0 ; jj!=3 ; ++jj){
+									*(gsl_matrix_ptr( &H.matrix , i*3 + base_4_address[i],ii*3 + jj )) -= -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
 								}
 							}
 							else{
-								*(gsl_matrix_ptr(&H.matrix , i*3 + jj  , ii*3 + base_4_address[ii])) -= -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
+								*(gsl_matrix_ptr( &H.matrix , i*3 + base_4_address[i],ii*3 + base_4_address[ii] )) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
 							}
-						}
 
+							//if same site(ii==i) the only remaining term is the one from the constrained contribution(4th nucleotide), taken care of in the upper part
+						}
 						//Add contribution to d²Q/dRdei
-						*(gsl_matrix_ptr( &H.matrix , i*3 + jj , 3*mutation_Nmer_size)) -= -current_Nmer_P_bg *(current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
-
+						*(gsl_matrix_ptr( &H.matrix , i*3 + base_4_address[i] , 3*mutation_Nmer_size)) += -current_Nmer_P_bg *(current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
 					}
+
+
+
 				}
-				else{
-					//Add contribution to dQ/dei
-					J_data[i*3 + base_4_address[i]] += current_Nmer_P_SHM - current_Nmer_P_bg*(R*current_Nmer_unorm_score)/(1+R*current_Nmer_unorm_score) ;
+				//Add contribution to dQ/dR and d²Q/dR²
+				J_data[(3*mutation_Nmer_size)] += current_Nmer_P_SHM/R -(current_Nmer_P_bg*current_Nmer_unorm_score/(1+R*current_Nmer_unorm_score));
+				H_data[(3*mutation_Nmer_size+1)*(3*mutation_Nmer_size+1)-1] += current_Nmer_P_bg*pow(current_Nmer_unorm_score,2)/(1+R*current_Nmer_unorm_score) -current_Nmer_P_SHM/pow(R,2);
 
-					//Add contribution to d²Q/dei²
-					*(gsl_matrix_ptr( &H.matrix ,i*3 + base_4_address[i] , i*3 + base_4_address[i])) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
-
-
-					//Add contribution to d²Q/dejdei
-					for(size_t ii=(i+1) ; ii!=mutation_Nmer_size ; ++ii){
-						//Since the Hessian is symmetric no need to go over everything twice(only fill the lower triangular matrix)
-						if(base_4_address[ii]==3){
-							for(size_t jj=0 ; jj!=3 ; ++jj){
-								*(gsl_matrix_ptr( &H.matrix , i*3 + base_4_address[i],ii*3 + jj )) -= -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
-							}
-						}
-						else{
-							*(gsl_matrix_ptr( &H.matrix , i*3 + base_4_address[i],ii*3 + base_4_address[ii] )) += -current_Nmer_P_bg *(R*current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
-						}
-
-						//if same site(ii==i) the only remaining term is the one from the constrained contribution(4th nucleotide), taken care of in the upper part
+				//Copy the symmetric part of the Hessian matrix
+				for(int ii = 0 ; ii!=3*mutation_Nmer_size+1 ; ++ii){
+					for(int jj = ii+1 ; jj!=3*mutation_Nmer_size+1 ; ++jj){
+						*(gsl_matrix_ptr( &H.matrix , jj , ii)) = *(gsl_matrix_ptr( &H.matrix , ii , jj));
 					}
-					//Add contribution to d²Q/dRdei
-					*(gsl_matrix_ptr( &H.matrix , i*3 + base_4_address[i] , 3*mutation_Nmer_size)) += -current_Nmer_P_bg *(current_Nmer_unorm_score)/pow(1+R*current_Nmer_unorm_score,2);
-				}
+				}//FIXME is this supposed to be here?
 
-
-
-			}
-			//Add contribution to dQ/dR and d²Q/dR²
-			J_data[(3*mutation_Nmer_size)] += current_Nmer_P_SHM/R -(current_Nmer_P_bg*current_Nmer_unorm_score/(1+R*current_Nmer_unorm_score));
-			H_data[(3*mutation_Nmer_size+1)*(3*mutation_Nmer_size+1)-1] += current_Nmer_P_bg*pow(current_Nmer_unorm_score,2)/(1+R*current_Nmer_unorm_score) -current_Nmer_P_SHM/pow(R,2);
-
-			//Copy the symmetric part of the Hessian matrix
-			for(int ii = 0 ; ii!=3*mutation_Nmer_size+1 ; ++ii){
-				for(int jj = ii+1 ; jj!=3*mutation_Nmer_size+1 ; ++jj){
-					*(gsl_matrix_ptr( &H.matrix , jj , ii)) = *(gsl_matrix_ptr( &H.matrix , ii , jj));
-				}
 			}
 
 			//Update the base 10 and 4 addresses
@@ -765,9 +782,9 @@ void Hypermutation_global_errorrate::update(){
 					base_4_address[position]=0;
 					--position;
 					base_4_address[position]+=1;
-					bool_mod_4N = fmod(j,adressing_vector[position-1])==0;
+					if(position==0)break;
+					bool_mod_4N = fmod(j,adressing_vector.at(position-1))==0;
 					//Careful to out of range exception although should not happen
-
 				}
 			}
 			else{
@@ -775,6 +792,7 @@ void Hypermutation_global_errorrate::update(){
 			}
 			error_model_likelihood+=current_Nmer_P_SHM*(log(R)+log(current_Nmer_unorm_score) - log(3)) - current_Nmer_P_bg*log(1+R*current_Nmer_unorm_score);
 		}
+
 		//cout<<"current hypermutation model likelihood: "<<error_model_likelihood<<endl;
 
 		j_norm = 0;
@@ -839,14 +857,14 @@ void Hypermutation_global_errorrate::update(){
 			//ei_nucleotide_contributions[i*mutation_Nmer_size+3] = 0;
 			for(j=0 ; j!=3 ; ++j){
 				//Update the contribution of the nucleotide
-				ei_nucleotide_contributions[i*4+j] += .05*gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+j] += .01*gsl_vector_get(x,(i*3 + j));
 
 				//Compute the contribution of the constrained nucleotide
-				ei_nucleotide_contributions[i*4+3] -= .05*gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+3] -= .01*gsl_vector_get(x,(i*3 + j));
 			}
 		}
 		//Update the normalization factor
-		R += .05*gsl_vector_get(x,(3*mutation_Nmer_size));
+		R += .01*gsl_vector_get(x,(3*mutation_Nmer_size));
 
 /*		cout<<"new model parms"<<endl;
 		cout<<R<<endl;
