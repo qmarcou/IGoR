@@ -525,7 +525,6 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			//Disregard mismatches due to P nucleotides
 			if(	(j_mismatch_list[i] < scenario_resulting_sequence.size() - (mutation_Nmer_size-1)/2) //is this criterion necessary?
 					&& (j_mismatch_list[i] >= (**jgene_offset_p) + max(0,*j_5_del_value_p)+ (mutation_Nmer_size-1)/2) ){
-
 				tmp_err_p[j_mismatch_list[i]-(**jgene_offset_p)]+=scenario_new_proba; //=> ths is a problem with P ins
 				//Debug
 				//debug_mismatch_seq_coverage[j_mismatch_list[i]]+=scenario_new_proba;
@@ -654,10 +653,11 @@ void Hypermutation_global_errorrate::update(){
 	 */
 
 	double j_norm = INFINITY;
+	double x_norm = INFINITY;
 
 	size_t counter = 0;
 
-	while(j_norm>1e-9 && counter<50000){
+	while(x_norm>1e-5 && counter<50000){
 
 		double error_model_likelihood = 0;
 
@@ -695,7 +695,7 @@ void Hypermutation_global_errorrate::update(){
 		while(j!=max_address){
 			double current_Nmer_P_SHM = Nmer_P_SHM[j];
 			double current_Nmer_P_bg = Nmer_P_BG[j];
-			double current_Nmer_unorm_score = compute_Nmer_unorm_score(base_4_address);
+			double current_Nmer_unorm_score = compute_Nmer_unorm_score(base_4_address,ei_nucleotide_contributions);
 			if(current_Nmer_P_bg!=0){
 				for(i=0;i!=mutation_Nmer_size;++i){
 					if(base_4_address[i]==3){
@@ -774,22 +774,8 @@ void Hypermutation_global_errorrate::update(){
 			}
 
 			//Update the base 10 and 4 addresses
-			++j;//base 10
-			bool bool_mod_4N = fmod(j,4)==0;
-			if(bool_mod_4N){
-				int position = mutation_Nmer_size-1;
-				while(bool_mod_4N){
-					base_4_address[position]=0;
-					--position;
-					base_4_address[position]+=1;
-					if(position==0)break;
-					bool_mod_4N = fmod(j,adressing_vector.at(position-1))==0;
-					//Careful to out of range exception although should not happen
-				}
-			}
-			else{
-				base_4_address[mutation_Nmer_size-1]+=1;
-			}
+			this->increment_base_10_and_4(j,base_4_address);
+
 			error_model_likelihood+=current_Nmer_P_SHM*(log(R)+log(current_Nmer_unorm_score) - log(3)) - current_Nmer_P_bg*log(1+R*current_Nmer_unorm_score);
 		}
 
@@ -852,19 +838,55 @@ void Hypermutation_global_errorrate::update(){
 		}
 		cout<<endl;*/
 
+		//Make x a unit direction vector
+		x_norm =  gsl_blas_dnrm2 ( x );
+		gsl_vector_scale (x , 1.0/x_norm );
+
+		//Backtracking line search
+		double alpha = x_norm;
+		double tau=.9;
+		double c=.01;
+
+		double m;
+
+
+
+		//Get the dot product of this direction and the Gradient
+		//Reset J to -J(get the gradient)
+		for(i=0 ; i!= 3*mutation_Nmer_size+1 ; ++i){
+			J_data[i] = -J_data[i];
+		}
+		gsl_blas_ddot ( x , &J.vector , &m );
+
+		//cout<<"start backtracking line search"<<endl;
+		//cout<<"m:"<<m<<endl;
+		//cout<<"x_norm"<<gsl_blas_dnrm2 ( x )<<endl;
+		//cout<<"grad_norm: "<<gsl_blas_dnrm2 ( &J.vector )<<endl;
+		//cout<<alpha<<endl;
+		//Now reduce alpha until Armijo–Goldstein condition is fulfilled
+		double new_error_model_likelihood = compute_new_model_likelihood(alpha,x);
+		while(new_error_model_likelihood-error_model_likelihood< alpha*c*m ){
+			alpha*=tau;
+			new_error_model_likelihood = compute_new_model_likelihood(alpha,x);
+			//cout<<"alpha: "<<alpha<<", ML:"<<new_error_model_likelihood-error_model_likelihood<<";"<<new_error_model_likelihood<<";"<<error_model_likelihood<<endl;
+			//std::cin.ignore();
+		}
+		//cout<<alpha<<endl;
+
+
 		//Update the parameters values
 		for(i=0 ; i != mutation_Nmer_size ; ++i){
 			//ei_nucleotide_contributions[i*mutation_Nmer_size+3] = 0;
 			for(j=0 ; j!=3 ; ++j){
 				//Update the contribution of the nucleotide
-				ei_nucleotide_contributions[i*4+j] += .01*gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+j] += alpha*gsl_vector_get(x,(i*3 + j));
 
 				//Compute the contribution of the constrained nucleotide
-				ei_nucleotide_contributions[i*4+3] -= .01*gsl_vector_get(x,(i*3 + j));
+				ei_nucleotide_contributions[i*4+3] -= alpha*gsl_vector_get(x,(i*3 + j));
 			}
 		}
 		//Update the normalization factor
-		R += .01*gsl_vector_get(x,(3*mutation_Nmer_size));
+		R += alpha*gsl_vector_get(x,(3*mutation_Nmer_size));
 
 /*		cout<<"new model parms"<<endl;
 		cout<<R<<endl;
@@ -922,6 +944,80 @@ void Hypermutation_global_errorrate::update(){
 	}
 
 
+}
+
+double Hypermutation_global_errorrate::compute_new_model_likelihood(double alpha ,gsl_vector* update_vect_p){
+	double new_R = R + alpha*gsl_vector_get(update_vect_p,(3*mutation_Nmer_size));
+	double new_ei_nucleotide_contributions [4*mutation_Nmer_size];
+
+	int	a;
+	int b;
+
+	for(a=0 ; a!=4*mutation_Nmer_size ; ++a){
+		new_ei_nucleotide_contributions[a] = ei_nucleotide_contributions[a];
+	}
+
+	for(a=0 ; a != mutation_Nmer_size ; ++a){
+		//ei_nucleotide_contributions[i*mutation_Nmer_size+3] = 0;
+		for(b=0 ; b!=3 ; ++b){
+			//Update the contribution of the nucleotide
+			new_ei_nucleotide_contributions[a*4+b] += alpha*gsl_vector_get(update_vect_p,(a*3 + b));
+
+			//Compute the contribution of the constrained nucleotide
+			new_ei_nucleotide_contributions[a*4+3] -= alpha*gsl_vector_get(update_vect_p,(a*3 + b));
+		}
+	}
+	//Compute the values for the Jacobian and Hessian entries
+	int base_4_address[mutation_Nmer_size];
+	int max_address = 0;
+
+
+	for (a=0;a!=mutation_Nmer_size;++a){
+		base_4_address[a]=0;
+		max_address += 3*adressing_vector[a];
+	}
+	max_address+=1;
+
+	b=0;
+	double current_Nmer_P_SHM;
+	double current_Nmer_P_bg;
+	double current_Nmer_unorm_score;
+	double error_model_likelihood = 0;
+
+	while(b!=max_address){
+		current_Nmer_P_SHM = Nmer_P_SHM[b];
+		current_Nmer_P_bg = Nmer_P_BG[b];
+		current_Nmer_unorm_score = compute_Nmer_unorm_score(base_4_address,new_ei_nucleotide_contributions); //FIXME change this to chose the values of the eis and R to use
+
+
+		//Update the base 10 and 4 addresses
+		this->increment_base_10_and_4(b,base_4_address);
+
+		error_model_likelihood+=current_Nmer_P_SHM*(log(new_R)+log(current_Nmer_unorm_score) - log(3)) - current_Nmer_P_bg*log(1+new_R*current_Nmer_unorm_score);
+	}
+
+
+	return error_model_likelihood;
+}
+
+void Hypermutation_global_errorrate::increment_base_10_and_4(int& base_10_counter , int* base_4_address){
+	//Update the base 10 and 4 addresses
+	++base_10_counter;//base 10
+	bool bool_mod_4N = fmod(base_10_counter,4)==0;//FIXME define a function for this
+	if(bool_mod_4N){
+		int position = mutation_Nmer_size-1;
+		while(bool_mod_4N){
+			base_4_address[position]=0;
+			--position;
+			base_4_address[position]+=1;
+			if(position==0)break;
+			bool_mod_4N = fmod(base_10_counter,adressing_vector.at(position-1))==0;
+			//Careful to out of range exception although should not happen
+		}
+	}
+	else{
+		base_4_address[mutation_Nmer_size-1]+=1;
+	}
 }
 
 void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
@@ -1422,10 +1518,10 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 	debug_stream<<endl;
 }
 
-double Hypermutation_global_errorrate::compute_Nmer_unorm_score(int* base_4_address){
+double Hypermutation_global_errorrate::compute_Nmer_unorm_score(int* base_4_address,double* ei_nucleotide_contributions_p ){
 	double unorm_score = 1;
 	for(int ii = 0 ; ii != mutation_Nmer_size ; ++ii){
-		unorm_score*=exp(ei_nucleotide_contributions[4*ii+base_4_address[ii]]);
+		unorm_score*=exp(ei_nucleotide_contributions_p[4*ii+base_4_address[ii]]);
 	}
 	//cout<<"unorm score b4 address:"<<base_4_address[0]<<base_4_address[1]<<base_4_address[2]<<";"<<unorm_score<<endl;
 	return unorm_score;

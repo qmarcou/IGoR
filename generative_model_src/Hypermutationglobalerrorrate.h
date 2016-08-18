@@ -15,6 +15,8 @@
 #include <array>
 #include <math.h>
 #include <gsl/gsl_linalg.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_blas.h>
 #include <memory>
 
 
@@ -44,7 +46,9 @@ public:
 private:
 	void update_Nmers_proba(int,int,double);
 	void compute_P_SHM_and_BG();
-	double compute_Nmer_unorm_score(int*);
+	double compute_Nmer_unorm_score(int*,double*);
+	double compute_new_model_likelihood(double,gsl_vector*);
+	void increment_base_10_and_4(int& , int*);
 
 	void introduce_uniform_transversion(char&, std::default_random_engine& , std::uniform_real_distribution<double>&) const;
 
