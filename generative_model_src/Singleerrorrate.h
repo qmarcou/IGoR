@@ -47,7 +47,6 @@ private:
 	long double seq_weighted_er;
 	int number_errors;
 	int genomic_nucl;
-	long double scenario_new_proba;
 	long double temp2;
 	long double temp;
 

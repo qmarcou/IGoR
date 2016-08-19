@@ -5,6 +5,8 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../generative_model_src/Aligner.cpp \
+../generative_model_src/Bestscenarioscounter.cpp \
+../generative_model_src/Counter.cpp \
 ../generative_model_src/Deletion.cpp \
 ../generative_model_src/Dinuclmarkov.cpp \
 ../generative_model_src/Errorrate.cpp \
@@ -14,6 +16,7 @@ CPP_SRCS += \
 ../generative_model_src/IntStr.cpp \
 ../generative_model_src/Model_Parms.cpp \
 ../generative_model_src/Model_marginals.cpp \
+../generative_model_src/Pgencounter.cpp \
 ../generative_model_src/Rec_Event.cpp \
 ../generative_model_src/Singleerrorrate.cpp \
 ../generative_model_src/Utils.cpp \
@@ -21,6 +24,8 @@ CPP_SRCS += \
 
 OBJS += \
 ./generative_model_src/Aligner.o \
+./generative_model_src/Bestscenarioscounter.o \
+./generative_model_src/Counter.o \
 ./generative_model_src/Deletion.o \
 ./generative_model_src/Dinuclmarkov.o \
 ./generative_model_src/Errorrate.o \
@@ -30,6 +35,7 @@ OBJS += \
 ./generative_model_src/IntStr.o \
 ./generative_model_src/Model_Parms.o \
 ./generative_model_src/Model_marginals.o \
+./generative_model_src/Pgencounter.o \
 ./generative_model_src/Rec_Event.o \
 ./generative_model_src/Singleerrorrate.o \
 ./generative_model_src/Utils.o \
@@ -37,6 +43,8 @@ OBJS += \
 
 CPP_DEPS += \
 ./generative_model_src/Aligner.d \
+./generative_model_src/Bestscenarioscounter.d \
+./generative_model_src/Counter.d \
 ./generative_model_src/Deletion.d \
 ./generative_model_src/Dinuclmarkov.d \
 ./generative_model_src/Errorrate.d \
@@ -46,6 +54,7 @@ CPP_DEPS += \
 ./generative_model_src/IntStr.d \
 ./generative_model_src/Model_Parms.d \
 ./generative_model_src/Model_marginals.d \
+./generative_model_src/Pgencounter.d \
 ./generative_model_src/Rec_Event.d \
 ./generative_model_src/Singleerrorrate.d \
 ./generative_model_src/Utils.d \

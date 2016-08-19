@@ -57,6 +57,7 @@ protected:
 	long double model_log_likelihood;
 	long double seq_likelihood;
 	double seq_mean_error_number;
+	long double scenario_new_proba;//TODO rename this guy
 	long double seq_probability; //Probability of generating one sequence without taking errors into account
 
 };

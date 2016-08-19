@@ -313,7 +313,6 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 						safety_set.set_value(Event_safety::DJ_safe,false,memory_layer_safety_2);
 					}
 				}
-				// FIXME take no D into account
 
 
 				new_index = base_index + this->event_realizations.at((*iter).gene_name).index;

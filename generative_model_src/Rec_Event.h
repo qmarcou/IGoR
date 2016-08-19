@@ -29,6 +29,8 @@
 
 //class Model_marginals; //forward declare model marginals to avoid circular inclusion
 
+class Counter;
+
 // value of event: struct: event identifier(name of Vgene), event value(sequence), event index(custom)
 struct Event_realization {
 	const std::string name;
