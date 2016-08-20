@@ -77,7 +77,7 @@ public:
 
 	std::unordered_map<Rec_Event_name,Adjacency_list> get_edges() const {return edges;}
 
-	std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>> get_events_map();
+	std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>> get_events_map() const;
 
 	void set_error_ratep(Error_rate* Er_r){error_rate = std::shared_ptr<Error_rate>(Er_r,null_delete<Error_rate>());}
 	void set_error_ratep(std::shared_ptr<Error_rate> Er_r){error_rate = Er_r;}

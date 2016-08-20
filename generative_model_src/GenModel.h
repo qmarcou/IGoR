@@ -9,12 +9,14 @@
 #ifndef GENMODEL_H_
 #define GENMODEL_H_
 
+#include "Counter.h"
 #include "Model_Parms.h"
 #include "Model_marginals.h"
 #include "Errorrate.h"
 #include "Rec_Event.h"
 #include "Utils.h"
 #include <list>
+#include <map>
 #include <string>
 #include <random>
 #include <chrono>
@@ -29,6 +31,7 @@ class GenModel {
 public:
 	GenModel(const Model_Parms&);
 	GenModel(const Model_Parms& , const Model_marginals&);
+	GenModel(const Model_Parms& , const Model_marginals& , const std::map<size_t,std::shared_ptr<Counter>>&);
 	//TODO: add all the necessary constructors: with just model_parms, with model_parms and marginals
 	virtual ~GenModel();
 	bool infer_model(const std::vector<std::pair<std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter=true , double likelihood_threshold=1e-25 , double proba_threshold_factor=0.001 , double mean_number_seq_err_thresh = INFINITY);
@@ -45,6 +48,7 @@ public:
 private:
 	Model_Parms model_parms;
 	Model_marginals model_marginals;
+	std::map<size_t,std::shared_ptr<Counter>> counters_list;
 	std::pair<std::string , std::queue<std::queue<int>>> generate_unique_sequence(std::queue<std::shared_ptr<Rec_Event>> , std::unordered_map<Rec_Event_name,int> , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::default_random_engine& );
 	Model_marginals compute_marginals(std::list<std::string> sequences);
 	Model_marginals compute_seq_marginals (std::string sequence);

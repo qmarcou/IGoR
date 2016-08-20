@@ -11,12 +11,14 @@
 
 using namespace std;
 
-GenModel::GenModel(const Model_Parms& parms): model_parms(parms) , model_marginals(*(new Model_marginals(parms))) {
+GenModel::GenModel(const Model_Parms& parms, const Model_marginals& marginals, const map<size_t,shared_ptr<Counter>>& count_list): model_parms(parms) , model_marginals(marginals) , counters_list(count_list){}
+
+GenModel::GenModel(const Model_Parms& parms, const Model_marginals& marginals):GenModel(parms , marginals , map<size_t,shared_ptr<Counter>>()){}
+
+GenModel::GenModel(const Model_Parms& parms): GenModel(parms , *(new Model_marginals(parms)) , map<size_t,shared_ptr<Counter>>())  {//FIXME nonsense new
 	// TODO Auto-generated constructor stub
 
 }
-
-GenModel::GenModel(const Model_Parms& parms, const Model_marginals& marginals): model_parms(parms) , model_marginals(marginals){}
 
 GenModel::~GenModel() {
 	// TODO Auto-generated destructor stub
@@ -34,6 +36,15 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 	//Write initial condition to file
 	this->model_marginals.write2txt(path+string("initial_marginals.txt"),this->model_parms);
 	this->model_parms.write_model_parms(path+string("initial_model.txt"));
+
+	/*
+	 * First initialization creates file streams
+	 * This is to make sure that the counter copies do not create new files each time
+	 */
+	for(map<size_t,shared_ptr<Counter>>::const_iterator iter = counters_list.begin() ; iter!=counters_list.end() ; ++iter){
+		(*iter).second->initialize_counter(model_parms,model_marginals);
+	}
+
 /*
  * Reduction using OpenMP 4.0 standards
  *
@@ -74,6 +85,13 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			Model_marginals single_thread_marginals (single_thread_model_parms);
 			shared_ptr<Error_rate> single_thread_err_rate = single_thread_model_parms.get_err_rate_p();
 			unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> events_map = single_thread_model_parms.get_events_map();
+			map<size_t,shared_ptr<Counter>> single_thread_counter_list;
+			for(map<size_t,shared_ptr<Counter>>::const_iterator iter = this->counters_list.begin() ; iter != this->counters_list.end() ; ++iter){
+				//Copy only relevant counters for this iteration
+				if((not (*iter).second->is_last_iter_only()) or (iteration_accomplished = iterations-1)){
+					single_thread_counter_list.emplace((*iter).first,(*iter).second->copy());
+				}
+			}
 
 
 			unordered_set<Rec_Event_name> init_processed_events;
@@ -112,6 +130,11 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				init_single_thread_stack.push(first_init_event);
 				init_single_thread_model_queue.pop();
 				(*first_init_event).initialize_event(init_processed_events,events_map , single_thread_offset_map , constructed_sequences,safety_set , single_thread_err_rate , mismatches_lists,seq_offsets , index_mapp);
+			}
+
+			//Initialize Counters
+			for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
+				(*iter).second->initialize_counter(single_thread_model_parms , single_thread_marginals);
 			}
 
 			//Compute upper proba bounds for downstream scenarios for each event
@@ -169,7 +192,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				 * The weight of each recombination scenario is added to the single_seq_marginals on the fly
 				 */
 				try{
-					first_event->iterate(init_proba , init_tmp_err_w_proba , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_p , single_thread_model_marginals.marginal_array_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate  , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
+					first_event->iterate(init_proba , init_tmp_err_w_proba , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_p , single_thread_model_marginals.marginal_array_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
 				}
 				catch(exception& except){
 					general_logs<<"Exception caught calling iterate() on sequence:"<<endl;
@@ -192,6 +215,12 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 					//log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(D_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_probability()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
 					log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->get_seq_mean_error_number()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
 				}
+				for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
+					#pragma omp critical(dump_counters)
+					{
+						(*iter).second->dump_sequence_data(sequences_processed , iteration_accomplished);//FIXME use the sequence index instead
+					}
+				}
 
 				if(single_thread_err_rate->get_seq_mean_error_number()<=mean_number_seq_err_thresh){
 					//Add weigthed errors to the normalized error counter
@@ -212,10 +241,18 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			{
 				new_marginals+=single_thread_marginals;
 				add_to_err_rate(error_rate_copy.get(),single_thread_err_rate.get());
+				for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
+					counters_list.at((*iter).first)->add_to_counter((*iter).second);
+				}
 			}
 
 
 		}
+
+		for(map<size_t,shared_ptr<Counter>>::const_iterator iter = counters_list.begin() ; iter!=counters_list.end() ; ++iter){
+			(*iter).second->dump_data_summary();
+		}
+
 		general_logs<<"model_mean_seq_likelihood: "<<error_rate_copy->get_model_likelihood()/error_rate_copy->get_number_non_zero_likelihood_seqs()<<"; # of sequences with non zero likelihood: "<<error_rate_copy->get_number_non_zero_likelihood_seqs()<<endl;
 		error_rate_copy->update();
 		this->model_parms.set_error_ratep(error_rate_copy);
