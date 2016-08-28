@@ -19,7 +19,7 @@ Pgen_counter::~Pgen_counter() {
 
 void Pgen_counter::initialize_counter(const Model_Parms& parms , const Model_marginals& marginals){
 	if(not fstreams_created){
-		output_pgen_file = ofstream(path_to_file + "Pgen_counts");
+		output_pgen_file.open(path_to_file + "Pgen_counts");
 		//Create the header
 		if(output_sequences){
 			output_pgen_file<<"seq_index;scen_sequence;Pgen;P_joint_read_seq"<<endl;
@@ -100,9 +100,9 @@ void Pgen_counter::count_scenario(double scenario_seq_joint_proba , double scena
 }
 
 void Pgen_counter::dump_sequence_data(int seq_index , int iteration_n ){
-	for(unordered_map<string,pair<double,double>>::const_iterator iter = sequence_Pgens_map.begin() ; iter != sequence_Pgens_map.end() ; ++iter){
+	for(unordered_map<Int_Str,pair<double,double>>::const_iterator iter = sequence_Pgens_map.begin() ; iter != sequence_Pgens_map.end() ; ++iter){
 		if(output_sequences){
-			output_pgen_file<<seq_index<<";"<<(*iter).first<<";"<<(*iter).second.first<<";"<<(*iter).second.second/read_likelihood<<endl;
+			//output_pgen_file<<seq_index<<";"<<(*iter).first<<";"<<(*iter).second.first<<";"<<(*iter).second.second/read_likelihood<<endl;
 		}
 		else{
 			output_pgen_file<<seq_index<<";"<<(*iter).second.first<<";"<<(*iter).second.second/read_likelihood<<endl;

@@ -9,11 +9,11 @@
 #ifndef GENMODEL_H_
 #define GENMODEL_H_
 
-#include "Counter.h"
 #include "Model_Parms.h"
+#include "Rec_Event.h"
+#include "Counter.h"
 #include "Model_marginals.h"
 #include "Errorrate.h"
-#include "Rec_Event.h"
 #include "Utils.h"
 #include <list>
 #include <map>

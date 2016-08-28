@@ -25,8 +25,8 @@ public:
 
 private:
 	std::ofstream output_pgen_file;
-	std::unordered_map<std::string,std::pair<double,double>> sequence_Pgens_map;
-	std::string scenario_resulting_sequence;
+	std::unordered_map<Int_Str,std::pair<double,double>> sequence_Pgens_map;
+	Int_Str scenario_resulting_sequence;
 
 	bool output_sequences;
 

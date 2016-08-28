@@ -244,7 +244,15 @@ shared_ptr<Rec_Event> Model_Parms::get_event_pointer(const Rec_Event_name& event
 	throw runtime_error("Event pointer not found in Model_Parms::get_event_pointer for name:" + event_name);
 }
 
-unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> Model_Parms::get_events_map(){
+const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> Model_Parms::get_events_map() const{
+	unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> events_map;
+	for(list<shared_ptr<Rec_Event>>::const_iterator iter = this->events.begin() ; iter != this->events.end() ; ++iter ){
+		events_map.emplace(tuple<Event_type,Gene_class,Seq_side>( (*iter)->get_type() , (*iter)->get_class() , (*iter)->get_side() ) , (*iter));
+	}
+	return events_map;
+}
+
+unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> Model_Parms::get_events_map() {
 	unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> events_map;
 	for(list<shared_ptr<Rec_Event>>::const_iterator iter = this->events.begin() ; iter != this->events.end() ; ++iter ){
 		events_map.emplace(tuple<Event_type,Gene_class,Seq_side>( (*iter)->get_type() , (*iter)->get_class() , (*iter)->get_side() ) , (*iter));

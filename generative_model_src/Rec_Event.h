@@ -26,7 +26,8 @@
 #include <tuple>
 #include <memory>
 #include <map>
-#include "Counter.h"
+
+class Counter;
 
 
 //class Model_marginals; //forward declare model marginals to avoid circular inclusion
@@ -121,75 +122,9 @@ protected:
 	int compare_sequences(std::string,std::string);//TODO should probably not be a member functino
 	void add_realization(const Event_realization&);
 	//inline void iterate_wrap_up(double& , double& , const std::string& , const std::string& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const Rec_Event*,int>>>& , std::queue<Rec_Event*>  , Marginal_array_p&  , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& ,std::shared_ptr<Error_rate>&,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>,const Rec_Event*>&  , Safety_bool_map& , Mismatch_vectors_map& , double& , double&);
-	inline void iterate_wrap_up(double& scenario_proba , double& tmp_err_w_proba , const std::string& sequence , const Int_Str& int_sequence , Index_map& index_map , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& offset_map , std::queue<std::shared_ptr<Rec_Event>> model_queue  , Marginal_array_p& updated_marginal_array_p , const Marginal_array_p& model_parameters_point ,const std::unordered_map<Gene_class , std::vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences  , Seq_offsets_map& seq_offsets , std::shared_ptr<Error_rate>& error_rate_p , std::map<size_t,std::shared_ptr<Counter>>& counters_list,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
-
-
-	/*			if(seq_offsets.count(make_pair(J_gene_seq, Three_prime))!=0){
-
-						int offset3=seq_offsets.at(make_pair(J_gene_seq, Three_prime));
-						int offset5=seq_offsets.at(make_pair(J_gene_seq, Five_prime));
-						if(offset5==0){
-							cout<<"problem"<<endl;
-						}
-						if(offset3==0){
-							cout<<"big_problem"<<endl;
-						}
-
-		 		  }*/
-
-
-		if(!model_queue.empty()){
-				std::shared_ptr<Rec_Event> next_event_p = model_queue.front();
-				model_queue.pop();
-				//Recursive call to iterate
-				//TODO consider adding a threshold for too low probability events(if necessary)
-				next_event_p->iterate(scenario_proba , tmp_err_w_proba , sequence , int_sequence , index_map , offset_map , model_queue , updated_marginal_array_p , model_parameters_point , allowed_realizations , constructed_sequences  , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
-
-
-		}
-		else{
-
-			long double scenario_error_w_proba = error_rate_p->compare_sequences_error_prob( scenario_proba , sequence , constructed_sequences , seq_offsets , events_map , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
-
-			//TODO add a monitor of the likelihood at each iteration
-
-			//TODO implement sequence comparison in the error rate class
-			//log_file<<scenario_error_w_proba<<endl;
-			//Add the full recombination scenario probability to the marginals
-			/*for(forward_list<int*>::const_iterator iter = write_index_list.begin() ; iter!=write_index_list.end() ; iter++){
-				updated_marginal_array_p[*(*iter)] += scenario_error_w_proba;
-				if(((*iter)==2865) & (!constructed_sequences.at(VD_ins_seq).empty())){
-					cout<<"error"<<endl;
-				}
-				if(((*iter)==2896) & (!constructed_sequences.at(DJ_ins_seq).empty())){
-					cout<<"error"<<endl;
-				}
-			}*/
-
-			for(std::map<size_t,std::shared_ptr<Counter>>::iterator iter = counters_list.begin() ; iter != counters_list.end() ; ++iter){
-				(*iter).second->count_scenario(scenario_error_w_proba ,scenario_proba , sequence , constructed_sequences , seq_offsets , events_map , mismatches_lists );
-			}
-
-
-			if(scenario_error_w_proba>=seq_max_prob_scenario*proba_threshold_factor){
-				if(scenario_error_w_proba>seq_max_prob_scenario){seq_max_prob_scenario=scenario_error_w_proba;}
-				for(std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>::const_iterator iter = events_map.begin() ; iter != events_map.end() ; iter++){
-					if(!(*iter).second->is_fixed()){
-						(*iter).second->add_to_marginals(scenario_error_w_proba , updated_marginal_array_p);
-					}
-				}
-			}
-
-
-		}
-	}
-
-
-
-
+	void iterate_wrap_up(double& scenario_proba , double& tmp_err_w_proba , const std::string& sequence , const Int_Str& int_sequence , Index_map& index_map , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& offset_map , std::queue<std::shared_ptr<Rec_Event>> model_queue  , Marginal_array_p& updated_marginal_array_p , const Marginal_array_p& model_parameters_point ,const std::unordered_map<Gene_class , std::vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences  , Seq_offsets_map& seq_offsets , std::shared_ptr<Error_rate>& error_rate_p , std::map<size_t,std::shared_ptr<Counter>>& counters_list,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor);
 
 };
-
 
 //bool compare_events(const Rec_Event*&, const Rec_Event*&);
 struct Event_comparator {
@@ -197,7 +132,6 @@ struct Event_comparator {
 		 return event_p1->get_priority() > event_p2->get_priority();
 	 }
 };
-
 
 
 

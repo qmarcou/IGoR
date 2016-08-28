@@ -37,10 +37,18 @@ void Counter::count_sequence(){
 	//This is a virtual method in case the counter does not have anything to count at the sequence level
 }
 
+void Counter::add_to_counter(shared_ptr<Counter>){
+	//do nothing
+}
+
 /*
  * Dump sequence specific information to file
  * This method should also clean all the counters for the next sequence
  */
 void Counter::dump_sequence_data(int seq_index , int iteration_n){
+	//Do nothing
+}
+
+void Counter::dump_data_summary(){
 	//Do nothing
 }

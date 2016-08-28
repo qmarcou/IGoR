@@ -11,10 +11,12 @@
 #include <string>
 #include <memory>
 #include <fstream>
-#include "Model_Parms.h"
 #include "Model_marginals.h"
+#include "Model_Parms.h"
+#include "Rec_Event.h"
+#include "IntStr.h"
 
-class Rec_Event;
+
 
 class Counter {
 public:
@@ -31,7 +33,7 @@ public:
 	virtual void count_sequence();
 
 
-	void add_to_counter(std::shared_ptr<Counter>);
+	virtual void add_to_counter(std::shared_ptr<Counter>);
 	virtual std::shared_ptr<Counter> add_checked(std::shared_ptr<Counter>) =0;
 
 	virtual void dump_sequence_data(int , int);
@@ -47,5 +49,6 @@ protected:
 	bool fstreams_created;
 	//TODO create a unique identifier of the counter? Make something up to prevent to have twice the same counter??
 };
+
 
 #endif /* GENERATIVE_MODEL_SRC_COUNTER_H_ */

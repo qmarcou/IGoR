@@ -9,6 +9,7 @@
 #define GENERATIVE_MODEL_SRC_INTSTR_H_
 
 #include <vector>
+#include <ostream>
 
 class Int_Str: public std::vector<int> {
 
@@ -31,6 +32,8 @@ public:
 
 	using std::vector<int>::erase;
 	Int_Str& erase(std::size_t pos , std::size_t len );
+
+	std::ostream& operator<<(std::ostream&);
 
 
 /*	Int_Str();
@@ -80,5 +83,16 @@ public:
 	std::vector<int> int_vector;*/
 
 };
+
+namespace std{
+
+	template<>
+		 struct hash<Int_Str>{
+			 std::size_t operator()(const Int_Str& seq_t) const{
+						return  1;
+					}
+		 };
+
+}
 
 #endif /* GENERATIVE_MODEL_SRC_INTSTR_H_ */
