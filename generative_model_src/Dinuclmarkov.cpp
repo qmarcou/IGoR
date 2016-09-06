@@ -254,6 +254,8 @@ void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_
 			first_nt_index = previous_assigned_nt;//[0] -'0';
 			sec_nt_index = data_seq_substr[0] ;//-'0';
 
+			current_realizations_index_vec.emplace_back( sec_nt_index );
+
 			//For this Dinucl_Markov model the values on the marginal array represents the conditional probability of a couple of nucleotides (N2 | N1)
 			offset =  first_nt_index*event_realizations.size();
 			realization_final_index = base_index + offset + sec_nt_index;
@@ -270,6 +272,8 @@ void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_
 
 				first_nt_index = data_seq_substr[i-1];// -'0';
 				sec_nt_index = data_seq_substr[i];// -'0';
+
+				current_realizations_index_vec.emplace_back( sec_nt_index );
 
 				//For this Dinucl_Markov model the values on the marginal array represents the joint probability of a couple of nucleotides (N1 , N2)
 				offset =  first_nt_index*event_realizations.size();

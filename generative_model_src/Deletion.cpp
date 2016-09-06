@@ -182,7 +182,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 
 
-
+					current_realizations_index_vec[0] = (*iter).index;
 					new_index = base_index + (*iter).index;
 
 					new_scenario_proba = scenario_proba;
@@ -378,6 +378,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 
 
+						current_realizations_index_vec[0] = (*iter).index;
 						new_index = base_index + (*iter).index;
 						new_scenario_proba = scenario_proba;
 						new_tmp_err_w_proba = tmp_err_w_proba;
@@ -555,6 +556,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 						}
 
 
+						current_realizations_index_vec[0] = (*iter).index;
 						new_index = base_index + (*iter).index;
 						new_scenario_proba = scenario_proba;
 						new_tmp_err_w_proba = tmp_err_w_proba;
@@ -796,6 +798,7 @@ void Deletion::iterate(double& scenario_proba , double& tmp_err_w_proba , const 
 
 
 
+					current_realizations_index_vec[0] = (*iter).index;
 					new_index = base_index + (*iter).index;
 					new_scenario_proba=scenario_proba;
 					new_tmp_err_w_proba=tmp_err_w_proba;

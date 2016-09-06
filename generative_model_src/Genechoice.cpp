@@ -190,12 +190,13 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 
 
 				//Compute gene choice realization index
-				new_index = base_index + this->event_realizations.at((*iter).gene_name).index;
+				current_realizations_index_vec[0] = this->event_realizations.at((*iter).gene_name).index;
+				new_index = base_index + current_realizations_index_vec[0];
 				new_scenario_proba = scenario_proba;
 				new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
 
-				proba_contribution = iterate_common( proba_contribution , this->event_realizations.at((*iter).gene_name).index , base_index , base_index_map  , offset_map , model_parameters_pointer );
+				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map  , offset_map , model_parameters_pointer );
 
 				//Update scenario probability
 				new_scenario_proba*=proba_contribution;
@@ -315,12 +316,13 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 				}
 
 
-				new_index = base_index + this->event_realizations.at((*iter).gene_name).index;
+				current_realizations_index_vec[0] = this->event_realizations.at((*iter).gene_name).index;
+				new_index = base_index + current_realizations_index_vec[0];
 				new_scenario_proba = scenario_proba;
 				new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
 
-				proba_contribution = iterate_common( proba_contribution , this->event_realizations.at((*iter).gene_name).index , base_index , base_index_map , offset_map , model_parameters_pointer );
+				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
 
 				new_scenario_proba*=proba_contribution;
 				new_tmp_err_w_proba*=proba_contribution;
@@ -383,11 +385,12 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 					gene_seq = (*d_gene_iter).second.value_str_int;
 					constructed_sequences.set_value(D_gene_seq,&gene_seq,memory_layer_cs);
 
-					new_index = base_index + (*d_gene_iter).second.index;
+					current_realizations_index_vec[0] = d_gene_iter->second.index;
+					new_index = base_index + current_realizations_index_vec[0];
 
 					//Proba contribution is the same wherever is the gene
 					proba_contribution=1;
-					proba_contribution = iterate_common( proba_contribution , (*d_gene_iter).second.index , base_index , base_index_map , offset_map , model_parameters_pointer );
+					proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
 					new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
 					compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
@@ -536,12 +539,13 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 					}
 				}
 
-				new_index = base_index + this->event_realizations.at((*iter).gene_name).index;
+				current_realizations_index_vec[0] = this->event_realizations.at((*iter).gene_name).index;
+				new_index = base_index + current_realizations_index_vec[0];
 				new_scenario_proba = scenario_proba;
 				new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
 
-				proba_contribution = iterate_common( proba_contribution , this->event_realizations.at((*iter).gene_name).index , base_index , base_index_map , offset_map , model_parameters_pointer );
+				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
 
 
 				new_scenario_proba*=proba_contribution;

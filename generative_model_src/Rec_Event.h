@@ -94,6 +94,7 @@ public:
 	bool is_fixed() const{return fixed;}
 	virtual double* get_updated_ptr();
 	void compute_upper_bound_scenario_proba( double& ) ;
+	const std::vector<int>& get_current_realizations_index_vec() const{return current_realizations_index_vec;};
 
 
 
@@ -117,6 +118,7 @@ protected:
 	double scenario_downstream_upper_bound_proba;
 	double scenario_upper_bound_proba; // Used at runtime to store the upper bound probability of the whole scenario
 	std::forward_list<double*> updated_proba_bounds_list;
+	std::vector<int> current_realizations_index_vec;
 
 
 	int compare_sequences(std::string,std::string);//TODO should probably not be a member functino

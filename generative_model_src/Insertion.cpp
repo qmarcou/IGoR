@@ -107,7 +107,7 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 						proba_contribution = (*this).iterate_common( proba_contribution , insertions , base_index , base_index_map , offset_map , model_parameters_point);
 						if(proba_contribution!=0){
 							inserted_str.assign(insertions , -1);
-							new_index = base_index + this->event_realizations.at(to_string(insertions)).index;
+							new_index = base_index + this->event_realizations.at(to_string(insertions)).index; //FIXME this should not exist
 							constructed_sequences[VD_ins_seq]= &inserted_str;
 						}
 					//}
@@ -238,6 +238,7 @@ inline double Insertion::iterate_common(double scenario_proba , int insertions ,
 	//TODO just output proba contribution no need to take it as argument
 	if(this->ordered_realization_map.count(insertions)>0){
 		realization_index = this->ordered_realization_map.at(insertions).index;
+		current_realizations_index_vec[0] = realization_index;
 	}else{
 		//discard out of range cases
 		realization_index = INT32_MAX;//make sure the index called at the end is in the range

@@ -216,6 +216,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 					log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->get_seq_mean_error_number()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
 				}
 				for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
+					iter->second->count_sequence(single_thread_err_rate->get_seq_likelihood() , single_seq_marginals , single_thread_model_parms);
 					#pragma omp critical(dump_counters)
 					{
 						(*iter).second->dump_sequence_data(sequences_processed , iteration_accomplished);//FIXME use the sequence index instead

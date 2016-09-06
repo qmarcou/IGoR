@@ -19,7 +19,7 @@ Pgen_counter::~Pgen_counter() {
 
 void Pgen_counter::initialize_counter(const Model_Parms& parms , const Model_marginals& marginals){
 	if(not fstreams_created){
-		output_pgen_file.open(path_to_file + "Pgen_counts");
+		output_pgen_file.open(path_to_file + "Pgen_counts.csv");
 		//Create the header
 		if(output_sequences){
 			output_pgen_file<<"seq_index;scen_sequence;Pgen;P_joint_read_seq"<<endl;

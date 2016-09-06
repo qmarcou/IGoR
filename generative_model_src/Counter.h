@@ -30,7 +30,7 @@ public:
 
 	virtual void count_scenario(double , double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Mismatch_vectors_map& );
 
-	virtual void count_sequence();
+	virtual void count_sequence(double , const Model_marginals& ,const Model_Parms&);
 
 
 	virtual void add_to_counter(std::shared_ptr<Counter>);

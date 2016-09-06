@@ -32,7 +32,7 @@ void Counter::count_scenario (double scenario_seq_joint_proba , double scenario_
 	//This is a virtual method in case the counter does not have anything to count at the scenario level
 }
 
-void Counter::count_sequence(){
+void Counter::count_sequence(double seq_likelihood , const Model_marginals& single_seq_marginals , const Model_Parms& single_seq_model_parms){
 	//Do nothing
 	//This is a virtual method in case the counter does not have anything to count at the sequence level
 }

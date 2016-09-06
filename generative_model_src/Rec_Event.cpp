@@ -13,9 +13,9 @@ using namespace std;
 //std::ofstream log_file(std::string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/tcr_murugan/one_seq_comp/logs.txt"));
 
 
-Rec_Event::Rec_Event(): event_realizations ( *(new unordered_map<string,Event_realization>)) , priority(0) , event_class(Undefined_gene) , event_side(Undefined_side) , name("Undefined_event_name") , nickname("Undefined_nickname") , len_min(INT16_MAX) , len_max(INT16_MIN) , type(Undefined_t) , event_index(INT16_MIN) , updated(false),fixed(false) {} //FIXME nonsense new
+Rec_Event::Rec_Event(): event_realizations ( *(new unordered_map<string,Event_realization>)) , priority(0) , event_class(Undefined_gene) , event_side(Undefined_side) , name("Undefined_event_name") , nickname("Undefined_nickname") , len_min(INT16_MAX) , len_max(INT16_MIN) , type(Undefined_t) , event_index(INT16_MIN) , updated(false),fixed(false),current_realizations_index_vec(vector<int>()) {} //FIXME nonsense new
 
-Rec_Event::Rec_Event(Gene_class gene , Seq_side side , unordered_map<string , Event_realization>& realizations): event_realizations(realizations) , priority(0) , event_class(gene) , event_side(side) , name("Undefined_event_name") ,len_min(INT16_MAX) , len_max(INT16_MIN) , type(Undefined_t), event_index(INT16_MIN) , updated(false),fixed(false) {}
+Rec_Event::Rec_Event(Gene_class gene , Seq_side side , unordered_map<string , Event_realization>& realizations): event_realizations(realizations) , priority(0) , event_class(gene) , event_side(side) , name("Undefined_event_name") ,len_min(INT16_MAX) , len_max(INT16_MIN) , type(Undefined_t), event_index(INT16_MIN) , updated(false),fixed(false),current_realizations_index_vec(vector<int>()) {}
 
 
 //TODO see this later
@@ -223,3 +223,4 @@ void Rec_Event::compute_upper_bound_scenario_proba( double& tmp_err_w_proba ) {
 		scenario_upper_bound_proba*=(*(*iter));
 	}
 }
+
