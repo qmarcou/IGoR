@@ -14,7 +14,11 @@
 class Pgen_counter: public Counter {
 public:
 	Pgen_counter();
+	Pgen_counter(std::string);
+	Pgen_counter(std::string , bool);
 	virtual ~Pgen_counter();
+
+	std::string type() const{return "PgenCounter";};//TODO return an enum
 
 	void initialize_counter(const Model_Parms& , const Model_marginals&) ;
 
@@ -22,13 +26,20 @@ public:
 
 	void dump_sequence_data(int , int);
 
+	std::shared_ptr<Counter> add_checked(std::shared_ptr<Counter>);
+
+	std::shared_ptr<Counter> copy() const;
+
+
+
 
 private:
-	std::ofstream output_pgen_file;
-	std::unordered_map<Int_Str,std::pair<double,double>> sequence_Pgens_map;
-	Int_Str scenario_resulting_sequence;
 
 	bool output_sequences;
+
+	std::shared_ptr<std::ofstream> output_pgen_file_ptr;
+	std::unordered_map<Int_Str,std::pair<double,double>> sequence_Pgens_map;
+	Int_Str scenario_resulting_sequence;
 
 	double read_likelihood;
 

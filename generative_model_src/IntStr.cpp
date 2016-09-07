@@ -73,12 +73,14 @@ Int_Str& Int_Str::erase(size_t pos , size_t len){
 	return *this;
 }
 
-ostream& Int_Str::operator<<(ostream& out){
-	for(vector<int>::const_iterator iter = this->begin() ; iter!=this->end() ; ++iter){
+ostream& operator<<(ostream& out , const Int_Str& int_str ){
+	for(Int_Str::const_iterator iter = int_str.begin() ; iter!=int_str.end() ; ++iter){
 		out<<(*iter);
 	}
 	return out;
 }
+
+
 
 /*
 Int_Str::Int_Str(): int_vector() {

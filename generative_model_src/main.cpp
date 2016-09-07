@@ -245,10 +245,14 @@ int main(int argc , char* argv[]){
 		read_model_marginals.txt2marginals(string("../demo/demo_write_model_marginals.txt"),read_model_parms);
 
 		//Instantiate a Counter
-		Best_scenarios_counter best_sc_c(10,true);
-		shared_ptr<Counter>best_sc_ptr(&best_sc_c);
+		 //Collect 10 best scenarios per sequence during the last iteration
+		shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , "../demo/run_demo/" ,true ));
 		map<size_t,shared_ptr<Counter>> counters_list;
 		counters_list.emplace(1,best_sc_ptr);
+
+		 //Collect sequence generation probability during last iteration
+		shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter ("../demo/run_demo/"));
+		counters_list.emplace(2,pgen_counter_ptr);
 
 		//Instantiate the high level GenModel class
 		//This class allows to make most useful high level operations(model inference/Pgen computation , sequence generation)

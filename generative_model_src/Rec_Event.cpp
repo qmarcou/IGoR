@@ -125,13 +125,13 @@ void Rec_Event::iterate_wrap_up(double& scenario_proba , double& tmp_err_w_proba
 			}
 		}*/
 
-		for(std::map<size_t,std::shared_ptr<Counter>>::iterator iter = counters_list.begin() ; iter != counters_list.end() ; ++iter){
-			(*iter).second->count_scenario(scenario_error_w_proba ,scenario_proba , sequence , constructed_sequences , seq_offsets , events_map , mismatches_lists );
-		}
-
-
 		if(scenario_error_w_proba>=seq_max_prob_scenario*proba_threshold_factor){
 			if(scenario_error_w_proba>seq_max_prob_scenario){seq_max_prob_scenario=scenario_error_w_proba;}
+
+			for(std::map<size_t,std::shared_ptr<Counter>>::iterator iter = counters_list.begin() ; iter != counters_list.end() ; ++iter){
+				(*iter).second->count_scenario(scenario_error_w_proba ,scenario_proba , sequence , constructed_sequences , seq_offsets , events_map , mismatches_lists );
+			}
+
 			for(std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>::const_iterator iter = events_map.begin() ; iter != events_map.end() ; iter++){
 				if(!(*iter).second->is_fixed()){
 					(*iter).second->add_to_marginals(scenario_error_w_proba , updated_marginal_array_p);

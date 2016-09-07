@@ -5,8 +5,8 @@
  *      Author: quentin
  */
 
-#ifndef GENERATIVE_MODEL_SRC_INTSTR_H_
-#define GENERATIVE_MODEL_SRC_INTSTR_H_
+#ifndef INTSTR_H_
+#define INTSTR_H_
 
 #include <vector>
 #include <ostream>
@@ -33,7 +33,6 @@ public:
 	using std::vector<int>::erase;
 	Int_Str& erase(std::size_t pos , std::size_t len );
 
-	std::ostream& operator<<(std::ostream&);
 
 
 /*	Int_Str();
@@ -86,13 +85,18 @@ public:
 
 namespace std{
 
-	template<>
-		 struct hash<Int_Str>{
-			 std::size_t operator()(const Int_Str& seq_t) const{
-						return  1;
-					}
-		 };
+template<>
+	 struct hash<Int_Str>{
+		std::size_t operator()(Int_Str const& int_str) const {
+		  std::size_t seed = int_str.size();
+		  for(auto& i : int_str) {
+			seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		  }
+		  return seed;
+		}
+	 };
+
 
 }
 
-#endif /* GENERATIVE_MODEL_SRC_INTSTR_H_ */
+#endif /* INTSTR_H_ */
