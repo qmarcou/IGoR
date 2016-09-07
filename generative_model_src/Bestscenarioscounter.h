@@ -23,7 +23,12 @@ class Best_scenarios_counter: public Counter {
 public:
 	Best_scenarios_counter();
 	Best_scenarios_counter(size_t);
+	Best_scenarios_counter(size_t , bool);
+	Best_scenarios_counter(size_t , std::string);
+	Best_scenarios_counter(size_t , std::string , bool);
 	virtual ~Best_scenarios_counter();
+
+	std::string type() const{return "BestScenarioCounter";};//TODO return an enum
 
 	void initialize_counter(const Model_Parms& , const Model_marginals&) ;
 
@@ -31,10 +36,14 @@ public:
 
 	void count_sequence(double , const Model_marginals& ,const Model_Parms&);
 
+	std::shared_ptr<Counter> add_checked(std::shared_ptr<Counter>);
+
 	void dump_sequence_data(int , int);
 
+	std::shared_ptr<Counter> copy() const;
+
 	size_t n_scenarios_counted;
-	std::ofstream output_scenario_file;
+	std::shared_ptr<std::ofstream> output_scenario_file_ptr;
 
 	std::queue< std::vector<int>> single_scenario_realizations_queue;
 

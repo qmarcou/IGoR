@@ -9,11 +9,21 @@
 
 using namespace std;
 
-Best_scenarios_counter::Best_scenarios_counter(size_t n_scenarios): n_scenarios_counted(n_scenarios)  {
-
+Best_scenarios_counter::Best_scenarios_counter(size_t n_scenarios): Counter(), n_scenarios_counted(n_scenarios)  {
 }
 
-Best_scenarios_counter::Best_scenarios_counter() {
+Best_scenarios_counter::Best_scenarios_counter(size_t n_scenarios , bool is_last_iter_only): Best_scenarios_counter(n_scenarios) {
+	this->last_iter_only = is_last_iter_only;
+}
+
+Best_scenarios_counter::Best_scenarios_counter(size_t n_scenarios , string path): Counter(path) , n_scenarios_counted(n_scenarios) {
+}
+
+Best_scenarios_counter::Best_scenarios_counter(size_t n_scenarios , string path , bool is_last_iter_only) : Best_scenarios_counter(n_scenarios , path) {
+	this->last_iter_only = is_last_iter_only;
+}
+
+Best_scenarios_counter::Best_scenarios_counter():Best_scenarios_counter(1,true) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -70,22 +80,38 @@ void Best_scenarios_counter::count_sequence(double seq_likelihood , const Model_
 
 void Best_scenarios_counter::initialize_counter(const Model_Parms& parms , const Model_marginals& marginals){
 	if(not fstreams_created){
-		this->output_scenario_file.open(path_to_file + "best_scenarios_counts.csv");
+		output_scenario_file_ptr = shared_ptr<ofstream>(new ofstream);
+		this->output_scenario_file_ptr->open(path_to_file + "best_scenarios_counts.csv");
 		//Create the header
-		this->output_scenario_file<<"seq_index;scenario_rank;scenario_proba_cond_seq";
+		(*this->output_scenario_file_ptr.get())<<"seq_index;scenario_rank;scenario_proba_cond_seq";
 		auto event_queue = parms.get_model_queue();
 
 		while(not event_queue.empty()){
 			shared_ptr<Rec_Event> event_ptr = event_queue.front();
-			this->output_scenario_file<<";"<<event_ptr->get_name();
+			(*this->output_scenario_file_ptr.get())<<";"<<event_ptr->get_name();
 			this->event_fw_list.emplace_front( event_ptr);
 			event_queue.pop();
 		}
+		event_fw_list.reverse();
 
-		this->output_scenario_file<<endl;
+		(*this->output_scenario_file_ptr.get())<<endl;
 
 		fstreams_created = true;
 	}
+	else{
+		//Still need to fill in the fw list
+		auto event_queue = parms.get_model_queue();
+		while(not event_queue.empty()){
+			shared_ptr<Rec_Event> event_ptr = event_queue.front();
+			this->event_fw_list.emplace_front( event_ptr);
+			event_queue.pop();
+		}
+		event_fw_list.reverse();
+	}
+}
+
+shared_ptr<Counter> Best_scenarios_counter::add_checked(shared_ptr<Counter> counter){
+	return counter;
 }
 
 
@@ -93,21 +119,36 @@ void Best_scenarios_counter::dump_sequence_data(int seq_index , int iteration_n)
 
 	size_t counter = 1;
 	for(vector<pair<double,queue<vector<int>>>>::reverse_iterator iter = this->best_scenarios_vec.rbegin() ; iter!=this->best_scenarios_vec.rend() ; ++iter){
-		this->output_scenario_file<<seq_index<<";"<<counter<<";"<<(*iter).first;
+		(*this->output_scenario_file_ptr.get())<<seq_index<<";"<<counter<<";"<<(*iter).first;
 		queue<vector<int>>& scenario_queue = (*iter).second;
 		while(not scenario_queue.empty()){
 			const vector<int>& real_vec = scenario_queue.front();
-			this->output_scenario_file<<"(";
+			(*this->output_scenario_file_ptr.get())<<";(";
 			for(vector<int>::const_iterator jter = real_vec.begin() ; jter!= real_vec.end() ; ++jter){
-				this->output_scenario_file<<(*jter);
+				(*this->output_scenario_file_ptr.get())<<(*jter);
 				if(jter!=real_vec.end() -1){
-					this->output_scenario_file<<",";
+					(*this->output_scenario_file_ptr.get())<<",";
 				}
 			}
-			this->output_scenario_file<<")";
+			(*this->output_scenario_file_ptr.get())<<")";
 			scenario_queue.pop();
 		}
+		(*this->output_scenario_file_ptr.get())<<endl;
 		++counter;
 	}
+
+	best_scenarios_vec.clear();
+}
+
+shared_ptr<Counter> Best_scenarios_counter::copy() const{
+	shared_ptr<Best_scenarios_counter> counter_copy_ptr (new Best_scenarios_counter(this->n_scenarios_counted));
+	counter_copy_ptr->fstreams_created = this->fstreams_created;
+	if(this->fstreams_created){
+		counter_copy_ptr->output_scenario_file_ptr = this->output_scenario_file_ptr;
+	}
+	else{
+		throw runtime_error("Counters should not be copied before stream initalization");
+	}
+	return counter_copy_ptr;
 }
 

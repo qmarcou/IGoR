@@ -148,6 +148,7 @@ void Rec_Event::iterate_wrap_up(double& scenario_proba , double& tmp_err_w_proba
 void Rec_Event::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
 	//No action performed on the event by default if the method is not overloaded
 	//Need to call Rec_Event::initialize_event() to apply these common actions when the method is overloaded
+	current_realizations_index_vec.push_back(-1);
 
 	if(offset_map.count(this->get_name()) != 0){
 		const vector<pair<shared_ptr<const Rec_Event>,int>>& offset_vector = offset_map.at(this->get_name());

@@ -16,6 +16,9 @@
 #include "Aligner.h"
 #include "GenModel.h"
 #include "Dinuclmarkov.h"
+#include "Counter.h"
+#include "Bestscenarioscounter.h"
+#include "Pgencounter.h"
 #include <chrono>
 
 
@@ -128,7 +131,7 @@ int main(int argc , char* argv[]){
 		vector<pair<const int, const string>> indexed_seqlist = read_txt( string("../demo/murugan_naive1_noncoding_demo_seqs.txt") ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
 
 
-		v_aligner.align_seqs( string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
+/*		v_aligner.align_seqs( string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
 		//v_aligner.write_alignments_seq_csv(path + string("alignments_V.csv") , v_alignments);
 
 		d_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"),indexed_seqlist,0,false);
@@ -136,7 +139,7 @@ int main(int argc , char* argv[]){
 
 		j_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
 
-		end_time= myclock::now();
+*/		end_time= myclock::now();
 		chrono::duration<double> elapsed = end_time - begin_time;
 		cout<<"Alignments procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
 		cout<<"for "<<indexed_seqlist.size()<<" TCRb sequences of 60bp(from murugan and al), against ";
@@ -241,9 +244,15 @@ int main(int argc , char* argv[]){
 		Model_marginals read_model_marginals(read_model_parms);
 		read_model_marginals.txt2marginals(string("../demo/demo_write_model_marginals.txt"),read_model_parms);
 
+		//Instantiate a Counter
+		Best_scenarios_counter best_sc_c(10,true);
+		shared_ptr<Counter>best_sc_ptr(&best_sc_c);
+		map<size_t,shared_ptr<Counter>> counters_list;
+		counters_list.emplace(1,best_sc_ptr);
+
 		//Instantiate the high level GenModel class
 		//This class allows to make most useful high level operations(model inference/Pgen computation , sequence generation)
-		GenModel gen_model(read_model_parms,read_model_marginals);
+		GenModel gen_model(read_model_parms,read_model_marginals,counters_list);
 
 
 		//Inferring a model

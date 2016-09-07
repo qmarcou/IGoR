@@ -662,7 +662,6 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 
 
 
-
 	//Check V choice
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side))!=0){
 		v_choice_exist=true;

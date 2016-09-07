@@ -51,6 +51,9 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 	new_scenario_proba = scenario_proba;
 	proba_contribution = 1;
 
+	//Clear all previous scenario realizations
+	current_realizations_index_vec.clear();
+
 
 	correct_class=0;
 	//For now do not include possible sequencing error
@@ -317,6 +320,7 @@ void Dinucl_markov::ind_normalize(Marginal_array_p marginal_array_p , size_t bas
 }
 
 void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list,Seq_offsets_map& seq_offsets , Index_map& index_map){
+
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side))!=0){
 		shared_ptr<const Rec_Event> ins_vd_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side));
 		max_vd_ins=ins_vd_p->get_len_max();
