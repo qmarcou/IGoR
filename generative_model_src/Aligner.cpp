@@ -567,10 +567,10 @@ unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>>
 	return sorted_alignments;
 }
 
-vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> map2vect(unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> alignments_map){
-	vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> alignmets_vect;
+vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> map2vect(unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> alignments_map){
+	vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> alignmets_vect;
 	for(unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>>::const_iterator seq_it = alignments_map.begin() ; seq_it != alignments_map.end() ; ++seq_it){
-		alignmets_vect.push_back((*seq_it).second);
+		alignmets_vect.emplace_back((*seq_it).first,(*seq_it).second.first , (*seq_it).second.second);
 	}
 	return alignmets_vect;
 }

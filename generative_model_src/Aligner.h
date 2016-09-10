@@ -119,7 +119,7 @@ std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::
 std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>> read_alignments_seq_csv(std::string , Gene_class , double , bool , std::vector<std::pair<const int,const std::string>>, std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>>);
 std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>> read_alignments_seq_csv_score_range(std::string , Gene_class , double , bool , std::vector<std::pair<const int,const std::string>>);
 std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>> read_alignments_seq_csv_score_range(std::string , Gene_class , double , bool , std::vector<std::pair<const int,const std::string>>, std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>>);
-std::vector<std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>> map2vect (std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>>);
+std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>> map2vect (std::unordered_map<int,std::pair<std::string,std::unordered_map<Gene_class,std::vector<Alignment_data>>>>);
 std::forward_list<std::pair<const int,const std::string>> read_indexed_seq_csv(std::string);
 std::vector<std::pair<const int , const std::string>> read_indexed_csv(std::string);
 std::vector<std::pair<const int,const std::string>> read_fasta(std::string);

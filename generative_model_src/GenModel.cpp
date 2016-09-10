@@ -22,15 +22,16 @@ GenModel::~GenModel() {
 	// TODO Auto-generated destructor stub
 }
 
-bool GenModel::infer_model(const std::vector<std::pair<std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter , double likelihood_threshold/*=1e-25*/ , bool viterbi_like/*false*/){
+
+bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter , double likelihood_threshold/*=1e-25*/ , bool viterbi_like/*false*/){
 	return this->infer_model(sequences , iterations , path , fast_iter , likelihood_threshold , viterbi_like , 0.001);
 }
 
-bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter/*=true*/ , double likelihood_threshold/*=1e-25*/ , double proba_threshold_factor/*=0.001*/ ){
+bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter/*=true*/ , double likelihood_threshold/*=1e-25*/ , double proba_threshold_factor/*=0.001*/ ){
 	return this->infer_model(sequences , iterations , path , fast_iter , likelihood_threshold , false , proba_threshold_factor , INFINITY);
 }
 
-bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , bool fast_iter/*=true*/ ,double likelihood_threshold/*=1e-25 by default*/ , bool viterbi_like/*=false*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
+bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , bool fast_iter/*=true*/ ,double likelihood_threshold/*=1e-25 by default*/ , bool viterbi_like/*=false*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
 
 	//If viterbi like only the best scenario is of interest
 	if(viterbi_like){
@@ -46,7 +47,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 	unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> inv_offset_map = model_marginals.get_inverse_offset_map(model_parms,model_queue);
 	int iteration_accomplished = 0;
 	ofstream log_file(path + string("inference_logs.txt"));
-	log_file<<"iteration_n;seq_processed;nt_sequence;n_V_aligns;n_J_aligns;seq_likelihood;seq_mean_n_errors;seq_n_scenarios;seq_best_scenario"<<endl;
+	log_file<<"iteration_n;seq_processed;seq_index;nt_sequence;n_V_aligns;n_J_aligns;seq_likelihood;seq_mean_n_errors;seq_n_scenarios;seq_best_scenario"<<endl;
 	ofstream general_logs(path + string("inference.out"));
 
 	//Write initial condition to file
@@ -84,14 +85,15 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		//Initialize counters for the log file
 		size_t sequences_processed = 0;
 
+		new_marginals.debug_marg_name = "new_marginals";
 
-		const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
+		const vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
 
 		//Take only best alignments if fast_iter
-		vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> fast_iter_sequences;
+		vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>> fast_iter_sequences;
 		if(fast_iter && iteration_accomplished==0){
 			fast_iter_sequences = sequences;
-			for(unordered_map<Gene_class , vector<Alignment_data>>::const_iterator gc_align_iter = sequences.at(0).second.begin() ; gc_align_iter != sequences.at(0).second.end() ; ++gc_align_iter){
+			for(unordered_map<Gene_class , vector<Alignment_data>>::const_iterator gc_align_iter = std::get<2>(sequences.at(0)).begin() ; gc_align_iter != std::get<2>(sequences.at(0)).end() ; ++gc_align_iter){
 				if ((*gc_align_iter).first == D_gene)continue;
 				fast_iter_sequences = get_best_aligns(fast_iter_sequences,(*gc_align_iter).first);
 			}
@@ -101,8 +103,6 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			sequence_util_ptr = &sequences;
 		}
 
-		new_marginals.debug_marg_name = "new_marginals";
-
 
 
 		/* omp parallel declaration using OpenMP 4.0 standards
@@ -110,7 +110,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		 */
 
 		//Declare variables to use OpenMP 3.1 standards
-		#pragma omp parallel shared(new_marginals,error_rate_copy,sequences_processed) firstprivate(model_queue,proba_threshold_factor ) //num_threads(1)
+		#pragma omp parallel shared(new_marginals,error_rate_copy,sequences_processed,sequence_util_ptr,sequences) firstprivate(model_queue,proba_threshold_factor ) //num_threads(1)
 		{
 			//Make single thread copies of objects for thread safety
 			Model_Parms single_thread_model_parms (model_parms);
@@ -207,13 +207,12 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			cout<<"Initialization of proba bounds over"<<endl;
 
 
-
-
-
 			//Loop over sequences in parallel, using the number of threads declared previously when declaring the parallel section
 			//Use dynamic scheduling to avoid loss of time due to synchronization
+
 			#pragma omp for schedule(dynamic) nowait
-			for(vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>::const_iterator seq_it = (*sequence_util_ptr).begin() ; seq_it < (*sequence_util_ptr).end() ; ++seq_it){
+			for(vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>::const_iterator seq_it = (*sequence_util_ptr).begin() ; seq_it < (*sequence_util_ptr).end() ; ++seq_it){
+
 
 				//Make a copy of the queue that can be modified in iterate
 				queue<shared_ptr<Rec_Event>> model_queue_copy(single_thread_model_queue);
@@ -228,7 +227,8 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				double init_proba = 1;
 				//double init_tmp_err_w_proba = 1;
 				double max_proba_scenario = likelihood_threshold/proba_threshold_factor;
-				Int_Str int_sequence = nt2int(seq_it->first);
+
+				Int_Str int_sequence = nt2int(get<1>(*seq_it));
 
 				//cout<<int_sequence<<endl;
 
@@ -241,13 +241,13 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				 */
 				try{
 
-					first_event->iterate(init_proba , downstream_proba_map , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_smart_p , single_thread_model_marginals.marginal_array_smart_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
+					first_event->iterate(init_proba , downstream_proba_map , get<1>(*seq_it) , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_smart_p , single_thread_model_marginals.marginal_array_smart_p , get<2>(*seq_it) , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
 
 				}
 
 				catch(exception& except){
 					general_logs<<"Exception caught calling iterate() on sequence:"<<endl;
-					general_logs<<(*seq_it).first<<endl;
+					general_logs<<get<1>(*seq_it)<<" with index "<<get<0>(*seq_it)<<endl;
 					general_logs<<"Exception caught after "<<single_thread_err_rate->debug_number_scenarios<<" scenarios explored"<<endl;
 					general_logs<<endl;
 					general_logs<<"Throwing exception now..."<<endl<<endl;
@@ -264,11 +264,13 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 					++sequences_processed;
 					//Output useful infos in the log file
 					//log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(D_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_probability()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
-					log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->get_seq_mean_error_number()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
-
-					for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
-						iter->second->count_sequence(single_thread_err_rate->get_seq_likelihood() , single_seq_marginals , single_thread_model_parms);
-							(*iter).second->dump_sequence_data(sequences_processed , iteration_accomplished);//FIXME use the sequence index instead
+					log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<get<0>(*seq_it)<<";"<<get<1>(*seq_it)<<";"<<get<2>(*seq_it).at(V_gene).size()<<";"<<get<2>(*seq_it).at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->get_seq_mean_error_number()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
+				}
+				for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
+					iter->second->count_sequence(single_thread_err_rate->get_seq_likelihood() , single_seq_marginals , single_thread_model_parms);
+					#pragma omp critical(dump_counters)
+					{
+						(*iter).second->dump_sequence_data(get<0>(*seq_it) , iteration_accomplished);
 					}
 				}
 
@@ -304,7 +306,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			(*iter).second->dump_data_summary(iteration_accomplished);
 		}
 
-		general_logs<<"model_mean_seq_likelihood: "<<error_rate_copy->get_model_likelihood()/error_rate_copy->get_number_non_zero_likelihood_seqs()<<"; # of sequences with non zero likelihood: "<<error_rate_copy->get_number_non_zero_likelihood_seqs()<<endl;
+		general_logs<<"Iteration "<<iteration_accomplished+1<<" model_mean_seq_likelihood: "<<error_rate_copy->get_model_likelihood()/error_rate_copy->get_number_non_zero_likelihood_seqs()<<"; # of sequences with non zero likelihood: "<<error_rate_copy->get_number_non_zero_likelihood_seqs()<<endl;
 		error_rate_copy->update();
 		this->model_parms.set_error_ratep(error_rate_copy);
 		new_marginals.normalize(inv_offset_map , index_map , model_queue);
@@ -482,11 +484,11 @@ void GenModel::write_seq_real2txt(string filename_ind_seq , string filename_ind_
 /*
  * Extract the best alignment for each sequence for a given gene class (used for the fast iter)
  */
-vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> get_best_aligns (const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& all_aligns, Gene_class gc){
+vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>> get_best_aligns (const vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>& all_aligns, Gene_class gc){
 
-	vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> all_aligns_copy (all_aligns);
-	for(vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>::iterator seq_iter = all_aligns_copy.begin() ; seq_iter!=all_aligns_copy.end() ; ++seq_iter){
-		vector<Alignment_data>& align_vect = (*seq_iter).second.at(gc); //TODO add exception
+	vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>> all_aligns_copy (all_aligns);
+	for(vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>::iterator seq_iter = all_aligns_copy.begin() ; seq_iter!=all_aligns_copy.end() ; ++seq_iter){
+		vector<Alignment_data>& align_vect = get<2>((*seq_iter)).at(gc); //TODO add exception
 
 		//Get align best score
 		double best_score = -1;

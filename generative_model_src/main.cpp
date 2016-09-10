@@ -272,7 +272,7 @@ int main(int argc , char* argv[]){
 		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"), D_gene , 35 , false , indexed_seqlist , sorted_alignments);//30//15
 		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"), J_gene , 10 , false , indexed_seqlist , sorted_alignments);//30//20
 
-		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
+		vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
 		//Infer the model
 		cout<<"Infer model"<<endl;
@@ -373,25 +373,35 @@ int main(int argc , char* argv[]){
 		//read alignments
 
         auto sample_mutated_indexed_seq = sample_indexed_seq(mutated_indexed_seq,100000);
+        //auto sample_mutated_indexed_seq = read_indexed_csv(path + "single_indexed_seq.csv");
 
-        unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_toy_model_equivalent.csv", V_gene , 9999999 , false , sample_mutated_indexed_seq  );//40//35
+        //unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_toy_model_equivalent.csv", V_gene , 9999999 , false , sample_mutated_indexed_seq  );//40//35
         //unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_true_delta_prior.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
-       // unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_non_coding_mutated.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
+        unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "V_alignments_non_coding_mutated.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
+        //unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(path + "single_seq_V_aligns.csv", V_gene , 55 , false , sample_mutated_indexed_seq  );//40//35
+
 
 		sorted_alignments = read_alignments_seq_csv_score_range(path + "J_alignments_non_coding_mutated.csv", J_gene , 10 , false , sample_mutated_indexed_seq , sorted_alignments);//30//20
+		//sorted_alignments = read_alignments_seq_csv_score_range(path + "single_seq_J_aligns.csv", J_gene , 10 , false , sample_mutated_indexed_seq , sorted_alignments);//30//20
+
 
 		//infer back the model
 
-		Hypermutation_global_errorrate shm_err_rate_flat (3,V_gene,VDJ_genes,.001);
+		Hypermutation_global_errorrate shm_err_rate_flat (3,J_gene,VDJ_genes,.01);
 		alpha_model_parms.set_error_ratep(&shm_err_rate_flat);
 
-		GenModel genmodel_infer(alpha_model_parms,alpha_model_marginals);
+		 //Collect 10 best scenarios per sequence during the last iteration
+		shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(3 , path + "/run_high_err_j/" ,true ));
+		map<size_t,shared_ptr<Counter>> counters_list;
+		counters_list.emplace(1,best_sc_ptr);
+
+		GenModel genmodel_infer(alpha_model_parms,alpha_model_marginals,counters_list);
 		//GenModel genmodel(alpha_read_parms,alpha_model_marginals);
 
 
-		vector<pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
+		vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
-		genmodel_infer.infer_model(sorted_alignments_vec , 10 , path+"/run_high_err_toy_aligns/" ,1e-300,0.001);
+		genmodel_infer.infer_model(sorted_alignments_vec , 2 , path+"/run_high_err_j/" , false ,1e-300,0.001);
 
 	}
 
