@@ -14,10 +14,10 @@ Dinucl_markov::Dinucl_markov(Gene_class gene): Rec_Event()  ,  total_nucl_count(
 	event_class = gene;
 	//Same indexes as Aligner::nt2int
 
-	event_realizations.emplace("A" , Event_realization("A",INT16_MAX,"A","",0));
-	event_realizations.emplace("C" , Event_realization("C",INT16_MAX,"C","",1));
-	event_realizations.emplace("G" , Event_realization("G",INT16_MAX,"G","",2));
-	event_realizations.emplace("T" , Event_realization("T",INT16_MAX,"T","",3));
+	event_realizations.emplace("A" , Event_realization("A",INT16_MAX,"A",Int_Str(),0));
+	event_realizations.emplace("C" , Event_realization("C",INT16_MAX,"C",Int_Str(),1));
+	event_realizations.emplace("G" , Event_realization("G",INT16_MAX,"G",Int_Str(),2));
+	event_realizations.emplace("T" , Event_realization("T",INT16_MAX,"T",Int_Str(),3));
 
 	updated = true;
 	updated_upper_bound_proba = new double;
@@ -62,13 +62,13 @@ void Dinucl_markov::iterate(double& scenario_proba , Downstream_scenario_proba_b
 	if(event_class == VD_genes || event_class == VDJ_genes){
 		correct_class = 1;
 		previous_seq = (*constructed_sequences.at(V_gene_seq));
-		vd_seq = constructed_sequences.at(VD_ins_seq);
-		vd_seq_size = vd_seq->size();
+		Int_Str& vd_seq = (*constructed_sequences.at(VD_ins_seq));
+		vd_seq_size = vd_seq.size();
 		previous_seq_size = previous_seq.size();
 		//data_seq_substr = sequence.substr(seq_offsets.at(pair<Seq_type,Seq_side>(V_gene_seq,Five_prime)) + previous_seq_size , vd_seq.size());
 		//data_seq_substr = sequence.substr(seq_offsets.at(v_5_pair) + previous_seq_size , vd_seq.size());//TODO check this
 		//data_seq_substr = int_sequence.substr(seq_offsets.at(v_5_pair) + previous_seq_size , vd_seq.size());
-		data_seq_substr = int_sequence.substr(seq_offsets.at(V_gene_seq,Five_prime) + previous_seq_size , vd_seq->size()); //FIXME use precomputed vd seq size
+		data_seq_substr = int_sequence.substr(seq_offsets.at(V_gene_seq,Five_prime) + previous_seq_size , vd_seq.size()); //FIXME use precomputed vd seq size
 
 		previous_nt_str = previous_seq.back();
 		iterate_common( vd_realizations_indices , previous_nt_str  , vd_seq , model_parameters_point);
@@ -87,22 +87,22 @@ void Dinucl_markov::iterate(double& scenario_proba , Downstream_scenario_proba_b
 		new_scenario_proba = iterate_common(new_scenario_proba , prev_seq.substr(prev_seq_size-1,1) , data_seq_substr , constructed_sequences.at(DJ_ins_seq) , base_index , write_index_list , model_parameters_point);
 		*/
 		previous_seq = (*constructed_sequences.at(J_gene_seq));
-		dj_seq = constructed_sequences.at(DJ_ins_seq);
-		dj_seq_size = dj_seq->size();
+		Int_Str& dj_seq = (*constructed_sequences.at(DJ_ins_seq));
+		dj_seq_size = dj_seq.size();
 		//string& constr_ins_seq = constructed_sequences.at(DJ_ins_seq);
 
 		//size_t char_index = seq_offsets.at(pair<Seq_type,Seq_side>(J_gene_seq,Five_prime)) -dj_seq.size();
 		//size_t char_index = seq_offsets.at(j_5_pair) -dj_seq.size();
-		size_t char_index = seq_offsets.at(J_gene_seq,Five_prime) -dj_seq->size();
+		size_t char_index = seq_offsets.at(J_gene_seq,Five_prime) -dj_seq.size();
 
 		//data_seq_substr = sequence.substr(char_index , dj_seq.size());
-		data_seq_substr = int_sequence.substr(char_index , dj_seq->size());
+		data_seq_substr = int_sequence.substr(char_index , dj_seq.size());
 
 
 		previous_nt_str = previous_seq.front();
 		reverse(data_seq_substr.begin(),data_seq_substr.end());
 		iterate_common( dj_realizations_indices , previous_nt_str , dj_seq , model_parameters_point);
-		reverse(dj_seq->begin(),dj_seq->end());
+		reverse(dj_seq.begin(),dj_seq.end());
 
 		downstream_proba_map.set_value(DJ_ins_seq,1.0,memory_layer_proba_map_junction_2);
 
@@ -110,12 +110,12 @@ void Dinucl_markov::iterate(double& scenario_proba , Downstream_scenario_proba_b
 	if(event_class == VJ_genes){
 		correct_class = 1;
 		previous_seq = (*constructed_sequences.at(V_gene_seq));
-		vj_seq = constructed_sequences.at(VJ_ins_seq);
-		vj_seq_size = vj_seq->size();
+		Int_Str& vj_seq = (*constructed_sequences.at(VJ_ins_seq));
+		vj_seq_size = vj_seq.size();
 		previous_seq_size = previous_seq.size();
 		//data_seq_substr = sequence.substr(seq_offsets.at(v_5_pair) + previous_seq_size , vj_seq.size());
 		//data_seq_substr = int_sequence.substr(seq_offsets.at(v_5_pair) + previous_seq_size , vj_seq.size());
-		data_seq_substr = int_sequence.substr(seq_offsets.at(V_gene_seq,Five_prime) + previous_seq_size , vj_seq->size());
+		data_seq_substr = int_sequence.substr(seq_offsets.at(V_gene_seq,Five_prime) + previous_seq_size , vj_seq.size());
 
 
 		previous_nt_str = previous_seq.back();
@@ -277,7 +277,7 @@ void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_
 			realization_final_index = base_index + offset + sec_nt_index;
 			proba_contribution*= model_parameters_point[realization_final_index];///compute_nt_freq(base_index+offset , model_parameters_point);
 			indices_array[0] = realization_final_index;
-			ins_seq->at(0) = data_seq_substr.at(0);
+			ins_seq.at(0) = data_seq_substr.at(0);
 			total_nucl_count+=1;
 		}
 
@@ -298,7 +298,7 @@ void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_
 				realization_final_index = base_index + offset + sec_nt_index;
 				proba_contribution*= model_parameters_point[base_index + offset + sec_nt_index];///compute_nt_freq(base_index+offset , model_parameters_point);
 				indices_array[i] = realization_final_index;
-				ins_seq->at(i) = data_seq_substr.at(i);
+				ins_seq.at(i) = data_seq_substr.at(i);
 				total_nucl_count+=1;
 			}
 		}

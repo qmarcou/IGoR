@@ -57,15 +57,15 @@ private:
 	double* updated_upper_bound_proba; //This points to a double modified by the Insertion event given the number of insertion
 
 	int total_nucl_count;
-	Int_Str vd_seq;//&
+	//Int_Str vd_seq;//&
 	int max_vd_ins;
 	int* vd_realizations_indices;
 	size_t vd_seq_size;
-	Int_Str vj_seq;//&
+	//Int_Str vj_seq;//&
 	int max_vj_ins;
 	int* vj_realizations_indices;
 	size_t vj_seq_size;
-	Int_Str dj_seq;//&
+	//Int_Str dj_seq;//&
 	int max_dj_ins;
 	int* dj_realizations_indices;
 	size_t dj_seq_size;

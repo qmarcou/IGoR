@@ -311,7 +311,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		}
 
 		for(i=0 ; i!=mutation_Nmer_size ; ++i){
-			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i,1));
+			tmp_int_nt = scenario_resulting_sequence.at(i);
 			current_Nmer.push(tmp_int_nt);
 			Nmer_index+=adressing_vector[i]*tmp_int_nt;
 		}
@@ -357,13 +357,14 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//Removing the contribution of the first and adding the contribution of the new last
 
 		for( i = (mutation_Nmer_size-1)/2 +1 ; i!=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2  ; ++i){
+
 			//Remove the previous first nucleotide of the Nmer and it's contribution to the index
 			Nmer_index-=current_Nmer.front()*adressing_vector[0];
 			current_Nmer.pop();
 			//Shift the index
 			Nmer_index*=4;
 			//Add the contribution of the new nucleotide
-			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+			tmp_int_nt = scenario_resulting_sequence.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
 			Nmer_index+=tmp_int_nt;
 			current_Nmer.push(tmp_int_nt);
 
@@ -382,11 +383,18 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			}
 			else{
 				scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+				if((Nmer_index>=64) or (Nmer_index<0)){
+					cout<<"PROBLEM"<<endl;
+				}
 			}
 
 
 		}
 
+	}
+
+	if(std::isnan(scenario_new_proba)){
+		cout<<"SHOUT!!"<<endl;
 	}
 
 
@@ -422,7 +430,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 /////////////////////////////////////////////////////////////////////////////////////////////
 		//Debug shit
 /////////////////////////////////////////////////////////////////////////////////////////////
-/*		current_mismatch = v_mismatch_list.begin();
+		current_mismatch = v_mismatch_list.begin();
 
 		//TODO Need to get the previous V nucleotides and last J ones
 
@@ -433,7 +441,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		}
 
 		for(i=0 ; i!=mutation_Nmer_size ; ++i){
-			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i,1));
+			tmp_int_nt = scenario_resulting_sequence.at(i);
 			current_Nmer.push(tmp_int_nt);
 			Nmer_index+=adressing_vector[i]*tmp_int_nt;
 		}
@@ -474,7 +482,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			//Shift the index
 			Nmer_index*=4;
 			//Add the contribution of the new nucleotide
-			tmp_int_nt = stoi(scenario_resulting_sequence.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+			tmp_int_nt = scenario_resulting_sequence.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
 			Nmer_index+=tmp_int_nt;
 			current_Nmer.push(tmp_int_nt);
 
@@ -490,7 +498,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			}
 
 
-		}*/
+		}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 		//End of debug shit
@@ -557,7 +565,7 @@ queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq
 
 	double error_proba;
 
-	string int_generated_seq = nt2int(generated_seq);
+	Int_Str int_generated_seq = nt2int(generated_seq);
 
 	//FIXME take into account hidden nucleotides on the right and left sides
 
@@ -565,7 +573,7 @@ queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq
 	Nmer_index = 0;
 	current_Nmer = queue<size_t>();
 	for(i=0 ; i!=mutation_Nmer_size ; ++i){
-		tmp_int_nt = stoi(int_generated_seq.substr(i,1));
+		tmp_int_nt = int_generated_seq.at(i);
 		current_Nmer.push(tmp_int_nt);
 		Nmer_index+=adressing_vector[i]*tmp_int_nt;
 	}
@@ -587,7 +595,7 @@ queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq
 		//Shift the index
 		Nmer_index*=4;
 		//Add the contribution of the new nucleotide
-		tmp_int_nt = stoi(int_generated_seq.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symmetrically sized Nmer
+		tmp_int_nt = int_generated_seq.at(i+(mutation_Nmer_size-1)/2);//Assume a symmetrically sized Nmer
 		Nmer_index+=tmp_int_nt;
 		current_Nmer.push(tmp_int_nt);
 
@@ -794,7 +802,7 @@ void Hypermutation_global_errorrate::update(){
 			throw runtime_error("Optimization of the hypermutation model failed");
 		}
 		else{
-			//cout<<"jacobian norm: "<<j_norm<<endl;
+			cout<<"jacobian norm: "<<j_norm<<endl;
 		}
 
 		//Set J to -J and then solve H\deltax = J
@@ -844,8 +852,8 @@ void Hypermutation_global_errorrate::update(){
 
 		//Backtracking line search
 		double alpha = x_norm;
-		double tau=.9;
-		double c=.01;
+		double tau=.95;
+		double c=.005;
 
 		double m;
 
@@ -1415,7 +1423,7 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 			//and get min coverage for the first Nmer
 			double min_coverage = INT16_MAX;
 			for(j=0 ; j!=mutation_Nmer_size ; j++){
-				tmp_int_nt = stoi((*real_iter).second.value_str_int.substr(j,1));
+				tmp_int_nt = (*real_iter).second.value_str_int.at(j);
 				current_Nmer.push(tmp_int_nt);
 				Nmer_index+=adressing_vector[j]*tmp_int_nt;
 
@@ -1436,7 +1444,7 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 				Nmer_index*=4;
 				//Add the contribution of the new nucleotide
 
-				tmp_int_nt = stoi((*real_iter).second.value_str_int.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+				tmp_int_nt = (*real_iter).second.value_str_int.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
 
 				Nmer_index+=tmp_int_nt;
 				current_Nmer.push(tmp_int_nt);
@@ -1471,7 +1479,7 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 			//and get min coverage for the first Nmer
 			double min_coverage = INT16_MAX;
 			for(j=0 ; j!=mutation_Nmer_size ; j++){
-				tmp_int_nt = stoi((*real_iter).second.value_str_int.substr(j,1));
+				tmp_int_nt = (*real_iter).second.value_str_int.at(j);
 				current_Nmer.push(tmp_int_nt);
 				Nmer_index+=adressing_vector[j]*tmp_int_nt;
 
@@ -1492,7 +1500,7 @@ void Hypermutation_global_errorrate::compute_P_SHM_and_BG(){
 				Nmer_index*=4;
 				//Add the contribution of the new nucleotide
 
-				tmp_int_nt = stoi((*real_iter).second.value_str_int.substr(i+(mutation_Nmer_size-1)/2,1));//Assume a symetric Nmer
+				tmp_int_nt = (*real_iter).second.value_str_int.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
 
 				Nmer_index+=tmp_int_nt;
 				current_Nmer.push(tmp_int_nt);

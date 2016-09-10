@@ -143,7 +143,7 @@ private:
 	int tmp_corr_len;
 	int tmp_len_util;
 	double scenario_new_proba;
-	std::string scenario_resulting_sequence;
+	Int_Str scenario_resulting_sequence;
 
 	std::vector<size_t> adressing_vector;
 	mutable std::queue<size_t> current_Nmer;

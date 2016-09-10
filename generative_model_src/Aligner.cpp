@@ -104,7 +104,7 @@ vector<pair<string,string>> read_genomic_fasta(string filename){
 		}
 		string seq_str;
 		string seq_name_str;
-		string temp_str;
+		string temp_str = "";
 		int seq_count = -1;
 		vector<pair<string,std::string>> sequence_vect;
 
