@@ -362,7 +362,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		outfile_ind_real<<";"<<model_queue.front()->get_name();
 		model_queue.pop();
 	}
-	outfile_ind_real<<endl;
+	outfile_ind_real<<";Errors"<<endl;
 	model_queue = this->model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = this->model_marginals.get_index_map(this->model_parms,model_queue);
 	unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>> offset_map = this->model_marginals.get_offsets_map(this->model_parms,model_queue);
@@ -396,7 +396,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 
 		outfile_ind_seq<<seq<<";"<<sequence.first<<endl;
 		outfile_ind_real<<seq;
-		queue<queue<int>> realizations = sequence.second;
+		queue<queue<int>>& realizations = sequence.second;
 		while(!realizations.empty()){
 			outfile_ind_real<<";";
 			queue<int> event_real = realizations.front();
