@@ -45,7 +45,7 @@ public:
 
 private:
 	void update_Nmers_proba(int,int,double);
-	void compute_P_SHM_and_BG();
+	//void compute_P_SHM_and_BG();
 	double compute_Nmer_unorm_score(int*,double*);
 	double compute_new_model_likelihood(double,gsl_vector*);
 	void increment_base_10_and_4(int& , int*);
@@ -61,8 +61,8 @@ private:
 	//std::map<int,double> Nmer_background_proba;
 	double* Nmer_mutation_proba;
 
-	double* Nmer_P_SHM;
-	double* Nmer_P_BG;
+/*	double* Nmer_P_SHM;
+	double* Nmer_P_BG;*/
 
 	size_t alphabet_size = 4;
 
@@ -81,7 +81,13 @@ private:
 	std::shared_ptr<Gene_choice> j_gene_event_p;
 	size_t n_j_real;
 	std::unordered_map<std::string , Event_realization> j_realizations;
-	//Use C arrays (faster than maps)
+
+	double* one_seq_Nmer_N_SHM;
+	double* one_seq_Nmer_N_bg;
+	double* Nmer_N_SHM;
+	double* Nmer_N_bg;
+
+/*	//Use C arrays (faster than maps)
 	//size_t is the length of the sequence
 	//double* is the pointer to the array for coverage/error per nucleotide
 	std::pair<size_t,double*>* v_gene_nucleotide_coverage_p;
@@ -97,7 +103,7 @@ private:
 	std::pair<size_t,double*>* d_gene_nucleotide_coverage_seq_p;
 	std::pair<size_t,double*>* d_gene_per_nucleotide_error_seq_p;
 	std::pair<size_t,double*>* j_gene_nucleotide_coverage_seq_p;
-	std::pair<size_t,double*>* j_gene_per_nucleotide_error_seq_p;
+	std::pair<size_t,double*>* j_gene_per_nucleotide_error_seq_p;*/
 
 
 	bool apply_to_v;
@@ -160,10 +166,7 @@ private:
 	std::string debug_current_string;
 ///////////////
 	//Ddddebug shit
-	double* debug_one_seq_Nmer_N_SHM;
-	double* debug_one_seq_Nmer_N_bg;
-	double* debug_Nmer_N_SHM;
-	double* debug_Nmer_N_bg;
+
 
 };
 
