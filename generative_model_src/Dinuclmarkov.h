@@ -41,6 +41,10 @@ public:
 	double* get_updated_ptr();
 	void initialize_scenario_proba_bound(double& , std::forward_list<double*>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&);
 
+	//Proba bound related computation methods
+	bool has_effect_on(Seq_type) const;
+	void iterate_initialize_Len_proba( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len=0 ) const ;
+
 
 private:
 
@@ -65,10 +69,10 @@ private:
 	int previous_nt_str;
 	Int_Str data_seq_substr;
 
-	int base_index;
+	mutable int base_index;
 	double new_scenario_proba;
 	double proba_contribution;
-	bool correct_class;
+	mutable bool correct_class;
 
 	//std::pair<Seq_type,Seq_side> v_5_pair = std::make_pair (V_gene_seq,Five_prime);
 	//std::pair<Seq_type,Seq_side> j_5_pair = std::make_pair (J_gene_seq,Five_prime);

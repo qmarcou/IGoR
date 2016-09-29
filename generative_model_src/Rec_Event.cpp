@@ -225,3 +225,39 @@ void Rec_Event::compute_upper_bound_scenario_proba( double& tmp_err_w_proba ) {
 	}
 }
 
+/*
+ * Called when iterating over all possible scenarios during initialization
+ * Fills up the length-max_proba_bound for a given junction , and links the call to iterate_initialize_len_proba for two events
+ *
+ * TODO constructed sequences should not be used but it is useful to compute the dinucl contribution
+ */
+void Rec_Event::iterate_initialize_Len_proba_wrap_up(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>> model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len ) const {
+
+	if(not model_queue.empty()){
+		std::shared_ptr<Rec_Event> next_event_p = model_queue.front();
+		model_queue.pop();
+		//TODO fix this and find a way not to loop over all events
+		//if(next_event_p->has_effect_on(considered_junction)){
+			// Explore realizations of this event
+			next_event_p->iterate_initialize_Len_proba(considered_junction , length_best_proba_map , model_queue , scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
+		//}
+		//else{
+			// If this event has no effect on the junction skip it using a recursive call
+			//next_event_p->iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map , model_queue , scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
+		//}
+	}
+	else{
+		// When all events with an effect on the junction have been processed update the length-proba map
+		if(length_best_proba_map.count(seq_len)>0){
+			if(scenario_proba>length_best_proba_map.at(seq_len)){
+				//Keep the best proba for each length
+				length_best_proba_map.at(seq_len) = scenario_proba;
+			}
+		}
+		else{
+			length_best_proba_map[seq_len] = scenario_proba;
+		}
+	}
+
+}
+

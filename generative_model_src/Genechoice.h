@@ -36,6 +36,11 @@ public:
 	void initialize_event( std::unordered_set<Rec_Event_name>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , Seq_type_str_p_map& , Safety_bool_map& , std::shared_ptr<Error_rate> ,Mismatch_vectors_map&,Seq_offsets_map&,Index_map&);
 	void add_to_marginals(long double , Marginal_array_p) const;
 
+	//Proba bound related computation methods
+	bool has_effect_on(Seq_type) const;
+	void iterate_initialize_Len_proba( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len=0 ) const ;
+
+
 private:
 	inline double iterate_common(double ,const int&  , int , Index_map& ,const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& ,const Marginal_array_p);
 
@@ -84,7 +89,7 @@ private:
 
 
 	//Declare common variables
-	int base_index;
+	mutable int base_index;
 	double new_scenario_proba;
 	double new_tmp_err_w_proba;
 	double proba_contribution;

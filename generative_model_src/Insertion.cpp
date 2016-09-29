@@ -395,3 +395,84 @@ void Insertion::initialize_scenario_proba_bound(double& downstream_proba_bound ,
 
 
 }
+
+ bool Insertion::has_effect_on(Seq_type seq_type) const{
+	 switch(this->event_class){
+	 case VD_genes:
+		 if(seq_type == VJ_ins_seq or seq_type==VD_ins_seq){
+			 return true;
+		 }
+		 else return false;
+		 break;
+
+	 case VJ_genes:
+		 if(seq_type==VJ_ins_seq){
+			 return true;
+		 }
+		 else return false;
+		 break;
+
+	 case DJ_genes:
+		 if(seq_type==VJ_ins_seq or seq_type==DJ_ins_seq){
+			 return true;
+		 }
+		 else return false;
+		 break;
+
+	 default:
+		 return false;
+	 }
+ }
+
+ void Insertion::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len/*=0*/ ) const{
+	base_index = base_index_map.at(this->event_index);
+
+		//Insert sequence in the right constructed sequence
+		Seq_type seq_type;
+		switch(this->event_class){
+		case VD_genes:
+			seq_type = VD_ins_seq;
+			break;
+
+		case VJ_ins_seq:
+			seq_type = VJ_ins_seq;
+			break;
+
+		case DJ_ins_seq:
+			seq_type = DJ_ins_seq;
+			break;
+		}
+
+	for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
+
+
+		if(this->has_effect_on(considered_junction)){
+			//Update the length
+			seq_len+=(*iter).second.value_int;
+
+			//Build an inserted sequence to let the Dinuc know about the number of insertions considered
+			constructed_sequences[seq_type]->assign(iter->second.value_int , -1);
+
+			//Update the probability
+			scenario_proba*=model_parameters_point[base_index + (*iter).second.index];
+		}
+
+
+
+
+
+		//Update base index map
+		for(forward_list<tuple<int,int,int>>::const_iterator jiter = memory_and_offsets.begin() ; jiter!=memory_and_offsets.end() ; ++jiter){
+			//Get previous index for the considered event
+			int previous_index = base_index_map.at(get<0>(*jiter),get<1>(*jiter)-1);
+			//Update the index given the realization and the offset
+			previous_index += iter->second.index *get<2>(*jiter);
+			//Set the value
+			base_index_map.set_value(get<0>(*jiter) , previous_index , get<1>(*jiter));
+		}
+
+		//Recursive call
+		Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len/*=0*/);
+
+	}
+ }

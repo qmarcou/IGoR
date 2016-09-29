@@ -42,13 +42,18 @@ public:
 	void set_upper_bound_proba(size_t , size_t , Marginal_array_p) ;
 	void initialize_scenario_proba_bound(double& , std::forward_list<double*>& ,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&);
 
+	//Proba bound related computation methods
+	bool has_effect_on(Seq_type) const;
+	void iterate_initialize_Len_proba( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len=0 ) const ;
+
+
 private:
 	inline double iterate_common(double , int , int , Index_map& ,const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& ,const Marginal_array_p);
 
 	std::map<int,Event_realization> ordered_realization_map;
 
 	Int_Str inserted_str;
-	int base_index;
+	mutable int base_index;
 	double new_scenario_proba;
 	double proba_contribution;
 	int insertions;

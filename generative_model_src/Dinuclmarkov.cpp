@@ -377,3 +377,81 @@ void Dinucl_markov::initialize_scenario_proba_bound(double& downstream_proba_bou
 	updated_proba_list.push_front(this->updated_upper_bound_proba);
 }
 
+ bool Dinucl_markov::has_effect_on(Seq_type seq_type) const{
+	 switch(this->event_class){
+	 case VD_genes:
+		 if(seq_type == VJ_ins_seq or seq_type==VD_ins_seq){
+			 return true;
+		 }
+		 else return false;
+		 break;
+
+	 case VJ_genes:
+		 if(seq_type==VJ_ins_seq){
+			 return true;
+		 }
+		 else return false;
+		 break;
+
+	 case DJ_genes:
+		 if(seq_type==VJ_ins_seq or seq_type==DJ_ins_seq){
+			 return true;
+		 }
+		 else return false;
+		 break;
+
+	 case VDJ_genes:
+		 if(seq_type == VJ_ins_seq or seq_type==VD_ins_seq or seq_type==DJ_ins_seq){
+			 return true;
+		 }
+		 else return false;
+
+	 default:
+		 return false;
+		 break;
+	 }
+ }
+
+ void Dinucl_markov::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len/*=0*/ ) const{
+	base_index = base_index_map.at(this->event_index);
+
+	correct_class=0;
+	if(event_class == VD_genes or event_class == VDJ_genes){
+		correct_class = 1;
+		if(this->has_effect_on(considered_junction)){
+			if(constructed_sequences.exist(VD_ins_seq)){
+				scenario_proba*=pow(this->get_upper_bound_proba(),constructed_sequences.at(VD_ins_seq)->size());
+			}
+			//Otherwise the proba contribution is 1
+		}
+	}
+	if(event_class == DJ_genes or event_class == VDJ_genes){
+		correct_class = 1;
+		if(this->has_effect_on(considered_junction)){
+			if(constructed_sequences.exist(DJ_ins_seq)){
+				scenario_proba*=pow(this->get_upper_bound_proba(),constructed_sequences.at(DJ_ins_seq)->size());
+			}
+			//Otherwise the proba contribution is 1
+		}
+	}
+	if(event_class == VJ_genes){
+		correct_class = 1;
+		if(this->has_effect_on(considered_junction)){
+			if(constructed_sequences.exist(VJ_ins_seq)){
+				scenario_proba*=pow(this->get_upper_bound_proba(),constructed_sequences.at(VJ_ins_seq)->size());
+			}
+			//Otherwise the proba contribution is 1
+		}
+	}
+	if(!correct_class){
+		throw invalid_argument("Unknown gene class for DincuclMarkov model: " + this->event_class);
+	}
+
+	//TODO use a better proba bound for this dinucleotide markov model
+
+	//Recursive call
+	Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len/*=0*/);
+
+
+ }
+

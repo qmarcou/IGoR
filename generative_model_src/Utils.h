@@ -186,6 +186,8 @@ typedef Enum_fast_memory_map<Seq_type,std::vector<int>*> Mismatch_vectors_map;
 
 typedef Enum_fast_memory_map<int,size_t> Index_map;
 
+typedef Enum_fast_memory_map<Seq_type,double> downstream_scenario_proba_bound_map;
+
 /*
 	template<> class Enum_fast_memory_map<Seq_type ,Str_ptr>{
 	Enum_fast_memory_map():Enum_fast_memory_map<Seq_type,Str_ptr>(6){};

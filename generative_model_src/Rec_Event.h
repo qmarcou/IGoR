@@ -96,6 +96,10 @@ public:
 	void compute_upper_bound_scenario_proba( double& ) ;
 	const std::vector<int>& get_current_realizations_index_vec() const{return current_realizations_index_vec;};
 
+	//Proba bound related computation methods
+	virtual bool has_effect_on(Seq_type) const= 0;
+	void iterate_initialize_Len_proba_wrap_up( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>> model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len ) const;
+	virtual void iterate_initialize_Len_proba( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len=0 ) const = 0;
 
 
 
