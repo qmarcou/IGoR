@@ -26,7 +26,7 @@ Dinucl_markov::Dinucl_markov(Gene_class gene): Rec_Event()  ,  total_nucl_count(
 
 
 Dinucl_markov::~Dinucl_markov() {
-	// TODO Auto-generated destructor stub
+	// TODO delete realization indices
 	delete updated_upper_bound_proba;
 }
 
@@ -46,7 +46,7 @@ int Dinucl_markov::size()const{
 }
 
 
-void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,shared_ptr<Error_rate>& error_rate_p, map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Dinucl_markov::iterate(double& scenario_proba , Downstream_scenario_proba_bound_map& downstream_proba_map , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,shared_ptr<Error_rate>& error_rate_p, map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 	new_scenario_proba = scenario_proba;
 	proba_contribution = 1;
@@ -70,6 +70,7 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 
 		previous_nt_str = previous_seq.back();
 		iterate_common( vd_realizations_indices , previous_nt_str  , vd_seq , model_parameters_point);
+		downstream_proba_map.set_value(VD_ins_seq,1.0,memory_layer_proba_map_junction_1);
 		//constructed_sequences.at(VD_ins_seq) = &vd_seq;
 
 	}
@@ -100,6 +101,8 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 		reverse(data_seq_substr.begin(),data_seq_substr.end());
 		iterate_common( dj_realizations_indices , previous_nt_str , dj_seq , model_parameters_point);
 		reverse(dj_seq.begin(),dj_seq.end());
+
+		downstream_proba_map.set_value(DJ_ins_seq,1.0,memory_layer_proba_map_junction_2);
 	}
 	if(event_class == VJ_genes){
 		correct_class = 1;
@@ -114,19 +117,23 @@ void Dinucl_markov::iterate(double& scenario_proba , double& tmp_err_w_proba , c
 
 		previous_nt_str = previous_seq.back();
 		iterate_common( vj_realizations_indices , previous_nt_str , vj_seq , model_parameters_point);
+
+		downstream_proba_map.set_value(VJ_ins_seq,1.0,memory_layer_proba_map_junction_1);
 	}
 	if(!correct_class){
 		throw invalid_argument("Unknown gene class for DincuclMarkov model: " + this->event_class);
 	}
-	tmp_err_w_proba*=proba_contribution;
+
 	new_scenario_proba*=proba_contribution;
-	compute_upper_bound_scenario_proba(tmp_err_w_proba);
+
+	//Compute scenario downstream proba bound
+	scenario_upper_bound_proba = new_scenario_proba;
+	//Multiply all downstream probas
+	downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
 	if(scenario_upper_bound_proba>=(seq_max_prob_scenario*proba_threshold_factor)){
-
+		iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_point  , model_parameters_point , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists ,seq_max_prob_scenario , proba_threshold_factor);
 	}
-	//FIXME check this
-	iterate_wrap_up(new_scenario_proba , tmp_err_w_proba , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_point  , model_parameters_point , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists ,seq_max_prob_scenario , proba_threshold_factor);
-
 }
 
 queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
@@ -319,7 +326,7 @@ void Dinucl_markov::ind_normalize(Marginal_array_p marginal_array_p , size_t bas
 	}
 }
 
-void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list,Seq_offsets_map& seq_offsets , Index_map& index_map){
+void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Downstream_scenario_proba_bound_map& downstream_proba_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list,Seq_offsets_map& seq_offsets , Index_map& index_map){
 
 	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side))!=0){
 		shared_ptr<const Rec_Event> ins_vd_p = events_map.at(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side));
@@ -343,10 +350,24 @@ void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_e
 		max_dj_ins = 0;
 	}
 
+	if( (this->event_class == VD_genes) or (this->event_class==VDJ_genes) ){
+		downstream_proba_map.request_memory_layer(VD_ins_seq);
+		memory_layer_proba_map_junction_1 = downstream_proba_map.get_current_memory_layer(VD_ins_seq);
+	}
+	if( (this->event_class == DJ_genes) or (this->event_class==VDJ_genes) ){
+		downstream_proba_map.request_memory_layer(DJ_ins_seq);
+		memory_layer_proba_map_junction_2 = downstream_proba_map.get_current_memory_layer(DJ_ins_seq);
+	}
+	if( this->event_class == VJ_genes ){
+		downstream_proba_map.request_memory_layer(VJ_ins_seq);
+		memory_layer_proba_map_junction_1 = downstream_proba_map.get_current_memory_layer(VJ_ins_seq);
+	}
+
 	vd_realizations_indices = new int [max_vd_ins];
 	vj_realizations_indices = new int [max_vj_ins];
 	dj_realizations_indices = new int [max_dj_ins];
-	this->Rec_Event::initialize_event(processed_events,events_map,offset_map,constructed_sequences,safety_set,error_rate_p,mismatches_list,seq_offsets,index_map);
+	this->Rec_Event::initialize_event(processed_events,events_map,offset_map,downstream_proba_map,constructed_sequences,safety_set,error_rate_p,mismatches_list,seq_offsets,index_map);
+
 }
 
 void Dinucl_markov::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
@@ -371,7 +392,7 @@ double* Dinucl_markov::get_updated_ptr(){
 	return updated_upper_bound_proba;
 }
 
-void Dinucl_markov::initialize_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
+void Dinucl_markov::initialize_crude_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
 	this->scenario_downstream_upper_bound_proba = downstream_proba_bound;
 	this->updated_proba_bounds_list = updated_proba_list;
 	updated_proba_list.push_front(this->updated_upper_bound_proba);
@@ -412,7 +433,7 @@ void Dinucl_markov::initialize_scenario_proba_bound(double& downstream_proba_bou
 	 }
  }
 
- void Dinucl_markov::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len/*=0*/ ) const{
+ void Dinucl_markov::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len/*=0*/ ) const{
 	base_index = base_index_map.at(this->event_index);
 
 	correct_class=0;
@@ -453,5 +474,14 @@ void Dinucl_markov::initialize_scenario_proba_bound(double& downstream_proba_bou
 	Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len/*=0*/);
 
 
+ }
+
+ void Dinucl_markov::initialize_Len_proba_bound(queue<shared_ptr<Rec_Event>>& model_queue , const Marginal_array_p& model_parameters_point , Index_map& base_index_map ){
+//Do nothing
+	/*
+	 * For now let's assume nothing can happen to the junction once the dinucleotide has been chosen
+	 * =>no errors
+	 * =>no in/dels
+	 */
  }
 

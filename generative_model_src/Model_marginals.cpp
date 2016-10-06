@@ -51,6 +51,8 @@ size_t Model_marginals::compute_size(const Model_Parms& model_parms){
 		}
 		return array_size;
 }
+
+
 /*
  *
  */

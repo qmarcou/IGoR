@@ -74,7 +74,7 @@ bool Gene_choice::add_realization(string gene_name , string gene_sequence  ){
 
 
 
-void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_pointer , const Marginal_array_p& model_parameters_pointer ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,shared_ptr<Error_rate>& error_rate_p , map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bound_map& downstream_proba_map ,const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_pointer , const Marginal_array_p& model_parameters_pointer ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets ,shared_ptr<Error_rate>& error_rate_p , map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 
 
@@ -188,12 +188,11 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 					}
 				}
 
-
 				//Compute gene choice realization index
 				current_realizations_index_vec[0] = this->event_realizations.at((*iter).gene_name).index;
 				new_index = base_index + current_realizations_index_vec[0];
 				new_scenario_proba = scenario_proba;
-				new_tmp_err_w_proba = tmp_err_w_proba;
+				//new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
 
 				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map  , offset_map , model_parameters_pointer );
@@ -206,15 +205,45 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 				seq_offsets.set_value(V_gene_seq,Five_prime,v_5_off,memory_layer_off_fivep);
 				seq_offsets.set_value(V_gene_seq,Three_prime,v_3_off,memory_layer_off_threep);
 
-				//Set the the V mismatcg list using the mismatch list computed during the alignment
+				//Set the the V mismatch list using the mismatch list computed during the alignment
 				mismatches_lists.set_value(V_gene_seq,&(*iter).mismatches,memory_layer_mismatches);
 
-				compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
+				//Update downstream proba map and compute the downstream proba bound for this event
+					scenario_upper_bound_proba = new_scenario_proba;
+
+					//Get VD or VJ junction upper bound proba
+					if(d_chosen){
+						if(vd_length_best_proba_map.count(d_offset - v_3_off -1)<=0){
+							continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+						}
+						downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_offset - v_3_off -1) , memory_layer_proba_map_junction);
+					}
+					else if(j_chosen){
+						if(vj_length_best_proba_map.count(j_offset - v_3_off -1)<=0){
+							continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+						}
+						downstream_proba_map.set_value(VJ_ins_seq , vj_length_best_proba_map.at(j_offset - v_3_off -1) , memory_layer_proba_map_junction);
+					}
+
+					//Count the number of mismatches that will not go away whatever the number off deletions
+					endogeneous_mismatches = 0;
+					mism_iter = iter->mismatches.begin();
+					while((*mism_iter)<=v_3_off + v_3_max_del and mism_iter!=iter->mismatches.end()){
+						//Count one mismatch
+						++endogeneous_mismatches;
+						++mism_iter;
+					}
+					downstream_proba_map.set_value(V_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+
+					//Multiply all downstream probas
+					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
+				//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 				if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 					continue;
 				}
 
-				Rec_Event::iterate_wrap_up(new_scenario_proba , new_tmp_err_w_proba , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences  , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
+				Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences  , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
 			}
 	}
 			break;
@@ -319,13 +348,13 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 				current_realizations_index_vec[0] = this->event_realizations.at((*iter).gene_name).index;
 				new_index = base_index + current_realizations_index_vec[0];
 				new_scenario_proba = scenario_proba;
-				new_tmp_err_w_proba = tmp_err_w_proba;
+				//new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
 
 				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
 
 				new_scenario_proba*=proba_contribution;
-				new_tmp_err_w_proba*=proba_contribution;
+				//new_tmp_err_w_proba*=proba_contribution;
 
 				//Assume that the whole D is in the sequence and add the D sequence to the constructed sequences
 				seq_offsets.set_value(D_gene_seq,Five_prime,(*iter).offset,memory_layer_off_fivep);
@@ -333,12 +362,54 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 
 				mismatches_lists.set_value(D_gene_seq,&(*iter).mismatches,memory_layer_mismatches);
 
-				compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
+				//Update downstream proba map and compute the downstream proba bound for this event
+					scenario_upper_bound_proba = new_scenario_proba;
+
+					//Get DJ or VJ junction upper bound proba
+					if(v_chosen and j_chosen){
+						if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0 or dj_length_best_proba_map.count(j_offset - d_3_off  -1)<=0){
+							continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+						}
+						downstream_proba_map.set_value(VJ_ins_seq, 1.0 , memory_layer_proba_map_junction);
+						downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
+						downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_3_off  -1) , memory_layer_proba_map_junction_d3);
+					}
+					else if(v_chosen){
+						if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0){
+							continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+						}
+						downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
+					}
+					else if(j_chosen){
+						if(dj_length_best_proba_map.count(j_offset - d_3_off  -1)<=0){
+							continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+						}
+						downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_3_off  -1) , memory_layer_proba_map_junction_d3);
+					}
+
+					//Count the number of mismatches that will not go away even with maximum number of deletions
+					endogeneous_mismatches = 0;
+					if((d_5_off - d_5_min_del)<(d_3_off + d_3_min_del)){
+						mism_iter = iter->mismatches.begin();
+						while(mism_iter!=iter->mismatches.end()){
+							if((*mism_iter)>=(d_5_off - d_5_min_del) and (*mism_iter)<=(d_3_off + d_3_min_del))
+							//Count one mismatch
+							++endogeneous_mismatches;
+						}
+						++mism_iter;
+					}
+
+					downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+
+					//Multiply all downstream probas
+					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
+				//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 				if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 					continue;
 				}
 				no_d_align = false;
-				Rec_Event::iterate_wrap_up(new_scenario_proba , new_tmp_err_w_proba , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
+				Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
 			}
 
 			if(no_d_align){
@@ -391,11 +462,11 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 					//Proba contribution is the same wherever is the gene
 					proba_contribution=1;
 					proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
-					new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
-					compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
+					//new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
+/*					compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 						continue;
-					}
+					}*/
 
 
 
@@ -417,7 +488,7 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 
 
 						new_scenario_proba = scenario_proba*proba_contribution;
-						new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
+						//new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
 
 						/*if( (d_full_3_offset<0)){
 							cout<<"problem in gene choice"<<endl;
@@ -430,8 +501,55 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 						seq_offsets.set_value(D_gene_seq,Five_prime,d_5_off,memory_layer_off_fivep);
 						seq_offsets.set_value(D_gene_seq,Three_prime,d_full_3_offset,memory_layer_off_threep);
 
+						//Update downstream proba map and compute the downstream proba bound for this event
+							scenario_upper_bound_proba = new_scenario_proba;
 
-						Rec_Event::iterate_wrap_up(new_scenario_proba , new_tmp_err_w_proba , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
+							//Get DJ or VJ junction upper bound proba
+							if(v_chosen and j_chosen){
+								if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0 or dj_length_best_proba_map.count(j_offset - d_3_off  -1)<=0){
+									continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+								}
+								downstream_proba_map.set_value(VJ_ins_seq, 1.0 , memory_layer_proba_map_junction);
+								downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
+								downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_3_off  -1) , memory_layer_proba_map_junction_d3);
+							}
+							else if(v_chosen){
+								if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0){
+									continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+								}
+								downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
+							}
+							else if(j_chosen){
+								if(dj_length_best_proba_map.count(j_offset - d_3_off  -1)<=0){
+									continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+								}
+								downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_3_off  -1) , memory_layer_proba_map_junction_d3);
+							}
+
+							//Count the number of mismatches that will not go away even with maximum number of deletions
+							endogeneous_mismatches = 0;
+							if((d_5_off - d_5_min_del)<(d_3_off + d_3_min_del)){
+								mism_iter = no_d_mismacthes.begin();
+								while(mism_iter!=no_d_mismacthes.end()){
+									if((*mism_iter)>=(d_5_off - d_5_min_del) and (*mism_iter)<=(d_3_off + d_3_min_del))
+									//Count one mismatch
+									++endogeneous_mismatches;
+								}
+								++mism_iter;
+							}
+
+							downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+
+							//Multiply all downstream probas
+							downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
+						//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
+						if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+							continue;
+						}
+
+
+						Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
 
 						//test++;
 
@@ -542,7 +660,7 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 				current_realizations_index_vec[0] = this->event_realizations.at((*iter).gene_name).index;
 				new_index = base_index + current_realizations_index_vec[0];
 				new_scenario_proba = scenario_proba;
-				new_tmp_err_w_proba = tmp_err_w_proba;
+				//new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
 
 				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
@@ -564,12 +682,42 @@ void Gene_choice::iterate( double& scenario_proba , double& tmp_err_w_proba ,con
 				//Mismatches list computed during alignment
 				mismatches_lists.set_value(J_gene_seq,&(*iter).mismatches,memory_layer_mismatches);
 
-				compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
+				//Update downstream proba map and compute the downstream proba bound for this event
+					scenario_upper_bound_proba = new_scenario_proba;
+
+					//Get DJ or VJ junction upper bound proba
+					if(d_chosen){
+						if(dj_length_best_proba_map.count( j_5_off - d_offset  -1)<=0){
+							continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+						}
+						downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_5_off - d_offset  -1) , memory_layer_proba_map_junction);
+					}
+					else if(v_chosen){
+						if(vj_length_best_proba_map.count(j_5_off - v_offset -1)<=0){
+							continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+						}
+						downstream_proba_map.set_value(VJ_ins_seq , vj_length_best_proba_map.at(j_5_off - v_offset -1) , memory_layer_proba_map_junction);
+					}
+
+					//Count the number of mismatches that will not go away even with maximum number of deletions
+					endogeneous_mismatches = 0;
+					rev_mism_iter = iter->mismatches.rbegin();
+					while((*rev_mism_iter)>=j_5_off + j_5_max_del and rev_mism_iter!=iter->mismatches.rend()){
+						//Count one mismatch
+						++endogeneous_mismatches;
+						++rev_mism_iter;
+					}
+					downstream_proba_map.set_value(J_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+
+					//Multiply all downstream probas
+					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
+				//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 				if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 					continue;
 				}
 
-				Rec_Event::iterate_wrap_up(new_scenario_proba , new_tmp_err_w_proba , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences  , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
+				Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences  , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
 			}
 		}
 			break;
@@ -657,7 +805,7 @@ void Gene_choice::write2txt(ofstream& outfile){
 	}
 }
 
-void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
+void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Downstream_scenario_proba_bound_map& downstream_proba_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
 
 
 
@@ -718,6 +866,18 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 				memory_layer_safety_2 = safety_set.get_current_memory_layer(VJ_safe);
 				//cout<<"V_choice 2: "<<memory_layer_safety_2<<endl;
 			//}
+
+			downstream_proba_map.request_memory_layer(V_gene_seq);
+			memory_layer_proba_map_seq = downstream_proba_map.get_current_memory_layer(V_gene_seq);
+			if(d_chosen){
+				downstream_proba_map.request_memory_layer(VD_ins_seq);
+				memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(VD_ins_seq);
+			}
+			else if(j_chosen){
+				downstream_proba_map.request_memory_layer(VJ_ins_seq);
+				memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(VJ_ins_seq);
+			}
+
 			if(d_chosen){
 				memory_layer_offset_check1 = seq_offsets.get_current_memory_layer(D_gene_seq,Five_prime);
 			}
@@ -745,6 +905,23 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 				memory_layer_safety_2 = safety_set.get_current_memory_layer(DJ_safe);
 				//cout<<"D_choice 2: "<<memory_layer_safety_2<<endl;
 			//}
+
+				downstream_proba_map.request_memory_layer(D_gene_seq);
+				memory_layer_proba_map_seq = downstream_proba_map.get_current_memory_layer(D_gene_seq);
+				if(v_chosen){
+					downstream_proba_map.request_memory_layer(VD_ins_seq);
+					memory_layer_proba_map_junction_d2 = downstream_proba_map.get_current_memory_layer(VD_ins_seq);
+				}
+				if(j_chosen){
+					downstream_proba_map.request_memory_layer(DJ_ins_seq);
+					memory_layer_proba_map_junction_d3 = downstream_proba_map.get_current_memory_layer(DJ_ins_seq);
+				}
+				if(v_chosen and j_chosen){
+					downstream_proba_map.request_memory_layer(VJ_ins_seq);
+					memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(VJ_ins_seq);
+				}
+
+
 				if(v_chosen){
 					memory_layer_offset_check1 = seq_offsets.get_current_memory_layer(V_gene_seq,Three_prime);
 				}
@@ -777,6 +954,17 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 				//cout<<"j_choice 2: "<<memory_layer_safety_2<<endl;
 			//}
 
+				downstream_proba_map.request_memory_layer(J_gene_seq);
+				memory_layer_proba_map_seq = downstream_proba_map.get_current_memory_layer(J_gene_seq);
+				if(d_chosen){
+					downstream_proba_map.request_memory_layer(DJ_ins_seq);
+					memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(DJ_ins_seq);
+				}
+				else if(v_chosen){
+					downstream_proba_map.request_memory_layer(VJ_ins_seq);
+					memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(VJ_ins_seq);
+				}
+
 				if(v_chosen){
 					memory_layer_offset_check1 = seq_offsets.get_current_memory_layer(V_gene_seq,Three_prime);
 				}
@@ -789,6 +977,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 			break;
 		}
 
+		//downstream_proba_map.get_all_current_memory_layer(current_downstream_proba_memory_layers);
 
 	//Get V 3' deletion
 		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,V_gene,Three_prime)) != 0){
@@ -857,7 +1046,7 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 		j_5_min_del=0;
 		j_5_max_del=0;
 	}
-	this->Rec_Event::initialize_event(processed_events,events_map,offset_map,constructed_sequences,safety_set,error_rate_p,mismatches_list,seq_offsets,index_map);
+	this->Rec_Event::initialize_event(processed_events,events_map,offset_map,downstream_proba_map,constructed_sequences,safety_set,error_rate_p,mismatches_list,seq_offsets,index_map);
 
 }
 
@@ -888,22 +1077,12 @@ bool Gene_choice::has_effect_on(Seq_type seq_type) const{
 	}
 }
 
-void Gene_choice::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len/*=0*/ ) const{
+void Gene_choice::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len/*=0*/ ) const{
 	base_index = base_index_map.at(this->event_index);
 	for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
 
 
-		if(this->has_effect_on(considered_junction)){
-			//Update the length
-			seq_len+=(*iter).second.value_str.length();
-
-			//Update the probability
-			scenario_proba*=model_parameters_point[base_index + (*iter).second.index];
-		}
-
-
-
-		//Update base index map
+/*		//Update base index map
 		for(forward_list<tuple<int,int,int>>::const_iterator jiter = memory_and_offsets.begin() ; jiter!=memory_and_offsets.end() ; ++jiter){
 			//Get previous index for the considered event
 			int previous_index = base_index_map.at(get<0>(*jiter),get<1>(*jiter)-1);
@@ -911,10 +1090,70 @@ void Gene_choice::iterate_initialize_Len_proba(Seq_type considered_junction ,  s
 			previous_index += iter->second.index *get<2>(*jiter);
 			//Set the value
 			base_index_map.set_value(get<0>(*jiter) , previous_index , get<1>(*jiter));
+		}*/
+
+		if(this->has_effect_on(considered_junction)){
+			//Get the max proba for this realization (in case the event is child of another)
+			double real_max_proba = 0;
+			for(size_t i = 0 ; i!=this->event_marginal_size/this->size() ; ++i){
+				if(model_parameters_point[base_index + (*iter).second.index + i*this->size()]>real_max_proba){
+					real_max_proba = model_parameters_point[base_index + (*iter).second.index + i*this->size()];
+				}
+			}
+			//Update the length within and probability in the recursive call
+			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba*real_max_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len+(*iter).second.value_str.length());
 		}
+		else{
+			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
+		}
+	}
+}
 
-		//Recursive call
-		Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len/*=0*/);
+void Gene_choice::initialize_Len_proba_bound(queue<shared_ptr<Rec_Event>>& model_queue , const Marginal_array_p& model_parameters_point , Index_map& base_index_map ){
 
+	Seq_type_str_p_map constructed_sequences(6);
+	switch (this->event_class) {
+		case V_gene:
+			vd_length_best_proba_map.clear();
+			vj_length_best_proba_map.clear();
+
+			if(d_chosen){
+				double init_proba = 1.0;
+				this->Rec_Event::iterate_initialize_Len_proba(VD_ins_seq,vd_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
+			}
+			else if(j_chosen){
+				double init_proba = 1.0;
+				this->Rec_Event::iterate_initialize_Len_proba(VJ_ins_seq,vj_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
+			}
+			break;
+		case D_gene:
+			vd_length_best_proba_map.clear();
+			dj_length_best_proba_map.clear();
+			if(v_chosen){
+				double init_proba = 1.0;
+				constructed_sequences.reset();
+				this->Rec_Event::iterate_initialize_Len_proba(VD_ins_seq,vd_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
+			}
+			if(j_chosen){
+				double init_proba = 1.0;
+				constructed_sequences.reset();
+				this->Rec_Event::iterate_initialize_Len_proba(DJ_ins_seq,dj_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
+			}
+			break;
+		case J_gene:
+			dj_length_best_proba_map.clear();
+			vj_length_best_proba_map.clear();
+
+			if(d_chosen){
+				double init_proba = 1.0;
+				this->Rec_Event::iterate_initialize_Len_proba(DJ_ins_seq,dj_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
+			}
+			else if(v_chosen){
+				double init_proba = 1.0;
+				this->Rec_Event::iterate_initialize_Len_proba(VJ_ins_seq,vj_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
+			}
+			break;
+		default:
+			break;
 	}
 }

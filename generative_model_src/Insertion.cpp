@@ -61,7 +61,7 @@ bool Insertion::add_realization(int insertion_number){
 	return 0;
 }
 
-void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p , map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Insertion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_map& downstream_proba_map , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p , map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 	new_scenario_proba = scenario_proba;
 	proba_contribution = 1;
@@ -109,6 +109,7 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 							inserted_str.assign(insertions , -1);
 							new_index = base_index + this->event_realizations.at(to_string(insertions)).index; //FIXME this should not exist
 							constructed_sequences[VD_ins_seq]= &inserted_str;
+							downstream_proba_map.set_value(VD_ins_seq,junction_length_best_proba_map.at(insertions),memory_layer_proba_map_junction);
 						}
 					//}
 
@@ -150,6 +151,7 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 						inserted_str.assign(insertions , -1);
 						new_index = base_index + this->event_realizations.at(to_string(insertions)).index;
 						constructed_sequences[DJ_ins_seq]= &inserted_str;
+						downstream_proba_map.set_value(DJ_ins_seq,junction_length_best_proba_map.at(insertions),memory_layer_proba_map_junction);
 					}
 
 
@@ -199,6 +201,7 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 					inserted_str.assign(insertions , -1);
 					new_index = base_index + realization_index;//this->event_realizations.at(to_string(insertions)).index;
 					constructed_sequences[VJ_ins_seq] = &inserted_str;
+					downstream_proba_map.set_value(VJ_ins_seq,junction_length_best_proba_map.at(insertions),memory_layer_proba_map_junction);
 				}
 
 
@@ -213,18 +216,18 @@ void Insertion::iterate(double& scenario_proba , double& tmp_err_w_proba , const
 	if(proba_contribution!=0){
 		//TODO new_scenario proba necessary?
 		new_scenario_proba*=proba_contribution;
-		tmp_err_w_proba*=proba_contribution;
+		//tmp_err_w_proba*=proba_contribution;
 		(*dinuc_updated_bound) = upper_bound_per_ins.at(insertions);
-		compute_upper_bound_scenario_proba(tmp_err_w_proba);
+
+		//Compute scenario downstream proba bound
+		scenario_upper_bound_proba = new_scenario_proba;
+		//Multiply all downstream probas
+		downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
 		if(scenario_upper_bound_proba>=(seq_max_prob_scenario*proba_threshold_factor)){
-			Rec_Event::iterate_wrap_up(new_scenario_proba , tmp_err_w_proba , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_point  , model_parameters_point , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set ,mismatches_lists,seq_max_prob_scenario,proba_threshold_factor);
+			Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_point  , model_parameters_point , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set ,mismatches_lists,seq_max_prob_scenario,proba_threshold_factor);
 		}
 	}
-
-
-
-
-
 }
 
 
@@ -309,13 +312,38 @@ void Insertion::write2txt(ofstream& outfile){
 	}
 }
 
+void Insertion::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Downstream_scenario_proba_bound_map& downstream_proba_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
+
+	switch(this->event_class){
+
+	case VD_genes:
+		downstream_proba_map.request_memory_layer(VD_ins_seq);
+		memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(VD_ins_seq);
+		break;
+
+	case DJ_genes:
+		downstream_proba_map.request_memory_layer(DJ_ins_seq);
+		memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(DJ_ins_seq);
+		break;
+
+	case VJ_genes:
+		downstream_proba_map.request_memory_layer(VJ_ins_seq);
+		memory_layer_proba_map_junction = downstream_proba_map.get_current_memory_layer(VJ_ins_seq);
+		break;
+
+	}
+
+	this->Rec_Event::initialize_event(processed_events,events_map,offset_map,downstream_proba_map,constructed_sequences,safety_set,error_rate_p,mismatches_list,seq_offsets,index_map);
+}
+
+
 
 void Insertion::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
 	updated_marginals[this->new_index]+=scenario_proba;
 }
 
 
-void Insertion::set_upper_bound_proba(size_t base_index , size_t event_size , Marginal_array_p marginal_array_p){
+void Insertion::set_crude_upper_bound_proba(size_t base_index , size_t event_size , Marginal_array_p marginal_array_p){
 	size_t numb_realizations = this->size();
 	upper_bound_per_ins.clear();
 	for(unordered_map < string, Event_realization >::const_iterator iter = this->event_realizations.begin() ; iter != this->event_realizations.end() ; ++iter){
@@ -334,7 +362,7 @@ void Insertion::set_upper_bound_proba(size_t base_index , size_t event_size , Ma
 	}
 }
 
-void Insertion::initialize_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
+void Insertion::initialize_crude_scenario_proba_bound(double& downstream_proba_bound , forward_list<double*>& updated_proba_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
 	this->scenario_downstream_upper_bound_proba = downstream_proba_bound;
 	this->updated_proba_bounds_list = updated_proba_list;
 	this->event_upper_bound_proba = 0;
@@ -424,7 +452,7 @@ void Insertion::initialize_scenario_proba_bound(double& downstream_proba_bound ,
 	 }
  }
 
- void Insertion::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len/*=0*/ ) const{
+ void Insertion::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len/*=0*/ ) const{
 	base_index = base_index_map.at(this->event_index);
 
 		//Insert sequence in the right constructed sequence
@@ -445,23 +473,7 @@ void Insertion::initialize_scenario_proba_bound(double& downstream_proba_bound ,
 
 	for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
 
-
-		if(this->has_effect_on(considered_junction)){
-			//Update the length
-			seq_len+=(*iter).second.value_int;
-
-			//Build an inserted sequence to let the Dinuc know about the number of insertions considered
-			constructed_sequences[seq_type]->assign(iter->second.value_int , -1);
-
-			//Update the probability
-			scenario_proba*=model_parameters_point[base_index + (*iter).second.index];
-		}
-
-
-
-
-
-		//Update base index map
+/*		//Update base index map
 		for(forward_list<tuple<int,int,int>>::const_iterator jiter = memory_and_offsets.begin() ; jiter!=memory_and_offsets.end() ; ++jiter){
 			//Get previous index for the considered event
 			int previous_index = base_index_map.at(get<0>(*jiter),get<1>(*jiter)-1);
@@ -469,10 +481,59 @@ void Insertion::initialize_scenario_proba_bound(double& downstream_proba_bound ,
 			previous_index += iter->second.index *get<2>(*jiter);
 			//Set the value
 			base_index_map.set_value(get<0>(*jiter) , previous_index , get<1>(*jiter));
+		}*/
+
+		if(this->has_effect_on(considered_junction)){
+			//Get the max proba for this realization (in case the event is child of another)
+			double real_max_proba = 0;
+			for(size_t i = 0 ; i!=this->event_marginal_size/this->size() ; ++i){
+				if(model_parameters_point[base_index + (*iter).second.index + i*this->size()]>real_max_proba){
+					real_max_proba = model_parameters_point[base_index + (*iter).second.index + i*this->size()];
+				}
+			}
+
+			//Build an inserted sequence to let the Dinuc know about the number of insertions considered
+			inserted_str.assign(iter->second.value_int , -1);
+			constructed_sequences[seq_type] = &inserted_str;
+
+			//Update the length and the probability within the recursive call
+			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba*real_max_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len+(*iter).second.value_int);
+
+		}
+		else{
+			//Recursive call
+			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
 		}
 
-		//Recursive call
-		Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len/*=0*/);
-
 	}
+ }
+
+ void Insertion::initialize_Len_proba_bound(queue<shared_ptr<Rec_Event>>& model_queue , const Marginal_array_p& model_parameters_point , Index_map& base_index_map ){
+		Seq_type seq_type;
+		switch(this->event_class){
+		case VD_genes:
+			seq_type = VD_ins_seq;
+			break;
+
+		case VJ_ins_seq:
+			seq_type = VJ_ins_seq;
+			break;
+
+		case DJ_ins_seq:
+			seq_type = DJ_ins_seq;
+			break;
+		}
+
+		Seq_type_str_p_map constructed_sequences(6);
+
+
+		junction_length_best_proba_map.clear();
+
+		for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
+			inserted_str.assign(iter->second.value_int , -1);
+			constructed_sequences[seq_type] = &inserted_str;
+			double init_proba = 1.0;
+			this->Rec_Event::iterate_initialize_Len_proba(seq_type,junction_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
+		}
+
  }

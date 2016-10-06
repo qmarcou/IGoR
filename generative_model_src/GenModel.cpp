@@ -102,11 +102,15 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			Mismatch_vectors_map mismatches_lists(6);
 			Seq_offsets_map seq_offsets(6,3);
 
+			//Initialize downstream probas to 1
+			Downstream_scenario_proba_bound_map downstream_proba_map(6);
+			downstream_proba_map.init_first_layer(1.0);
+
 			list<shared_ptr<Rec_Event>> events_list = single_thread_model_parms.get_event_list();
 			Index_map index_mapp(events_list.size());
 
 			//Initialize index_map
-			for(list<shared_ptr<Rec_Event>>::const_iterator event_iter = events_list.begin() ; event_iter != events_list.end() ; ++event_iter){
+			for(list<shared_ptr<Rec_Event>>::iterator event_iter = events_list.begin() ; event_iter != events_list.end() ; ++event_iter){
 				int event_index = (*event_iter)->get_event_identifier();
 				index_mapp.request_memory_layer(event_index);
 				index_mapp.set_value(event_index,single_thread_index_map.at((*event_iter)->get_name()) , 0);
@@ -114,7 +118,8 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 				//Get events probability upper bounds
 				size_t event_size = single_thread_model_marginals.get_event_size((*event_iter) , single_thread_model_parms);
-				(*event_iter)->set_upper_bound_proba(single_thread_index_map.at((*event_iter)->get_name()) , event_size , single_thread_model_marginals.marginal_array_p);
+				(*event_iter)->set_event_marginal_size(event_size);
+				(*event_iter)->set_crude_upper_bound_proba(single_thread_index_map.at((*event_iter)->get_name()) , event_size , single_thread_model_marginals.marginal_array_p);
 			}
 
 			queue<shared_ptr<Rec_Event>> single_thread_model_queue = single_thread_model_parms.get_model_queue(); //single_thread_parms.get_model_queue();
@@ -129,7 +134,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				shared_ptr<Rec_Event> first_init_event = init_single_thread_model_queue.front();
 				init_single_thread_stack.push(first_init_event);
 				init_single_thread_model_queue.pop();
-				(*first_init_event).initialize_event(init_processed_events,events_map , single_thread_offset_map , constructed_sequences,safety_set , single_thread_err_rate , mismatches_lists,seq_offsets , index_mapp);
+				(*first_init_event).initialize_event(init_processed_events,events_map , single_thread_offset_map , downstream_proba_map , constructed_sequences,safety_set , single_thread_err_rate , mismatches_lists,seq_offsets , index_mapp);
 			}
 
 			//Initialize Counters
@@ -142,8 +147,15 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			forward_list<double*> updated_proba_list ;
 			while(!init_single_thread_stack.empty()){
 				shared_ptr<Rec_Event> last_proba_init_event = init_single_thread_stack.top();
+				queue<shared_ptr<Rec_Event>> tmp_init_proba_single_thread_model_queue = single_thread_model_queue;
 				init_single_thread_stack.pop();
-				(*last_proba_init_event).initialize_scenario_proba_bound(downstream_proba_bound , updated_proba_list , events_map);
+				while(tmp_init_proba_single_thread_model_queue.front()!=last_proba_init_event){
+					tmp_init_proba_single_thread_model_queue.pop();
+				}
+				tmp_init_proba_single_thread_model_queue.pop();
+				last_proba_init_event->initialize_crude_scenario_proba_bound(downstream_proba_bound , updated_proba_list , events_map);
+
+				last_proba_init_event->initialize_Len_proba_bound(tmp_init_proba_single_thread_model_queue,single_thread_model_marginals.marginal_array_p,index_mapp);
 			}
 
 			const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
@@ -180,9 +192,10 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				//Initialize single seq marginals
 				Model_marginals single_seq_marginals = single_thread_model_marginals.empty_copy();
 				double init_proba = 1;
-				double init_tmp_err_w_proba = 1;
+				//double init_tmp_err_w_proba = 1;
 				double max_proba_scenario = likelihood_threshold/proba_threshold_factor;
 				Int_Str int_sequence = nt2int(seq_it->first);
+
 				//cout<<int_sequence<<endl;
 
 
@@ -192,7 +205,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				 * The weight of each recombination scenario is added to the single_seq_marginals on the fly
 				 */
 				try{
-					first_event->iterate(init_proba , init_tmp_err_w_proba , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_p , single_thread_model_marginals.marginal_array_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
+					first_event->iterate(init_proba , downstream_proba_map , (*seq_it).first , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_p , single_thread_model_marginals.marginal_array_p , (*seq_it).second , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
 				}
 				catch(exception& except){
 					general_logs<<"Exception caught calling iterate() on sequence:"<<endl;

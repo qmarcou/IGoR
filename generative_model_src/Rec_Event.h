@@ -60,7 +60,7 @@ public:
 	virtual std::shared_ptr<Rec_Event> copy() = 0;//TODO make it const somehow
 	virtual int size()const;
 	//TODO get rid of deletion map and chosen gene map
-	virtual void iterate(double& , double& , const std::string& , const Int_Str& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::queue<std::shared_ptr<Rec_Event>>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& , std::shared_ptr<Error_rate>& , std::map<size_t,std::shared_ptr<Counter>>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>> & , Safety_bool_map& , Mismatch_vectors_map& , double& , double&)=0 ;
+	virtual void iterate(double& , Downstream_scenario_proba_bound_map& , const std::string& , const Int_Str& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::queue<std::shared_ptr<Rec_Event>>& , Marginal_array_p& , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& , std::shared_ptr<Error_rate>& , std::map<size_t,std::shared_ptr<Counter>>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>> & , Safety_bool_map& , Mismatch_vectors_map& , double& , double&)=0 ;
 	bool set_priority(int);
 
 	//Accessors
@@ -80,27 +80,29 @@ public:
 	virtual std::queue<int> draw_random_realization( const Marginal_array_p , std::unordered_map<Rec_Event_name,int>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::unordered_map<Seq_type , std::string>& , std::default_random_engine&)const =0;
 	virtual void write2txt(std::ofstream&)=0;
 	virtual void ind_normalize(Marginal_array_p,size_t);
-	virtual void initialize_event( std::unordered_set<Rec_Event_name>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , Seq_type_str_p_map& , Safety_bool_map&  , std::shared_ptr<Error_rate> , Mismatch_vectors_map& , Seq_offsets_map& , Index_map&);
-	virtual void initialize_scenario_proba_bound(double& , std::forward_list<double*>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&);
+	virtual void initialize_event( std::unordered_set<Rec_Event_name>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , Downstream_scenario_proba_bound_map& , Seq_type_str_p_map& , Safety_bool_map&  , std::shared_ptr<Error_rate> , Mismatch_vectors_map& , Seq_offsets_map& , Index_map&);
+	virtual void initialize_crude_scenario_proba_bound(double& , std::forward_list<double*>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&);
 	virtual void add_to_marginals(long double , Marginal_array_p) const =0;
-	virtual void set_upper_bound_proba(size_t , size_t , Marginal_array_p) ;
+	virtual void set_crude_upper_bound_proba(size_t , size_t , Marginal_array_p) ;
 	void set_upper_bound_proba(double);
 	double get_upper_bound_proba()const{return event_upper_bound_proba;};
 	//virtual double get_upper_bound_proba() const;
 	void set_event_identifier(size_t);
 	int get_event_identifier() const;
+	void set_event_marginal_size(size_t ev_size){this->event_marginal_size = ev_size;};
 	bool is_updated() const {return updated;};
 	void fix(bool fix_status) {fixed = fix_status;}
 	bool is_fixed() const{return fixed;}
 	virtual double* get_updated_ptr();
-	void compute_upper_bound_scenario_proba( double& ) ;
+	void compute_crude_upper_bound_scenario_proba( double& ) ;
 	const std::vector<int>& get_current_realizations_index_vec() const{return current_realizations_index_vec;};
 
 	//Proba bound related computation methods
 	virtual bool has_effect_on(Seq_type) const= 0;
-	void iterate_initialize_Len_proba_wrap_up( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>> model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len ) const;
-	virtual void iterate_initialize_Len_proba( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len=0 ) const = 0;
-
+	void iterate_initialize_Len_proba_wrap_up( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>> model_queue , double scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int seq_len ) const;
+	virtual void iterate_initialize_Len_proba( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len ) const = 0;
+	void iterate_initialize_Len_proba( Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences  ) const ;
+	virtual void initialize_Len_proba_bound(std::queue<std::shared_ptr<Rec_Event>>& model_queue , const Marginal_array_p& model_parameters_point , Index_map& base_index_map ) =0;
 
 
 
@@ -117,18 +119,21 @@ protected:
 	int event_index;
 	std::forward_list<std::tuple<int,int,int>> memory_and_offsets;//0: event identifier , 1: memory layer , 2: offset
 	bool updated;
+	bool initialized;
+	size_t event_marginal_size;
 	bool fixed;
 	double event_upper_bound_proba;
 	double scenario_downstream_upper_bound_proba;
 	double scenario_upper_bound_proba; // Used at runtime to store the upper bound probability of the whole scenario
 	std::forward_list<double*> updated_proba_bounds_list;
 	std::vector<int> current_realizations_index_vec;
+	int current_downstream_proba_memory_layers[6];
 
 
 	int compare_sequences(std::string,std::string);//TODO should probably not be a member functino
 	void add_realization(const Event_realization&);
 	//inline void iterate_wrap_up(double& , double& , const std::string& , const std::string& , Index_map& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<const Rec_Event*,int>>>& , std::queue<Rec_Event*>  , Marginal_array_p&  , const Marginal_array_p& , const std::unordered_map<Gene_class , std::vector<Alignment_data>>& , Seq_type_str_p_map& , Seq_offsets_map& ,std::shared_ptr<Error_rate>&,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>,const Rec_Event*>&  , Safety_bool_map& , Mismatch_vectors_map& , double& , double&);
-	void iterate_wrap_up(double& scenario_proba , double& tmp_err_w_proba , const std::string& sequence , const Int_Str& int_sequence , Index_map& index_map , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& offset_map , std::queue<std::shared_ptr<Rec_Event>> model_queue  , Marginal_array_p& updated_marginal_array_p , const Marginal_array_p& model_parameters_point ,const std::unordered_map<Gene_class , std::vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences  , Seq_offsets_map& seq_offsets , std::shared_ptr<Error_rate>& error_rate_p , std::map<size_t,std::shared_ptr<Counter>>& counters_list,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor);
+	void iterate_wrap_up(double& scenario_proba , Downstream_scenario_proba_bound_map& downstream_proba_map , const std::string& sequence , const Int_Str& int_sequence , Index_map& index_map , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& offset_map , std::queue<std::shared_ptr<Rec_Event>> model_queue  , Marginal_array_p& updated_marginal_array_p , const Marginal_array_p& model_parameters_point ,const std::unordered_map<Gene_class , std::vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences  , Seq_offsets_map& seq_offsets , std::shared_ptr<Error_rate>& error_rate_p , std::map<size_t,std::shared_ptr<Counter>>& counters_list,const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& events_map  , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor);
 
 };
 
