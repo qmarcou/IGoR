@@ -123,6 +123,12 @@ public:
 			return memory_layer_ptr[key];
 		}
 
+		void get_all_current_memory_layer(int* memory_layers_recipient){
+			for(size_t i =0 ; i!=range ; ++i){
+				memory_layers_recipient[i] = memory_layer_ptr[i];
+			}
+		}
+
 		bool exist(const K& key){
 			return memory_layer_ptr[key]>-1;
 		}
@@ -167,6 +173,33 @@ public:
 				}
 		}
 
+		void multiply_all(double& prod_operand , int* memory_adresses){
+			for(size_t i = 0 ; i!=range ; ++i){
+				prod_operand *= (*(value_ptr_arr + i+memory_layer_ptr[i]*range));
+			}
+		}
+
+		void reset(){
+			for(size_t i = 0 ; i!=range ; ++i){
+				if(memory_layer_ptr[i]>-1){
+					memory_layer_ptr[i]=0;
+				}
+			}
+		}
+
+		void init_first_layer(V value){
+			for(size_t i = 0 ; i!=range ; ++i){
+				if(memory_layer_ptr[i]>-1){
+					throw std::runtime_error("First memory layer already initialized for key " + std::to_string(i) + " in Enum_fast_memory_map::init_first_layer");
+				}
+				else{
+					value_ptr_arr[i] = value;
+					memory_layer_ptr[i] = 0;
+				}
+			}
+		}
+
+
 
 protected:
 	V* value_ptr_arr;
@@ -186,7 +219,7 @@ typedef Enum_fast_memory_map<Seq_type,std::vector<int>*> Mismatch_vectors_map;
 
 typedef Enum_fast_memory_map<int,size_t> Index_map;
 
-typedef Enum_fast_memory_map<Seq_type,double> downstream_scenario_proba_bound_map;
+typedef Enum_fast_memory_map<Seq_type,double> Downstream_scenario_proba_bound_map;
 
 /*
 	template<> class Enum_fast_memory_map<Seq_type ,Str_ptr>{
