@@ -1600,7 +1600,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
  void Deletion::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len/*=0*/ ) const{
 
 	 if(this->has_effect_on(considered_junction)){
-		base_index = base_index_map.at(this->event_index);
+		base_index = base_index_map.at(this->event_index,0);
 		for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
 
 	/*		//Update base index map

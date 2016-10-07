@@ -434,7 +434,7 @@ void Dinucl_markov::initialize_crude_scenario_proba_bound(double& downstream_pro
  }
 
  void Dinucl_markov::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len/*=0*/ ) const{
-	base_index = base_index_map.at(this->event_index);
+	base_index = base_index_map.at(this->event_index,0);
 
 	correct_class=0;
 	if(event_class == VD_genes or event_class == VDJ_genes){

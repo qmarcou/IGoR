@@ -456,7 +456,7 @@ void Insertion::initialize_crude_scenario_proba_bound(double& downstream_proba_b
 
 	if(this->has_effect_on(considered_junction)){
 
-		base_index = base_index_map.at(this->event_index);
+		base_index = base_index_map.at(this->event_index,0);
 
 		//Insert sequence in the right constructed sequence
 		Seq_type seq_type;
