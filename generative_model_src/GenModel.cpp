@@ -142,6 +142,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				(*iter).second->initialize_counter(single_thread_model_parms , single_thread_marginals);
 			}
 
+			cout<<"Initializing proba bounds"<<endl;
 			//Compute upper proba bounds for downstream scenarios for each event
 			double downstream_proba_bound = 1 ;
 			forward_list<double*> updated_proba_list ;
@@ -156,7 +157,9 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				last_proba_init_event->initialize_crude_scenario_proba_bound(downstream_proba_bound , updated_proba_list , events_map);
 
 				last_proba_init_event->initialize_Len_proba_bound(tmp_init_proba_single_thread_model_queue,single_thread_model_marginals.marginal_array_p,index_mapp);
+				cout<<last_proba_init_event->get_name()<<" initialized"<<endl;
 			}
+			cout<<"Intialization of proba bounds over"<<endl;
 
 			const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
 

@@ -88,12 +88,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 			//Check D choice
 			if(d_chosen){
+				d_5_offset = seq_offsets.at(D_gene_seq,Five_prime,memory_layer_offset_check1);
 
 				//if(safety_set.count(Event_safety::VD_safe) == 0){
 				if(!safety_set.at(Event_safety::VD_safe,memory_layer_safety_1-1)){
 					//d_5_offset = seq_offsets.at(pair<Seq_type,Seq_side>(D_gene_seq , Five_prime));
 					//d_5_offset = seq_offsets.at(d_5_pair);
-					d_5_offset = seq_offsets.at(D_gene_seq,Five_prime,memory_layer_offset_check1);
 
 					d_5_min_offset = d_5_offset - d_5_min_del;
 					d_5_max_offset = d_5_offset - d_5_max_del;
@@ -351,12 +351,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 				//Check V choice
 				if(v_chosen){
+					v_3_offset = seq_offsets.at(V_gene_seq,Three_prime,memory_layer_offset_check1);
+
 					//if(safety_set.count(Event_safety::VD_safe) == 0){
 					if(!safety_set.at(Event_safety::VD_safe,memory_layer_safety_1-1)){
 						//v_3_offset = seq_offsets.at(pair<Seq_type,Seq_side>(V_gene_seq , Three_prime));
 						//v_3_offset = seq_offsets.at(v_3_pair);
-
-						v_3_offset = seq_offsets.at(V_gene_seq,Three_prime,memory_layer_offset_check1);
 
 						v_3_max_offset = v_3_offset + v_3_min_del;
 						v_3_min_offset = v_3_offset + v_3_max_del;
@@ -583,11 +583,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 				//Check J choice
 				if(j_chosen){
+					j_5_offset = seq_offsets.at(J_gene_seq,Five_prime,memory_layer_offset_check2);
+
 					//if(safety_set.count(Event_safety::DJ_safe) == 0){
 					if(!safety_set.at(Event_safety::DJ_safe,memory_layer_safety_2-1)){
 						//j_5_offset = seq_offsets.at(pair<Seq_type,Seq_side>(J_gene_seq , Five_prime));
 						//j_5_offset = seq_offsets.at(j_5_pair);
-						j_5_offset = seq_offsets.at(J_gene_seq,Five_prime,memory_layer_offset_check2);
 
 						j_5_min_offset = j_5_offset - j_5_min_del;
 						j_5_max_offset = j_5_offset - j_5_max_del;
@@ -740,7 +741,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 							//Get VD upper bound proba
 							if(j_chosen){
-								if(vd_length_best_proba_map.count(j_5_offset - d_3_new_offset -1)<=0){
+								if(dj_length_best_proba_map.count(j_5_offset - d_3_new_offset -1)<=0){
 									continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
 								}
 								downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_5_offset - d_3_new_offset -1) , memory_layer_proba_map_junction);
@@ -836,11 +837,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 			//Check D choice
 			if(d_chosen){
+				d_3_offset = seq_offsets.at(D_gene_seq,Three_prime,memory_layer_offset_check2);
+
 				//if(safety_set.count(Event_safety::DJ_safe) == 0){
 				if(!safety_set.at(Event_safety::DJ_safe,memory_layer_safety_2-1)){
 					//d_3_offset = seq_offsets.at(pair<Seq_type,Seq_side>(D_gene_seq , Three_prime));
 					//d_3_offset = seq_offsets.at(d_3_pair);
-					d_3_offset = seq_offsets.at(D_gene_seq,Three_prime,memory_layer_offset_check2);
 
 					d_3_min_offset = d_3_offset + d_3_max_del;
 					d_3_max_offset = d_3_offset + d_3_min_del;
@@ -859,11 +861,11 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 			//Check V choice
 			if(v_chosen){
+				v_3_offset = seq_offsets.at(V_gene_seq,Three_prime,memory_layer_offset_check1);
 				//if(safety_set.count(Event_safety::VJ_safe) == 0){
 				if(!safety_set.at(Event_safety::VJ_safe,memory_layer_safety_1-1)){
 					//v_3_offset = seq_offsets.at(pair<Seq_type,Seq_side>(V_gene_seq , Three_prime));
 					//v_3_offset = seq_offsets.at(v_3_pair);
-					v_3_offset = seq_offsets.at(V_gene_seq,Three_prime,memory_layer_offset_check1);
 
 					v_3_min_offset = v_3_offset + v_3_max_del;
 					v_3_max_offset = v_3_offset + v_3_min_del;
@@ -1280,7 +1282,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 				constructed_sequences.request_memory_layer(D_gene_seq);
 				this->memory_layer_cs = constructed_sequences.get_current_memory_layer(D_gene_seq);
 				downstream_proba_map.request_memory_layer(D_gene_seq);
-				this->memory_layer_proba_map_seq = downstream_proba_map.get_current_memory_layer(J_gene_seq);
+				this->memory_layer_proba_map_seq = downstream_proba_map.get_current_memory_layer(D_gene_seq);
 				switch(this->event_side){
 					case Five_prime:
 						seq_offsets.request_memory_layer(D_gene_seq,Five_prime);
@@ -1596,21 +1598,23 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
  }
 
  void Deletion::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len/*=0*/ ) const{
-	base_index = base_index_map.at(this->event_index);
-	for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
 
-/*		//Update base index map
-		for(forward_list<tuple<int,int,int>>::const_iterator jiter = memory_and_offsets.begin() ; jiter!=memory_and_offsets.end() ; ++jiter){
-			//Get previous index for the considered event
-			int previous_index = base_index_map.at(get<0>(*jiter),get<1>(*jiter)-1);
-			//Update the index given the realization and the offset
-			previous_index += iter->second.index *get<2>(*jiter);
-			//Set the value
-			base_index_map.set_value(get<0>(*jiter) , previous_index , get<1>(*jiter));
-		}*/
+	 if(this->has_effect_on(considered_junction)){
+		base_index = base_index_map.at(this->event_index);
+		for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
+
+	/*		//Update base index map
+			for(forward_list<tuple<int,int,int>>::const_iterator jiter = memory_and_offsets.begin() ; jiter!=memory_and_offsets.end() ; ++jiter){
+				//Get previous index for the considered event
+				int previous_index = base_index_map.at(get<0>(*jiter),get<1>(*jiter)-1);
+				//Update the index given the realization and the offset
+				previous_index += iter->second.index *get<2>(*jiter);
+				//Set the value
+				base_index_map.set_value(get<0>(*jiter) , previous_index , get<1>(*jiter));
+			}*/
 
 
-		if(this->has_effect_on(considered_junction)){
+
 			//Get the max proba for this realization (in case the event is child of another)
 			double real_max_proba = 0;
 			for(size_t i = 0 ; i!=this->event_marginal_size/this->size() ; ++i){
@@ -1620,11 +1624,11 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 			}
 			//Update the length and the probability in the recursive call
 			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba*real_max_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len -(*iter).second.value_int);
-		}
-		else{
-			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
-		}
 
+		}
+	}
+	else{
+		Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
 	}
  }
 

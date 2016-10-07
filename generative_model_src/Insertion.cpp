@@ -453,7 +453,10 @@ void Insertion::initialize_crude_scenario_proba_bound(double& downstream_proba_b
  }
 
  void Insertion::iterate_initialize_Len_proba(Seq_type considered_junction ,  std::map<int,double>& length_best_proba_map ,  std::queue<std::shared_ptr<Rec_Event>>& model_queue , double& scenario_proba , const Marginal_array_p& model_parameters_point , Index_map& base_index_map , Seq_type_str_p_map& constructed_sequences , int& seq_len/*=0*/ ) const{
-	base_index = base_index_map.at(this->event_index);
+
+	if(this->has_effect_on(considered_junction)){
+
+		base_index = base_index_map.at(this->event_index);
 
 		//Insert sequence in the right constructed sequence
 		Seq_type seq_type;
@@ -471,19 +474,19 @@ void Insertion::initialize_crude_scenario_proba_bound(double& downstream_proba_b
 			break;
 		}
 
-	for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
+		for(unordered_map <string, Event_realization>::const_iterator iter = this->event_realizations.begin() ; iter!= this->event_realizations.end() ; ++iter){
 
-/*		//Update base index map
-		for(forward_list<tuple<int,int,int>>::const_iterator jiter = memory_and_offsets.begin() ; jiter!=memory_and_offsets.end() ; ++jiter){
-			//Get previous index for the considered event
-			int previous_index = base_index_map.at(get<0>(*jiter),get<1>(*jiter)-1);
-			//Update the index given the realization and the offset
-			previous_index += iter->second.index *get<2>(*jiter);
-			//Set the value
-			base_index_map.set_value(get<0>(*jiter) , previous_index , get<1>(*jiter));
-		}*/
+	/*		//Update base index map
+			for(forward_list<tuple<int,int,int>>::const_iterator jiter = memory_and_offsets.begin() ; jiter!=memory_and_offsets.end() ; ++jiter){
+				//Get previous index for the considered event
+				int previous_index = base_index_map.at(get<0>(*jiter),get<1>(*jiter)-1);
+				//Update the index given the realization and the offset
+				previous_index += iter->second.index *get<2>(*jiter);
+				//Set the value
+				base_index_map.set_value(get<0>(*jiter) , previous_index , get<1>(*jiter));
+			}*/
 
-		if(this->has_effect_on(considered_junction)){
+
 			//Get the max proba for this realization (in case the event is child of another)
 			double real_max_proba = 0;
 			for(size_t i = 0 ; i!=this->event_marginal_size/this->size() ; ++i){
@@ -498,13 +501,11 @@ void Insertion::initialize_crude_scenario_proba_bound(double& downstream_proba_b
 
 			//Update the length and the probability within the recursive call
 			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba*real_max_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len+(*iter).second.value_int);
-
 		}
-		else{
-			//Recursive call
-			Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
-		}
-
+	}
+	else{
+		//Recursive call
+		Rec_Event::iterate_initialize_Len_proba_wrap_up(considered_junction , length_best_proba_map ,  model_queue ,  scenario_proba , model_parameters_point , base_index_map , constructed_sequences , seq_len);
 	}
  }
 

@@ -175,7 +175,10 @@ public:
 
 		void multiply_all(double& prod_operand , int* memory_adresses){
 			for(size_t i = 0 ; i!=range ; ++i){
-				prod_operand *= (*(value_ptr_arr + i+memory_layer_ptr[i]*range));
+/*				std::cout<<i<<std::endl;
+				std::cout<<(*(value_ptr_arr + i))<<std::endl;
+				std::cout<<(*(memory_adresses + i))*range<<std::endl;*/
+				prod_operand *= (*(value_ptr_arr + i +(*(memory_adresses + i))*range));
 			}
 		}
 
