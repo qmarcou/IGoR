@@ -319,11 +319,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					new_scenario_proba*=proba_contribution;
 					//new_tmp_err_w_proba*=pow(err_rate_upper_bound,mismatches_vector.size());
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
-					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+
+/*					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 						//The order in which deletion are processed goes with decreasing number of deletion.
 						//If a high number of deletions contains too many errors to be processed (even without taking the proba contribution into account), fewer deletions can only contain more thus the loop is broken
 						break;
-					}
+					}*/
 
 					scenario_upper_bound_proba*=proba_contribution;
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
@@ -524,11 +525,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 						//new_tmp_err_w_proba*=pow(err_rate_upper_bound,mismatches_vector.size());
 						//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
-						if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+
+/*						if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 							//The order in which deletion are processed goes with decreasing number of deletion.
 							//If a high number of deletions contains too many errors to be processed (even without taking the proba contribution into account), fewer deletions can only contain more thus the loop is broken
 							break;
-						}
+						}*/
 
 						new_scenario_proba*=proba_contribution;
 						scenario_upper_bound_proba*=proba_contribution;
@@ -771,11 +773,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 						//new_tmp_err_w_proba*=pow(err_rate_upper_bound,mismatches_vector.size());
 						//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
-						if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+
+/*						if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 							//The order in which deletion are processed goes with decreasing number of deletion.
 							//If a high number of deletions contains too many errors to be processed (even without taking the proba contribution into account), fewer deletions can only contain more thus the loop is broken
 							break;
-						}
+						}*/
 
 						new_scenario_proba*=proba_contribution;
 						scenario_upper_bound_proba*=proba_contribution;
@@ -1049,11 +1052,12 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 					new_scenario_proba*=proba_contribution;
 					//new_tmp_err_w_proba*=pow(err_rate_upper_bound,mismatches_vector.size());
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
-					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+
+/*					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 						//The order in which deletion are processed goes with decreasing number of deletion.
 						//If a high number of deletions contains too many errors to be processed (even without taking the proba contribution into account), fewer deletions can only contain more thus the loop is broken
 						break;
-					}
+					}*/
 
 					scenario_upper_bound_proba*=proba_contribution;
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
