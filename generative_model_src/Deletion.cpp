@@ -300,13 +300,13 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 							if(vd_length_best_proba_map.count(d_5_offset - v_3_new_offset -1)<=0){
 								continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
 							}
-							downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_offset - v_3_new_offset -1) , memory_layer_proba_map_junction);
+							downstream_proba_map.set_value(VD_ins_seq , 1.0 , memory_layer_proba_map_junction);
 						}
 						else if(j_chosen){
 							if(vj_length_best_proba_map.count(j_5_offset - v_3_new_offset -1)<=0){
 								continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
 							}
-							downstream_proba_map.set_value(VJ_ins_seq , vj_length_best_proba_map.at(j_5_offset - v_3_new_offset -1) , memory_layer_proba_map_junction);
+							downstream_proba_map.set_value(VJ_ins_seq , 1.0, memory_layer_proba_map_junction);
 						}
 
 						//Update the mismatches penalty
@@ -316,17 +316,27 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
 
 					//Add mismatches upper bound proba to the tmp_err_w_proba
-					new_scenario_proba*=proba_contribution;
 					//new_tmp_err_w_proba*=pow(err_rate_upper_bound,mismatches_vector.size());
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 
-/*					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 						//The order in which deletion are processed goes with decreasing number of deletion.
 						//If a high number of deletions contains too many errors to be processed (even without taking the proba contribution into account), fewer deletions can only contain more thus the loop is broken
 						break;
-					}*/
+					}
 
-					scenario_upper_bound_proba*=proba_contribution;
+					new_scenario_proba*=proba_contribution;
+					scenario_upper_bound_proba = new_scenario_proba;
+					//Get VD or VJ junction upper bound proba
+					if(d_chosen){
+						downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_offset - v_3_new_offset -1) , memory_layer_proba_map_junction);
+					}
+					else if(j_chosen){
+						downstream_proba_map.set_value(VJ_ins_seq , vj_length_best_proba_map.at(j_5_offset - v_3_new_offset -1) , memory_layer_proba_map_junction);
+					}
+					//Multiply all downstream probas
+					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 						continue;
@@ -1033,13 +1043,13 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 							if(dj_length_best_proba_map.count( j_5_new_offset - d_3_offset  -1)<=0){
 								continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
 							}
-							downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_5_new_offset - d_3_offset  -1) , memory_layer_proba_map_junction);
+							downstream_proba_map.set_value(DJ_ins_seq , 1.0 , memory_layer_proba_map_junction);
 						}
 						else if(v_chosen){
 							if(vj_length_best_proba_map.count(j_5_new_offset - v_3_offset -1)<=0){
 								continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
 							}
-							downstream_proba_map.set_value(VJ_ins_seq , vj_length_best_proba_map.at(j_5_new_offset - v_3_offset -1) , memory_layer_proba_map_junction);
+							downstream_proba_map.set_value(VJ_ins_seq , 1.0 , memory_layer_proba_map_junction);
 						}
 
 						//Count the number of mismatches that will not go away even with maximum number of deletions
@@ -1049,17 +1059,28 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
 
 					//Add mismatches upper bound proba to the tmp_err_w_proba
-					new_scenario_proba*=proba_contribution;
+
 					//new_tmp_err_w_proba*=pow(err_rate_upper_bound,mismatches_vector.size());
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 
-/*					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 						//The order in which deletion are processed goes with decreasing number of deletion.
 						//If a high number of deletions contains too many errors to be processed (even without taking the proba contribution into account), fewer deletions can only contain more thus the loop is broken
 						break;
-					}*/
+					}
 
-					scenario_upper_bound_proba*=proba_contribution;
+					new_scenario_proba*=proba_contribution;
+					scenario_upper_bound_proba = new_scenario_proba;
+					//Get DJ or VJ junction upper bound proba
+					if(d_chosen){
+						downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_5_new_offset - d_3_offset  -1) , memory_layer_proba_map_junction);
+					}
+					else if(v_chosen){
+						downstream_proba_map.set_value(VJ_ins_seq , vj_length_best_proba_map.at(j_5_new_offset - v_3_offset -1) , memory_layer_proba_map_junction);
+					}
+					//Multiply all downstream probas
+					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
 					//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
 					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
 						continue;
