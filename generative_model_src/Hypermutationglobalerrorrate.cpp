@@ -446,63 +446,36 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 /////////////////////////////////////////////////////////////////////////////////////////////
 		current_mismatch = v_mismatch_list.begin();
 
-		//TODO Need to get the previous V nucleotides and last J ones
+		if(seq_offsets.at(V_gene_seq,Three_prime) >= (mutation_Nmer_size-1)){
+			//TODO Need to get the previous V nucleotides and last J ones
 
-		//Get the address of the first Nmer(disregarding the error penalty on the first nucleotides)
-		Nmer_index = 0;
-		while(!current_Nmer.empty()){
-			current_Nmer.pop();
-		}
+			//Get the address of the first Nmer(disregarding the error penalty on the first nucleotides)
+			Nmer_index = 0;
+			while(!current_Nmer.empty()){
+				current_Nmer.pop();
+			}
 
-		for(i=0 ; i!=mutation_Nmer_size ; ++i){
-			tmp_int_nt = scenario_resulting_sequence.at(i);
-			current_Nmer.push(tmp_int_nt);
-			Nmer_index+=adressing_vector[i]*tmp_int_nt;
-		}
+			for(i=0 ; i!=mutation_Nmer_size ; ++i){
+				tmp_int_nt = scenario_resulting_sequence.at(i);
+				current_Nmer.push(tmp_int_nt);
+				Nmer_index+=adressing_vector[i]*tmp_int_nt;
+			}
 
-		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
-		while((current_mismatch!=v_mismatch_list.end())
-				&& (*current_mismatch)<(mutation_Nmer_size-1)/2){
-			++current_mismatch;
-			//Takes care of the fact that current_mismatch is never incremented if there's a mutation at 0 for instance
-			//this needs a true correct fix
-		}
-		//FIXME more!!!!
+			//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
+			while((current_mismatch!=v_mismatch_list.end())
+					&& (*current_mismatch)<(mutation_Nmer_size-1)/2){
+				++current_mismatch;
+				//Takes care of the fact that current_mismatch is never incremented if there's a mutation at 0 for instance
+				//this needs a true correct fix
+			}
+			//FIXME more!!!!
 
-		//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
+			//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
 
-		//Check if there's an error and apply the cost accordingly
+			//Check if there's an error and apply the cost accordingly
 
-		if( (current_mismatch!=v_mismatch_list.end())
-			&& ((*current_mismatch)==(mutation_Nmer_size-1)/2) ){
-			one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
-			one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
-			++current_mismatch;
-		}
-		else{
-			one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
-		}
-
-
-
-		//Look at all Nmers in the scenario_resulting_sequence by sliding window
-		//Removing the contribution of the first and adding the contribution of the new last
-
-		for( i = (mutation_Nmer_size-1)/2 +1 ; i!=seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1  ; ++i){
-			//FIXME seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1 ??
-			//Remove the previous first nucleotide of the Nmer and it's contribution to the index
-			Nmer_index-=current_Nmer.front()*adressing_vector[0];
-			current_Nmer.pop();
-			//Shift the index
-			Nmer_index*=4;
-			//Add the contribution of the new nucleotide
-			tmp_int_nt = scenario_resulting_sequence.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
-			Nmer_index+=tmp_int_nt;
-			current_Nmer.push(tmp_int_nt);
-
-			//Apply the error cost
 			if( (current_mismatch!=v_mismatch_list.end())
-					&& ((*current_mismatch)==i)){
+				&& ((*current_mismatch)==(mutation_Nmer_size-1)/2) ){
 				one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
 				one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
 				++current_mismatch;
@@ -512,7 +485,39 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			}
 
 
+			if(seq_offsets.at(V_gene_seq,Three_prime) >= (mutation_Nmer_size)){
+				//Look at all Nmers in the scenario_resulting_sequence by sliding window
+				//Removing the contribution of the first and adding the contribution of the new last
+
+				for( i = (mutation_Nmer_size-1)/2 +1 ; i<seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1  ; ++i){
+					//FIXME seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1 ??
+					//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+					Nmer_index-=current_Nmer.front()*adressing_vector[0];
+					current_Nmer.pop();
+					//Shift the index
+					Nmer_index*=4;
+					//Add the contribution of the new nucleotide
+					tmp_int_nt = scenario_resulting_sequence.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
+					Nmer_index+=tmp_int_nt;
+					current_Nmer.push(tmp_int_nt);
+
+					//Apply the error cost
+					if( (current_mismatch!=v_mismatch_list.end())
+							&& ((*current_mismatch)==i)){
+						one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+						one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+						++current_mismatch;
+					}
+					else{
+						one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+					}
+
+
+				}
+			}
 		}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 		//End of debug shit
@@ -558,6 +563,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		/////////////////////////////////////////////////////////////////////////////////////////////
 				//Debug shit
 		/////////////////////////////////////////////////////////////////////////////////////////////
+		if( (seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1 )>=mutation_Nmer_size ){
 				current_mismatch = j_mismatch_list.begin();
 
 				//TODO Need to get the previous V nucleotides and last J ones
@@ -603,32 +609,36 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 				//Look at all Nmers in the scenario_resulting_sequence by sliding window
 				//Removing the contribution of the first and adding the contribution of the new last
+				if((seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) )>=mutation_Nmer_size){
 
-				for( i = seq_offsets.at(J_gene_seq,Five_prime) +1 ; i!=seq_offsets.at(J_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1  ; ++i){
-					//FIXME seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1 ??
-					//Remove the previous first nucleotide of the Nmer and it's contribution to the index
-					Nmer_index-=current_Nmer.front()*adressing_vector[0];
-					current_Nmer.pop();
-					//Shift the index
-					Nmer_index*=4;
-					//Add the contribution of the new nucleotide
-					tmp_int_nt = scenario_resulting_sequence.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
-					Nmer_index+=tmp_int_nt;
-					current_Nmer.push(tmp_int_nt);
+					for( i = seq_offsets.at(J_gene_seq,Five_prime) +1 ; i<seq_offsets.at(J_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1  ; ++i){
+						//FIXME seq_offsets.at(V_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2 +1 ??
+						//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+						Nmer_index-=current_Nmer.front()*adressing_vector[0];
+						current_Nmer.pop();
+						//Shift the index
+						Nmer_index*=4;
+						//Add the contribution of the new nucleotide
+						tmp_int_nt = scenario_resulting_sequence.at(i+(mutation_Nmer_size-1)/2);//Assume a symetric Nmer
+						Nmer_index+=tmp_int_nt;
+						current_Nmer.push(tmp_int_nt);
 
-					//Apply the error cost
-					if( (current_mismatch!=j_mismatch_list.end())
-							&& ((*current_mismatch)==i)){
-						one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
-						one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
-						++current_mismatch;
+						//Apply the error cost
+						if( (current_mismatch!=j_mismatch_list.end())
+								&& ((*current_mismatch)==i)){
+							one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+							one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+							++current_mismatch;
+						}
+						else{
+							one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+						}
+
+
 					}
-					else{
-						one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
-					}
-
-
 				}
+		}
+
 
 		/////////////////////////////////////////////////////////////////////////////////////////
 				//End of debug shit
