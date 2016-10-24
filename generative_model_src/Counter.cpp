@@ -53,6 +53,6 @@ void Counter::dump_sequence_data(int seq_index , int iteration_n){
 	//Do nothing
 }
 
-void Counter::dump_data_summary(){
+void Counter::dump_data_summary(int iteration_n){
 	//Do nothing
 }

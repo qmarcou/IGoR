@@ -267,7 +267,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		}
 
 		for(map<size_t,shared_ptr<Counter>>::const_iterator iter = counters_list.begin() ; iter!=counters_list.end() ; ++iter){
-			(*iter).second->dump_data_summary();
+			(*iter).second->dump_data_summary(iteration_accomplished);
 		}
 
 		general_logs<<"model_mean_seq_likelihood: "<<error_rate_copy->get_model_likelihood()/error_rate_copy->get_number_non_zero_likelihood_seqs()<<"; # of sequences with non zero likelihood: "<<error_rate_copy->get_number_non_zero_likelihood_seqs()<<endl;

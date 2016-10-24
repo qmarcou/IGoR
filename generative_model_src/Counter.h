@@ -38,7 +38,7 @@ public:
 	virtual std::shared_ptr<Counter> add_checked(std::shared_ptr<Counter>) =0;
 
 	virtual void dump_sequence_data(int , int);
-	virtual void dump_data_summary();
+	virtual void dump_data_summary(int);
 
 	bool is_last_iter_only() const {return last_iter_only;}
 
