@@ -22,6 +22,7 @@ class Counter {
 public:
 	Counter();
 	Counter(std::string);
+	Counter(std::string , bool);
 	virtual ~Counter();
 
 	virtual std::string type() const =0;

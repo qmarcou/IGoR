@@ -20,6 +20,7 @@
 #include <random>
 
 class Gene_choice: public Rec_Event {
+	friend class Coverage_err_counter;//Grant friendship to access current gene realization and offset
 public:
 	//Constructors
 	Gene_choice();
@@ -97,6 +98,7 @@ private:
 	double proba_contribution;
 	Int_Str gene_seq;
 	int new_index;
+	const int* alignment_offset_p;
 	std::vector<int>::const_iterator mism_iter;
 	std::vector<int>::const_reverse_iterator rev_mism_iter;
 	size_t endogeneous_mismatches;

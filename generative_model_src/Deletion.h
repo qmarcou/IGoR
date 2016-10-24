@@ -21,6 +21,7 @@
 #include <math.h>
 
 class Deletion: public Rec_Event {
+	friend class Coverage_err_counter;//Grant friendship to access the current number of deletion
 public:
 	//Constructor
 	Deletion();
@@ -120,6 +121,7 @@ private:
 	std::vector<int>::reverse_iterator rev_mis_iter;
 	size_t endogeneous_mismatches;
 	bool end_reached;
+	int deletion_value;
 
 	//Pre create pairs to call seq_offsets (otherwise cost of creating a pair at each call)
 	//std::pair<Seq_type,Seq_side> d_5_pair = std::make_pair (D_gene_seq,Five_prime);

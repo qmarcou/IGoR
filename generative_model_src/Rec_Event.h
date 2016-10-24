@@ -127,6 +127,7 @@ protected:
 	double scenario_upper_bound_proba; // Used at runtime to store the upper bound probability of the whole scenario
 	std::forward_list<double*> updated_proba_bounds_list;
 	std::vector<int> current_realizations_index_vec;
+	const int* current_realization_index;
 	int current_downstream_proba_memory_layers[6];
 
 
