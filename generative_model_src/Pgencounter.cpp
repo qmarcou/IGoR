@@ -121,8 +121,8 @@ void Pgen_counter::dump_sequence_data(int seq_index , int iteration_n ){
 	sequence_Pgens_map.clear();
 }
 
-shared_ptr<Counter> Pgen_counter::add_checked(shared_ptr<Counter> counter){
-	return counter;
+void Pgen_counter::add_checked(shared_ptr<Counter> counter){
+	return;
 }
 
 shared_ptr<Counter> Pgen_counter::copy() const{

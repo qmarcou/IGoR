@@ -35,7 +35,7 @@ public:
 
 
 	virtual void add_to_counter(std::shared_ptr<Counter>);
-	virtual std::shared_ptr<Counter> add_checked(std::shared_ptr<Counter>) =0;
+	virtual void add_checked(std::shared_ptr<Counter>) =0;
 
 	virtual void dump_sequence_data(int , int);
 	virtual void dump_data_summary(int);

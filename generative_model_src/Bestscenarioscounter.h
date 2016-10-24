@@ -36,7 +36,7 @@ public:
 
 	void count_sequence(double , const Model_marginals& ,const Model_Parms&);
 
-	std::shared_ptr<Counter> add_checked(std::shared_ptr<Counter>);
+	void add_checked(std::shared_ptr<Counter>);
 
 	void dump_sequence_data(int , int);
 

@@ -26,7 +26,7 @@ public:
 
 	void dump_sequence_data(int , int);
 
-	std::shared_ptr<Counter> add_checked(std::shared_ptr<Counter>);
+	void add_checked(std::shared_ptr<Counter>);
 
 	std::shared_ptr<Counter> copy() const;
 

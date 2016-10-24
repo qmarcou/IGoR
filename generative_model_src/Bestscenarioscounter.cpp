@@ -110,8 +110,8 @@ void Best_scenarios_counter::initialize_counter(const Model_Parms& parms , const
 	}
 }
 
-shared_ptr<Counter> Best_scenarios_counter::add_checked(shared_ptr<Counter> counter){
-	return counter;
+void Best_scenarios_counter::add_checked(shared_ptr<Counter> counter){
+	return ;
 }
 
 

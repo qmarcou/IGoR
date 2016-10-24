@@ -41,8 +41,14 @@ void Counter::count_sequence(double seq_likelihood , const Model_marginals& sing
 	//This is a virtual method in case the counter does not have anything to count at the sequence level
 }
 
-void Counter::add_to_counter(shared_ptr<Counter>){
-	//do nothing
+void Counter::add_to_counter(shared_ptr<Counter> other){
+	if(this->type() != other->type()){
+		throw invalid_argument("Cannot add counters of type " + this->type() +" and " + other->type() );
+	}
+	else{
+		this->add_checked(other);
+		return;
+	}
 }
 
 /*
