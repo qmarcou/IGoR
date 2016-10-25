@@ -118,6 +118,21 @@ public:
 			}
 		}
 
+		const V& at(const K& key ,int memory_layer) const{
+			if(key>range-1){
+				throw std::out_of_range("Unknown seq type in Enum_fast_memory_map::operator(Seq_type)");
+			}
+			else{
+				if(memory_layer<=(memory_layer_ptr[key]+1)){
+					memory_layer_ptr[key] = memory_layer;
+					return (*(value_ptr_arr + key + memory_layer*range));
+				}
+				else{
+					throw std::out_of_range("Trying to access uninitialized position in Enum_fast_memory_map::at( const K& key, int memory_layer)");
+				}
+			}
+		}
+
 
 		int get_current_memory_layer(const K& key){
 			return memory_layer_ptr[key];
@@ -295,8 +310,43 @@ public:
 			}
 		}
 
+		const V& at(const K1& key1 , const K2& key2) const{
+			if(key1>range_key1-1){
+				throw std::out_of_range("Unknown key1 in Enum_fast_memory_dual_key_map::at()");
+			}
+			else if(key2>range_key2-1){
+				throw std::out_of_range("Unknown key2 in Enum_fast_memory_dual_key__map::at()");
+			}
+			else{
+				if(memory_layer_ptr[key1+range_key1*key2]>-1){
+					return (*(value_ptr_arr + key1+range_key1*key2 + memory_layer_ptr[key1+range_key1*key2]*total_range));
+				}
+				else{
+					throw std::out_of_range("Trying to access uninitialized position in Enum_fast_memory_dual_key__map::at()");
+				}
+			}
+		}
+
 
 		V& at(const K1& key1 , const K2& key2 , int memory_layer){
+			if(key1>range_key1-1){
+				throw std::out_of_range("Unknown key1 in Enum_fast_memory_dual_key__map::at()");
+			}
+			else if(key2>range_key2-1){
+				throw std::out_of_range("Unknown key2 in Enum_fast_memory_dual_key__map::at()");
+			}
+			else{
+				if(memory_layer<=(memory_layer_ptr[key1+range_key1*key2]+1)){
+					memory_layer_ptr[key1+range_key1*key2] = memory_layer;
+					return (*(value_ptr_arr + key1+range_key1*key2 + memory_layer*total_range));
+				}
+				else{
+					throw std::out_of_range("Trying to access uninitialized position in Enum_fast_memory_dual_key__map::at()");
+				}
+			}
+		}
+
+		const V& at(const K1& key1 , const K2& key2 , int memory_layer) const{
 			if(key1>range_key1-1){
 				throw std::out_of_range("Unknown key1 in Enum_fast_memory_dual_key__map::at()");
 			}

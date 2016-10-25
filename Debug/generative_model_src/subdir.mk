@@ -7,6 +7,7 @@ CPP_SRCS += \
 ../generative_model_src/Aligner.cpp \
 ../generative_model_src/Bestscenarioscounter.cpp \
 ../generative_model_src/Counter.cpp \
+../generative_model_src/Coverageerrcounter.cpp \
 ../generative_model_src/Deletion.cpp \
 ../generative_model_src/Dinuclmarkov.cpp \
 ../generative_model_src/Errorrate.cpp \
@@ -26,6 +27,7 @@ OBJS += \
 ./generative_model_src/Aligner.o \
 ./generative_model_src/Bestscenarioscounter.o \
 ./generative_model_src/Counter.o \
+./generative_model_src/Coverageerrcounter.o \
 ./generative_model_src/Deletion.o \
 ./generative_model_src/Dinuclmarkov.o \
 ./generative_model_src/Errorrate.o \
@@ -45,6 +47,7 @@ CPP_DEPS += \
 ./generative_model_src/Aligner.d \
 ./generative_model_src/Bestscenarioscounter.d \
 ./generative_model_src/Counter.d \
+./generative_model_src/Coverageerrcounter.d \
 ./generative_model_src/Deletion.d \
 ./generative_model_src/Dinuclmarkov.d \
 ./generative_model_src/Errorrate.d \

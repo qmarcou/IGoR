@@ -17,6 +17,7 @@
 #include "GenModel.h"
 #include "Dinuclmarkov.h"
 #include "Counter.h"
+#include "Coverageerrcounter.h"
 #include "Bestscenarioscounter.h"
 #include "Pgencounter.h"
 #include <chrono>
@@ -245,9 +246,13 @@ int main(int argc , char* argv[]){
 		read_model_marginals.txt2marginals(string("../demo/demo_write_model_marginals.txt"),read_model_parms);
 
 		//Instantiate a Counter
+		map<size_t,shared_ptr<Counter>> counters_list;
+		 //Collect gene coverage and errors
+		shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter("../demo/run_demo/",VJ_genes,false,false));
+		counters_list.emplace(0,coverage_counter_ptr);
+
 		 //Collect 10 best scenarios per sequence during the last iteration
 		shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , "../demo/run_demo/" ,true ));
-		map<size_t,shared_ptr<Counter>> counters_list;
 		counters_list.emplace(1,best_sc_ptr);
 
 		 //Collect sequence generation probability during last iteration

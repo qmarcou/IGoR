@@ -180,7 +180,8 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						//Already unsafe otherwise
 					}
 
-
+					//Store the deletion value in a private variable
+					deletion_value = (*iter).value_int;
 
 					current_realizations_index_vec[0] = (*iter).index;
 					new_index = base_index + (*iter).index;
@@ -410,7 +411,8 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 							//Already unsafe otherwise
 						}
 
-
+						//Store the deletion value in a private variable
+						deletion_value = (*iter).value_int;
 
 						current_realizations_index_vec[0] = (*iter).index;
 						new_index = base_index + (*iter).index;
@@ -640,6 +642,8 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 							//Already unsafe otherwise
 						}
 
+						//Store the deletion value in a private variable
+						deletion_value = (*iter).value_int;
 
 						current_realizations_index_vec[0] = (*iter).index;
 						new_index = base_index + (*iter).index;
@@ -932,7 +936,8 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						//Already unsafe otherwise
 					}
 
-
+					//Store the deletion value in a private variable
+					deletion_value = (*iter).value_int;
 
 					current_realizations_index_vec[0] = (*iter).index;
 					new_index = base_index + (*iter).index;

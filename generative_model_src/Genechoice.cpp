@@ -195,6 +195,10 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 				//new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
 
+				//State pointers
+				current_realization_index = &this->event_realizations.at((*iter).gene_name).index;
+				alignment_offset_p = &(*iter).offset;
+
 				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map  , offset_map , model_parameters_pointer );
 
 				//Update scenario probability
@@ -665,6 +669,10 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 				new_scenario_proba = scenario_proba;
 				//new_tmp_err_w_proba = tmp_err_w_proba;
 				proba_contribution=1;
+
+				//State pointers
+				current_realization_index = &this->event_realizations.at((*iter).gene_name).index;
+				alignment_offset_p = &(*iter).offset;
 
 				proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
 
