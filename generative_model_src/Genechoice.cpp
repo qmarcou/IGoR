@@ -473,6 +473,9 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 									downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_full_3_offset  -1) , memory_layer_proba_map_junction_d3);
 								}*/
 
+									//Multiply all downstream probas
+									downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
 
 							//If even without taking the weight of errors into account not good, then any lower one not good
 								if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
@@ -1271,6 +1274,7 @@ void Gene_choice::initialize_Len_proba_bound(queue<shared_ptr<Rec_Event>>& model
 				for(unordered_map<string,Event_realization>::const_iterator d_gene_iter = this->event_realizations.begin() ; d_gene_iter!=this->event_realizations.end() ; ++d_gene_iter){
 					//Get considered D gene best proba
 					double d_gene_max_proba = 0;
+					base_index = base_index_map.at(this->event_index,0);
 					for(size_t i = 0 ; i!=this->event_marginal_size/this->size() ; ++i){
 						if(model_parameters_point[base_index + d_gene_iter->second.index + i*this->size()]>d_gene_max_proba){
 							d_gene_max_proba = model_parameters_point[base_index + d_gene_iter->second.index + i*this->size()];
@@ -1286,14 +1290,14 @@ void Gene_choice::initialize_Len_proba_bound(queue<shared_ptr<Rec_Event>>& model
 								vj_length_d_position_proba.at(junction_len).emplace_back(d_gene_iter->first,vd_len_iter->first,dj_len_iter->first,(d_gene_max_proba*vd_len_iter->second*dj_len_iter->second));
 							}
 							else{
-								vj_length_d_position_proba.emplace(junction_len,d_gene_iter->first,vd_len_iter->first,dj_len_iter->first,(d_gene_max_proba*vd_len_iter->second*dj_len_iter->second));
+								vj_length_d_position_proba.emplace(piecewise_construct,make_tuple(junction_len),make_tuple(1,make_tuple(d_gene_iter->first,vd_len_iter->first,dj_len_iter->first,(d_gene_max_proba*vd_len_iter->second*dj_len_iter->second))));
 							}
 						}
 					}
 				}
 
 				//Now sort each vector in the map in decreasing order of probability (according to the model)
-				for(map<int,vector<tuple<string,int,int,double>>>::iterator d_position_map_iter = vj_length_d_position_proba.begin() ; d_position_map_iter!=vj_length_d_position_proba.end() ; ++vj_length_d_position_proba){
+				for(map<int,vector<tuple<string,int,int,double>>>::iterator d_position_map_iter = vj_length_d_position_proba.begin() ; d_position_map_iter!=vj_length_d_position_proba.end() ; ++d_position_map_iter){
 					sort(d_position_map_iter->second.begin(),d_position_map_iter->second.end(),D_position_tuple);
 				}
 			}

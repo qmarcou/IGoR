@@ -163,7 +163,7 @@ public:
 					++max_layer;
 					V* new_value_ptr = new V [range*(max_layer+1)];
 					for(size_t i = 0 ; i!=range ; ++i){
-						for(size_t j=0 ; j!=(max_layer+1) ; ++j){
+						for(size_t j=0 ; j!=(max_layer) ; ++j){
 							(*(new_value_ptr + i+j*range)) = (*(value_ptr_arr + i+j*range));
 						}
 					}
@@ -387,7 +387,7 @@ public:
 					++max_layer;
 					V* new_value_ptr = new V [total_range*(max_layer+1)];
 					for(size_t i = 0 ; i!=total_range ; ++i){
-						for(size_t j=0 ; j!=(max_layer+1) ; ++j){
+						for(size_t j=0 ; j!=(max_layer) ; ++j){
 							(*(new_value_ptr + i+j*total_range)) = (*(value_ptr_arr + i+j*total_range));
 						}
 					}
@@ -510,13 +510,13 @@ typedef Enum_fast_memory_dual_key_map<Seq_type,Seq_side,Seq_Offset> Seq_offsets_
 			 return (hash<int>()(ev_saf));
 		 }
 	 };
-
-	 struct D_position_comparator{
-		 bool operator()(tuple<string,int,int,double> position_1 , tuple<string,int,int,double> position_2 ){
-			 return get<3>(position_1) > get<3>(position_2);
-		 }
-	 }D_position_tuple;
  }
+
+ struct D_position_comparator{
+ 	 bool operator()(std::tuple<std::string,int,int,double> position_1 , std::tuple<std::string,int,int,double> position_2 ){
+ 		 return std::get<3>(position_1) > std::get<3>(position_2);
+ 	 }
+ };
 
 
 

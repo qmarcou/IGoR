@@ -145,7 +145,11 @@ private:
 	//No D prunning proba bound map
 		std::map<int,std::vector<std::tuple<std::string,int,int,double>>> vj_length_d_position_proba;
 
+		D_position_comparator D_position_tuple;
+
 
 };
+
+
 
 #endif /* GENECHOICE_H_ */
