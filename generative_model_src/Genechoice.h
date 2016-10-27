@@ -142,6 +142,9 @@ private:
 		std::map<int,double> vj_length_best_proba_map;
 		std::map<int,double> dj_length_best_proba_map;
 
+	//No D prunning proba bound map
+		std::map<int,std::vector<std::tuple<std::string,int,int,double>>> vj_length_d_position_proba;
+
 
 };
 

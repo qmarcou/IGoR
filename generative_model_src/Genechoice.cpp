@@ -1143,6 +1143,8 @@ void Gene_choice::initialize_Len_proba_bound(queue<shared_ptr<Rec_Event>>& model
 		case D_gene:
 			vd_length_best_proba_map.clear();
 			dj_length_best_proba_map.clear();
+			vj_length_d_position_proba.clear();
+
 			if(v_chosen){
 				double init_proba = 1.0;
 				constructed_sequences.reset();
@@ -1153,6 +1155,42 @@ void Gene_choice::initialize_Len_proba_bound(queue<shared_ptr<Rec_Event>>& model
 				constructed_sequences.reset();
 				this->Rec_Event::iterate_initialize_Len_proba(DJ_ins_seq,dj_length_best_proba_map,model_queue,init_proba,model_parameters_point,base_index_map,constructed_sequences);
 			}
+
+			if(v_chosen and j_chosen){
+				int junction_len;
+
+
+				//Loop over D gene choices
+				for(unordered_map<string,Event_realization>::const_iterator d_gene_iter = this->event_realizations.begin() ; d_gene_iter!=this->event_realizations.end() ; ++d_gene_iter){
+					//Get considered D gene best proba
+					double d_gene_max_proba = 0;
+					for(size_t i = 0 ; i!=this->event_marginal_size/this->size() ; ++i){
+						if(model_parameters_point[base_index + d_gene_iter->second.index + i*this->size()]>d_gene_max_proba){
+							d_gene_max_proba = model_parameters_point[base_index + d_gene_iter->second.index + i*this->size()];
+						}
+					}
+					//Loop over possible VD junction lengths
+					for(map<int,double>::const_iterator vd_len_iter = vd_length_best_proba_map.begin() ; vd_len_iter!= vd_length_best_proba_map.end() ; ++vd_len_iter ){
+						//Loop over possible DJ junction lengths
+						for(map<int,double>::const_iterator dj_len_iter = dj_length_best_proba_map.begin() ; dj_len_iter!= dj_length_best_proba_map.end() ; ++dj_len_iter ){
+							junction_len = d_gene_iter->second.value_str.size() + vd_len_iter->first + dj_len_iter->first;
+
+							if(vj_length_d_position_proba.count(junction_len)!=0){
+								vj_length_d_position_proba.at(junction_len).emplace_back(d_gene_iter->first,vd_len_iter->first,dj_len_iter->first,(d_gene_max_proba*vd_len_iter->second*dj_len_iter->second));
+							}
+							else{
+								vj_length_d_position_proba.emplace(junction_len,d_gene_iter->first,vd_len_iter->first,dj_len_iter->first,(d_gene_max_proba*vd_len_iter->second*dj_len_iter->second));
+							}
+						}
+					}
+				}
+
+				//Now sort each vector in the map in decreasing order of probability (according to the model)
+				for(map<int,vector<tuple<string,int,int,double>>>::iterator d_position_map_iter = vj_length_d_position_proba.begin() ; d_position_map_iter!=vj_length_d_position_proba.end() ; ++vj_length_d_position_proba){
+					sort(d_position_map_iter->second.begin(),d_position_map_iter->second.end(),D_position_tuple);
+				}
+			}
+
 			break;
 		case J_gene:
 			dj_length_best_proba_map.clear();

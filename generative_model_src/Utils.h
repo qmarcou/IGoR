@@ -510,6 +510,12 @@ typedef Enum_fast_memory_dual_key_map<Seq_type,Seq_side,Seq_Offset> Seq_offsets_
 			 return (hash<int>()(ev_saf));
 		 }
 	 };
+
+	 struct D_position_comparator{
+		 bool operator()(tuple<string,int,int,double> position_1 , tuple<string,int,int,double> position_2 ){
+			 return get<3>(position_1) > get<3>(position_2);
+		 }
+	 }D_position_tuple;
  }
 
 
