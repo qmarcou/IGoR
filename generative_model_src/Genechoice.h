@@ -85,7 +85,7 @@ private:
 
 	//Suitable D align bool
 	bool no_d_align;
-	std::vector<int> no_d_mismacthes;
+	std::vector<int> no_d_mismatches;
 	size_t d_size;
 	Seq_Offset d_full_3_offset;
 

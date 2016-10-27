@@ -422,164 +422,271 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 				//int test = 0;
 
 				//Pass the mismatch vector pointer to the memory map once (will be updated in the next loop)
-				mismatches_lists.set_value(D_gene_seq,&no_d_mismacthes,memory_layer_mismatches);
+				mismatches_lists.set_value(D_gene_seq,&no_d_mismatches,memory_layer_mismatches);
 
-				for(unordered_map<string,Event_realization>::const_iterator d_gene_iter = this->event_realizations.begin() ; d_gene_iter!=this->event_realizations.end() ; ++d_gene_iter){
+				if(v_chosen and j_chosen){
+					int vj_len = j_offset - v_offset - 1;
+					if(vj_length_d_position_proba.count(vj_len)!=0){
+						const vector<tuple<string,int,int,double>>& d_positions_vector = vj_length_d_position_proba.at(vj_len);
+						for(vector<tuple<string,int,int,double>>::const_iterator d_position_iter = d_positions_vector.begin() ; d_position_iter!=d_positions_vector.end() ; ++d_position_iter){
 
-					//Starts the D one nucleotide after v_3_min offset(-1 if no V chosen) given max deletions on the 5' of the D
-					//FIXME v_min offset set to -1 if no V chosen
-					d_size = (*d_gene_iter).second.value_str.size();
+							const Event_realization& d_real = this->event_realizations.at(get<0>(*d_position_iter));
 
-					//Take care of the fact that not all D have the same length
-					// and that the maximum number of deletions might be greater than the D itself
-					if( (-d_5_max_del)>d_size ){
-						d_5_real_max_del = -d_size;
-					}
-					else{
-						d_5_real_max_del = d_5_max_del;
-					}
+							d_size = d_real.value_str.size();
 
+							gene_seq = d_real.value_str_int;
+							constructed_sequences.set_value(D_gene_seq,&gene_seq,memory_layer_cs);
 
-					if(v_3_min_offset>0){
-						d_5_off = v_3_min_offset + d_5_real_max_del + 1 ;
-					}
-					else{
-						d_5_off = 1 + d_5_real_max_del + 1 ; //Consider that V cannot be absent from the read, at least one nucleotide is present
-					}
+							current_realizations_index_vec[0] = d_real.index;
+							new_index = base_index + current_realizations_index_vec[0];
 
+							//Proba contribution is the same wherever is the gene
+							proba_contribution=1;
+							proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
 
-					d_full_3_offset = d_5_off + d_size -1;
-					d_3_max_offset = d_full_3_offset + d_3_min_del;//Useless?
-					if(abs(d_3_max_del)<d_size){
-						d_3_min_offset = d_full_3_offset + d_3_max_del;
-					}
-					else{
-						d_3_min_offset = d_5_off;
-					}
+							new_scenario_proba = scenario_proba*proba_contribution;
 
+							//Update downstream proba map and compute the downstream proba bound for this event
+								scenario_upper_bound_proba = new_scenario_proba;
 
-					//Always the same sequence for the given D
-					gene_seq = (*d_gene_iter).second.value_str_int;
-					constructed_sequences.set_value(D_gene_seq,&gene_seq,memory_layer_cs);
+								//Get DJ or VJ junction upper bound proba
+	/*							if(v_chosen and j_chosen){
+									if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0 or dj_length_best_proba_map.count(j_offset - d_full_3_offset  -1)<=0){
+										continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+									}*/
+									downstream_proba_map.set_value(VJ_ins_seq, 1.0 , memory_layer_proba_map_junction);
+									downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(get<1>(*d_position_iter)) , memory_layer_proba_map_junction_d2);
+									downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(get<2>(*d_position_iter)) , memory_layer_proba_map_junction_d3);
+									downstream_proba_map.set_value(D_gene_seq , 1.0 , memory_layer_proba_map_seq); //Lift the penalty on D gene seq
 
-					current_realizations_index_vec[0] = d_gene_iter->second.index;
-					new_index = base_index + current_realizations_index_vec[0];
-
-					//Proba contribution is the same wherever is the gene
-					proba_contribution=1;
-					proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
-					//new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
-/*					compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
-					if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
-						continue;
-					}*/
-
-
-
-
-					while(d_3_min_offset < j_5_min_offset){
-						//Slides the D one nucleotide at a time towards 3', updating the mismatch list,offsets
-
-						//Get mismatches between D gene and sequence at the 5' most position
-						no_d_mismacthes.clear();
-						for( int i = 0 ; i != d_size ; ++i){
-							if( ((d_5_off + i) >=0) & (d_5_off + i)<int_sequence.size() ){
-								if(gene_seq[i] != int_sequence[d_5_off + i]){
-									no_d_mismacthes.push_back(d_5_off + i);
+	/*							}
+								else if(v_chosen){
+									if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0){
+										continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+									}
+									downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
 								}
-							}
+								else if(j_chosen){
+									if(dj_length_best_proba_map.count(j_offset - d_full_3_offset  -1)<=0){
+										continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+									}
+									downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_full_3_offset  -1) , memory_layer_proba_map_junction_d3);
+								}*/
 
-						}
 
-
-
-						new_scenario_proba = scenario_proba*proba_contribution;
-						//new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
-
-						/*if( (d_full_3_offset<0)){
-							cout<<"problem in gene choice"<<endl;
-							cout<<d_full_3_offset<<endl;
-							cout<<v_3_min_offset<<endl;
-							cout<<d_5_max_del<<endl;
-						}*/
-
-						//Assume that the whole D is in the sequence and add the D sequence to the constructed sequences
-						seq_offsets.set_value(D_gene_seq,Five_prime,d_5_off,memory_layer_off_fivep);
-						seq_offsets.set_value(D_gene_seq,Three_prime,d_full_3_offset,memory_layer_off_threep);
-
-						//Update downstream proba map and compute the downstream proba bound for this event
-							scenario_upper_bound_proba = new_scenario_proba;
-
-							//Get DJ or VJ junction upper bound proba
-							if(v_chosen and j_chosen){
-								if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0 or dj_length_best_proba_map.count(j_offset - d_full_3_offset  -1)<=0){
-									continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+							//If even without taking the weight of errors into account not good, then any lower one not good
+								if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+									break;
 								}
-								downstream_proba_map.set_value(VJ_ins_seq, 1.0 , memory_layer_proba_map_junction);
-								downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
-								downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_full_3_offset  -1) , memory_layer_proba_map_junction_d3);
-							}
-							else if(v_chosen){
-								if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0){
-									continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+
+							//d_5_off is v 3' offset + vd junction length
+							d_5_off = v_offset + get<1>(*d_position_iter);
+
+							//Get mismatches between D gene and sequence
+							no_d_mismatches.clear();
+							for( int i = 0 ; i != d_size ; ++i){
+								if( ((d_5_off + i) >=0) & (d_5_off + i)<int_sequence.size() ){
+									if(gene_seq[i] != int_sequence[d_5_off + i]){
+										no_d_mismatches.push_back(d_5_off + i);
+									}
 								}
-								downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
-							}
-							else if(j_chosen){
-								if(dj_length_best_proba_map.count(j_offset - d_full_3_offset  -1)<=0){
-									continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
-								}
-								downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_full_3_offset  -1) , memory_layer_proba_map_junction_d3);
+
 							}
 
 							//Count the number of mismatches that will not go away even with maximum number of deletions
 							endogeneous_mismatches = 0;
 							if((d_5_off - d_5_max_del)<(d_full_3_offset + d_3_max_del)){
-								mism_iter = no_d_mismacthes.begin();
-								while(mism_iter!=no_d_mismacthes.end()){
+								mism_iter = no_d_mismatches.begin();
+								while(mism_iter!=no_d_mismatches.end()){
 									if((*mism_iter)>=(d_5_off - d_5_max_del) and (*mism_iter)<=(d_full_3_offset + d_3_max_del)){
 										//Count one mismatch
 										++endogeneous_mismatches;
 									}
 									++mism_iter;
 								}
+								//Weigh D_gene_seq accordingly
+								downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+
+								//Multiply all downstream probas
+								scenario_upper_bound_proba = new_scenario_proba;
+								downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
+								if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+									continue;
+								}
+
 							}
 
-							downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+							//Assume that the whole D is in the sequence and add the D sequence to the constructed sequences
+							seq_offsets.set_value(D_gene_seq,Five_prime,d_5_off,memory_layer_off_fivep);
+							seq_offsets.set_value(D_gene_seq,Three_prime,d_5_off+d_size-1,memory_layer_off_threep);
 
-							//Multiply all downstream probas
-							downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+							Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
 
-						//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
-						if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
-							continue;
 						}
-
-
-						Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
-
-						//test++;
-
-						//Slide the D from 1 nucleotide
-						++d_5_off;
-						++d_full_3_offset;
-						++d_3_min_offset;
-						++d_3_max_offset;
-
-						/*//Adapt D mismatches if needed
-						if(!no_d_mismacthes.empty()){
-							if(no_d_mismacthes[0]<d_5_off) {
-								no_d_mismacthes.erase(no_d_mismacthes.begin());
-							}
-						}
-						if(gene_seq[d_size-1] != int_sequence[d_full_3_offset]) no_d_mismacthes.push_back(d_full_3_offset);
-*/
 
 					}
 				}
-				//cout<<"Seq "<<sequence<<"; #Ds made up" <<test<<endl;
+				else{
+					for(unordered_map<string,Event_realization>::const_iterator d_gene_iter = this->event_realizations.begin() ; d_gene_iter!=this->event_realizations.end() ; ++d_gene_iter){
 
+						//Starts the D one nucleotide after v_3_min offset(-1 if no V chosen) given max deletions on the 5' of the D
+						//FIXME v_min offset set to -1 if no V chosen
+						d_size = (*d_gene_iter).second.value_str.size();
+
+						//Take care of the fact that not all D have the same length
+						// and that the maximum number of deletions might be greater than the D itself
+						if( (-d_5_max_del)>d_size ){
+							d_5_real_max_del = -d_size;
+						}
+						else{
+							d_5_real_max_del = d_5_max_del;
+						}
+
+
+						if(v_3_min_offset>0){
+							d_5_off = v_3_min_offset + d_5_real_max_del + 1 ;
+						}
+						else{
+							d_5_off = 1 + d_5_real_max_del + 1 ; //Consider that V cannot be absent from the read, at least one nucleotide is present
+						}
+
+
+						d_full_3_offset = d_5_off + d_size -1;
+						d_3_max_offset = d_full_3_offset + d_3_min_del;//Useless?
+						if(abs(d_3_max_del)<d_size){
+							d_3_min_offset = d_full_3_offset + d_3_max_del;
+						}
+						else{
+							d_3_min_offset = d_5_off;
+						}
+
+
+						//Always the same sequence for the given D
+						gene_seq = (*d_gene_iter).second.value_str_int;
+						constructed_sequences.set_value(D_gene_seq,&gene_seq,memory_layer_cs);
+
+						current_realizations_index_vec[0] = d_gene_iter->second.index;
+						new_index = base_index + current_realizations_index_vec[0];
+
+						//Proba contribution is the same wherever is the gene
+						proba_contribution=1;
+						proba_contribution = iterate_common( proba_contribution , current_realizations_index_vec[0] , base_index , base_index_map , offset_map , model_parameters_pointer );
+						//new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
+	/*					compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
+						if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+							continue;
+						}*/
+
+
+
+
+						while(d_3_min_offset < j_5_min_offset){
+							//Slides the D one nucleotide at a time towards 3', updating the mismatch list,offsets
+
+							//Get mismatches between D gene and sequence at the 5' most position
+							no_d_mismatches.clear();
+							for( int i = 0 ; i != d_size ; ++i){
+								if( ((d_5_off + i) >=0) & (d_5_off + i)<int_sequence.size() ){
+									if(gene_seq[i] != int_sequence[d_5_off + i]){
+										no_d_mismatches.push_back(d_5_off + i);
+									}
+								}
+
+							}
+
+
+
+							new_scenario_proba = scenario_proba*proba_contribution;
+							//new_tmp_err_w_proba = tmp_err_w_proba*proba_contribution;
+
+							/*if( (d_full_3_offset<0)){
+								cout<<"problem in gene choice"<<endl;
+								cout<<d_full_3_offset<<endl;
+								cout<<v_3_min_offset<<endl;
+								cout<<d_5_max_del<<endl;
+							}*/
+
+							//Assume that the whole D is in the sequence and add the D sequence to the constructed sequences
+							seq_offsets.set_value(D_gene_seq,Five_prime,d_5_off,memory_layer_off_fivep);
+							seq_offsets.set_value(D_gene_seq,Three_prime,d_full_3_offset,memory_layer_off_threep);
+
+							//Update downstream proba map and compute the downstream proba bound for this event
+								scenario_upper_bound_proba = new_scenario_proba;
+
+								//Get DJ or VJ junction upper bound proba
+								if(v_chosen and j_chosen){
+									if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0 or dj_length_best_proba_map.count(j_offset - d_full_3_offset  -1)<=0){
+										continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+									}
+									downstream_proba_map.set_value(VJ_ins_seq, 1.0 , memory_layer_proba_map_junction);
+									downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
+									downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_full_3_offset  -1) , memory_layer_proba_map_junction_d3);
+								}
+								else if(v_chosen){
+									if(vd_length_best_proba_map.count(d_5_off - v_offset -1)<=0){
+										continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+									}
+									downstream_proba_map.set_value(VD_ins_seq , vd_length_best_proba_map.at(d_5_off - v_offset -1) , memory_layer_proba_map_junction_d2);
+								}
+								else if(j_chosen){
+									if(dj_length_best_proba_map.count(j_offset - d_full_3_offset  -1)<=0){
+										continue; //This means no scenario can lead to a correct solution, would need to be changed for Error models with in/dels
+									}
+									downstream_proba_map.set_value(DJ_ins_seq , dj_length_best_proba_map.at(j_offset - d_full_3_offset  -1) , memory_layer_proba_map_junction_d3);
+								}
+
+								//Count the number of mismatches that will not go away even with maximum number of deletions
+								endogeneous_mismatches = 0;
+								if((d_5_off - d_5_max_del)<(d_full_3_offset + d_3_max_del)){
+									mism_iter = no_d_mismatches.begin();
+									while(mism_iter!=no_d_mismatches.end()){
+										if((*mism_iter)>=(d_5_off - d_5_max_del) and (*mism_iter)<=(d_full_3_offset + d_3_max_del)){
+											//Count one mismatch
+											++endogeneous_mismatches;
+										}
+										++mism_iter;
+									}
+								}
+
+								downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+
+								//Multiply all downstream probas
+								downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
+
+							//compute_upper_bound_scenario_proba(new_tmp_err_w_proba);
+							if(scenario_upper_bound_proba<(seq_max_prob_scenario*proba_threshold_factor)){
+								continue;
+							}
+
+
+							Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_pointer  , model_parameters_pointer , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set , mismatches_lists , seq_max_prob_scenario , proba_threshold_factor);
+
+							//test++;
+
+							//Slide the D from 1 nucleotide
+							++d_5_off;
+							++d_full_3_offset;
+							++d_3_min_offset;
+							++d_3_max_offset;
+
+							/*//Adapt D mismatches if needed
+							if(!no_d_mismacthes.empty()){
+								if(no_d_mismacthes[0]<d_5_off) {
+									no_d_mismacthes.erase(no_d_mismacthes.begin());
+								}
+							}
+							if(gene_seq[d_size-1] != int_sequence[d_full_3_offset]) no_d_mismacthes.push_back(d_full_3_offset);
+	*/
+
+						}
+					}
+					//cout<<"Seq "<<sequence<<"; #Ds made up" <<test<<endl;
+
+				}
 			}
+
+
 		}
 			break;
 
