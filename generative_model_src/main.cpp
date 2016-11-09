@@ -161,10 +161,10 @@ int main(int argc , char* argv[]){
 		v_choice.set_priority(7);
 		Gene_choice d_choice(D_gene,d_genomic);
 		d_choice.set_nickname("d_gene");
-		d_choice.set_priority(8);
+		d_choice.set_priority(6);
 		Gene_choice j_choice(J_gene,j_genomic);
 		j_choice.set_nickname("j_choice");
-		j_choice.set_priority(6);
+		j_choice.set_priority(7);
 
 		Deletion v_3_del(V_gene,Three_prime,make_pair(-4,16));//16
 		v_3_del.set_nickname("v_3_del");
@@ -220,7 +220,7 @@ int main(int argc , char* argv[]){
 		parms.add_edge(&d_choice,&d_3_del);
 		parms.add_edge(&d_choice,&d_5_del);
 		parms.add_edge(&d_5_del,&d_3_del);
-		parms.add_edge(&d_choice,&j_choice);
+		parms.add_edge(&j_choice,&d_choice);
 
 
 		//Create the corresponding marginals
@@ -279,7 +279,7 @@ int main(int argc , char* argv[]){
 
 		begin_time = myclock::now();
 
-		gen_model.infer_model(sorted_alignments_vec , 20 , string("../demo/run_demo/") , true ,1e-35,0.001);
+		gen_model.infer_model(sorted_alignments_vec , 20 , string("../demo/run_demo/") , true ,1e-35,0.0001);
 
 		end_time= myclock::now();
 		elapsed = end_time - begin_time;

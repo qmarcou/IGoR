@@ -68,7 +68,21 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		//Initialize counters for the log file
 		size_t sequences_processed = 0;
 
+		const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
 
+		//Take only best alignments if fast_iter
+		vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> fast_iter_sequences;
+		if(fast_iter && iteration_accomplished==0){
+			fast_iter_sequences = sequences;
+			for(unordered_map<Gene_class , vector<Alignment_data>>::const_iterator gc_align_iter = sequences.at(0).second.begin() ; gc_align_iter != sequences.at(0).second.end() ; ++gc_align_iter){
+				if ((*gc_align_iter).first == D_gene)continue;
+				fast_iter_sequences = get_best_aligns(fast_iter_sequences,(*gc_align_iter).first);
+			}
+			sequence_util_ptr = &fast_iter_sequences;
+		}
+		else{
+			sequence_util_ptr = &sequences;
+		}
 
 
 		/* omp parallel declaration using OpenMP 4.0 standards
@@ -88,7 +102,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			map<size_t,shared_ptr<Counter>> single_thread_counter_list;
 			for(map<size_t,shared_ptr<Counter>>::const_iterator iter = this->counters_list.begin() ; iter != this->counters_list.end() ; ++iter){
 				//Copy only relevant counters for this iteration
-				if((not (*iter).second->is_last_iter_only()) or (iteration_accomplished = iterations-1)){
+				if((not (*iter).second->is_last_iter_only()) or (iteration_accomplished == iterations-1)){
 					single_thread_counter_list.emplace((*iter).first,(*iter).second->copy());
 				}
 			}
@@ -161,21 +175,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 			}
 			cout<<"Intialization of proba bounds over"<<endl;
 
-			const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>* sequence_util_ptr;
 
-			//Take only best alignments if fast_iter
-			vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>> fast_iter_sequences;
-			if(fast_iter && iteration_accomplished==0){
-				fast_iter_sequences = sequences;
-				for(unordered_map<Gene_class , vector<Alignment_data>>::const_iterator gc_align_iter = sequences.at(0).second.begin() ; gc_align_iter != sequences.at(0).second.end() ; ++gc_align_iter){
-					if ((*gc_align_iter).first == D_gene)continue;
-					fast_iter_sequences = get_best_aligns(fast_iter_sequences,(*gc_align_iter).first);
-				}
-				sequence_util_ptr = &fast_iter_sequences;
-			}
-			else{
-				sequence_util_ptr = &sequences;
-			}
 
 
 

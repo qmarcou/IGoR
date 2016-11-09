@@ -432,7 +432,21 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 
 							const Event_realization& d_real = this->event_realizations.at(get<0>(*d_position_iter));
 
+							//d_5_off is v 3' offset + vd junction length
+							d_5_off = v_offset + get<1>(*d_position_iter);
+
+							if(d_5_off-d_5_min_del>=j_5_max_offset){
+								continue;
+							}
+
 							d_size = d_real.value_str.size();
+
+							d_full_3_offset = d_5_off + d_size -1;
+							d_3_max_offset = d_full_3_offset + d_3_min_del;
+
+							if(d_3_max_offset<=v_3_min_offset){
+								continue;
+							}
 
 							gene_seq = d_real.value_str_int;
 							constructed_sequences.set_value(D_gene_seq,&gene_seq,memory_layer_cs);
@@ -482,8 +496,7 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 									break;
 								}
 
-							//d_5_off is v 3' offset + vd junction length
-							d_5_off = v_offset + get<1>(*d_position_iter);
+
 
 							//Get mismatches between D gene and sequence
 							no_d_mismatches.clear();
