@@ -471,7 +471,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 									for(int i = 0 ; i != (-(*iter).value_int) ; ++i ){
 										//Check for errors in reverse order to keep the mismatch vector ordered
-										if(tmp_str[i] != int_sequence.at(d_5_new_offset+i)){
+										if(d_5_new_offset+i<int_sequence.size() and tmp_str[i] != int_sequence.at(d_5_new_offset+i)){
 											mismatches_vector.push_back(d_5_new_offset+i);
 										}
 									}
@@ -722,7 +722,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 										}
 
-										if(tmp_str[i] != int_sequence.at(d_3_offset+1+i)){
+										if(d_3_offset+1+i>=0 and tmp_str[i] != int_sequence.at(d_3_offset+1+i)){
 											mismatches_vector.push_back(d_3_offset+1+i);
 										}
 									}
