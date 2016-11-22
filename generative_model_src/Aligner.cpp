@@ -635,6 +635,11 @@ bool inline comp_nt_int(const char& char_1 , const char& char_2){
  */
 vector<pair<const int , const string>> sample_indexed_seq(vector<pair<const int , const string>> indexed_seqs , const size_t sample_size){
 
+	//Return an error if trying to sample more than the number of available sequences
+	if(sample_size>indexed_seqs.size()){
+		throw std::runtime_error("Trying to sample " + to_string(sample_size) + " sequences in a pool of " + to_string(indexed_seqs.size()) + " sequences in sample_indexed_seq()");
+	}
+
 	//Create seed for random generator
 	//create a seed from timer
 	typedef std::chrono::high_resolution_clock myclock;
