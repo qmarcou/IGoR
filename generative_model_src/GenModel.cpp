@@ -36,7 +36,10 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 	//If viterbi like only the best scenario is of interest
 	if(viterbi_like){
-		proba_threshold_factor = 0.0;
+		cout<<"******************************************************************"<<endl;
+		cout<<"*\t\t RUNNING \"VITERBI\" LIKE ALGORITHM \t\t *"<<endl<<"* \t(only the best scenario will be taken into account)\t *"<<endl;
+		cout<<"******************************************************************"<<endl;
+		proba_threshold_factor = 1.0;
 	}
 
 
