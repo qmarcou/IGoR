@@ -24,7 +24,22 @@ GenModel::~GenModel() {
 	// TODO Auto-generated destructor stub
 }
 
+bool GenModel::infer_model(const std::vector<std::pair<std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter , double likelihood_threshold/*=1e-25*/ , bool viterbi_like/*false*/){
+	return this->infer_model(sequences , iterations , path , fast_iter , likelihood_threshold , viterbi_like , 0.001);
+}
+
+bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter/*=true*/ , double likelihood_threshold/*=1e-25*/ , double proba_threshold_factor/*=0.001*/ ){
+	return this->infer_model(sequences , iterations , path , fast_iter , likelihood_threshold , false , proba_threshold_factor , INFINITY);
+}
+
 bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , bool fast_iter/*=true*/ ,double likelihood_threshold/*=1e-25 by default*/ , bool viterbi_like/*=false*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
+
+	//If viterbi like only the best scenario is of interest
+	if(viterbi_like){
+		proba_threshold_factor = 0.0;
+	}
+
+
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = model_marginals.get_index_map(model_parms,model_queue);
 	unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> inv_offset_map = model_marginals.get_inverse_offset_map(model_parms,model_queue);
