@@ -24,7 +24,7 @@ GenModel::~GenModel() {
 	// TODO Auto-generated destructor stub
 }
 
-bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , bool fast_iter/*=true*/ ,double likelihood_threshold/*=1e-25 by default*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
+bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>& sequences ,const  int iterations ,const string path , bool fast_iter/*=true*/ ,double likelihood_threshold/*=1e-25 by default*/ , bool viterbi_like/*=false*/ , double proba_threshold_factor/*=0.001 by default*/ , double mean_number_seq_err_thresh /*= INFINITY by default*/){
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = model_marginals.get_index_map(model_parms,model_queue);
 	unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> inv_offset_map = model_marginals.get_inverse_offset_map(model_parms,model_queue);
@@ -60,10 +60,6 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 		Model_marginals new_marginals = Model_marginals(model_parms);
 		shared_ptr<Error_rate> error_rate_copy = model_parms.get_err_rate_p()->copy();
 
-		//Hard code Anand's probability threshold
-/*		if(iteration_accomplished ==0){	proba_threshold_factor = 0.01;	}
-		else if(iteration_accomplished<4){proba_threshold_factor = .005;}
-		else{proba_threshold_factor = .001;}*/
 
 		//Initialize counters for the log file
 		size_t sequences_processed = 0;
@@ -149,7 +145,10 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				init_single_thread_stack.push(first_init_event);
 				init_single_thread_model_queue.pop();
 				(*first_init_event).initialize_event(init_processed_events,events_map , single_thread_offset_map , downstream_proba_map , constructed_sequences,safety_set , single_thread_err_rate , mismatches_lists,seq_offsets , index_mapp);
+				(*first_init_event).set_viterbi_run(viterbi_like);
 			}
+
+			single_thread_err_rate->set_viterbi_run(viterbi_like);
 
 			//Initialize Counters
 			for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
@@ -173,7 +172,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				last_proba_init_event->initialize_Len_proba_bound(tmp_init_proba_single_thread_model_queue,single_thread_model_marginals.marginal_array_p,index_mapp);
 				cout<<last_proba_init_event->get_name()<<" initialized"<<endl;
 			}
-			cout<<"Intialization of proba bounds over"<<endl;
+			cout<<"Initialization of proba bounds over"<<endl;
 
 
 
@@ -240,7 +239,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 				}
 
 				if(single_thread_err_rate->get_seq_mean_error_number()<=mean_number_seq_err_thresh){
-					//Add weigthed errors to the normalized error counter
+					//Add weighed errors to the normalized error counter
 					single_thread_err_rate->add_to_norm_counter();
 
 					//Add the single_seq_marginals to the single thread marginals

@@ -366,11 +366,20 @@ void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_e
 	vd_realizations_indices = new int [max_vd_ins];
 	vj_realizations_indices = new int [max_vj_ins];
 	dj_realizations_indices = new int [max_dj_ins];
+
+	unmutable_base_index = index_map.at(this->event_index,0);
+
 	this->Rec_Event::initialize_event(processed_events,events_map,offset_map,downstream_proba_map,constructed_sequences,safety_set,error_rate_p,mismatches_list,seq_offsets,index_map);
 
 }
 
 void Dinucl_markov::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
+	if(viterbi_run){
+		for(size_t i=0 ; i!=this->event_marginal_size ; ++i){
+			updated_marginals[unmutable_base_index + i] = 0;
+		}
+	}
+
 	if(event_class == VD_genes || event_class == VDJ_genes){
 		for(size_t i = 0 ; i != vd_seq_size ; ++i){
 			updated_marginals[vd_realizations_indices[i]] +=scenario_proba;

@@ -84,9 +84,17 @@ double Single_error_rate::compare_sequences_error_prob (double scenario_probabil
 		this->seq_mean_error_number +=  number_errors*scenario_new_proba;
 		temp2 = (double(number_errors)/double(genomic_nucl));
 		temp = scenario_new_proba*temp2;
-		this->seq_weighted_er += temp;
-		this->seq_likelihood += scenario_new_proba;
-		this->seq_probability+=scenario_probability;
+		if(viterbi_run){
+			this->seq_weighted_er = temp;
+			this->seq_likelihood = scenario_new_proba;
+			this->seq_probability = scenario_probability;
+		}
+		else{
+			this->seq_weighted_er += temp;
+			this->seq_likelihood += scenario_new_proba;
+			this->seq_probability += scenario_probability;
+		}
+
 		++debug_number_scenarios;
 		return scenario_new_proba;
 	}

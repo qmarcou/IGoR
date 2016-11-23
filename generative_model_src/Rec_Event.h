@@ -93,6 +93,7 @@ public:
 	bool is_updated() const {return updated;};
 	void fix(bool fix_status) {fixed = fix_status;}
 	bool is_fixed() const{return fixed;}
+	void set_viterbi_run(bool viterbi_like){viterbi_run = viterbi_like;}
 	virtual double* get_updated_ptr();
 	void compute_crude_upper_bound_scenario_proba( double& ) ;
 	const std::vector<int>& get_current_realizations_index_vec() const{return current_realizations_index_vec;};
@@ -119,6 +120,7 @@ protected:
 	int event_index;
 	std::forward_list<std::tuple<int,int,int>> memory_and_offsets;//0: event identifier , 1: memory layer , 2: offset
 	bool updated;
+	bool viterbi_run;
 	bool initialized;
 	size_t event_marginal_size;
 	bool fixed;

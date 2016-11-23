@@ -71,6 +71,7 @@ private:
 	Int_Str data_seq_substr;
 
 	mutable int base_index;
+	int unmutable_base_index;
 	double new_scenario_proba;
 	double proba_contribution;
 	mutable bool correct_class;

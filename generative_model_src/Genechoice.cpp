@@ -1184,8 +1184,16 @@ void Gene_choice::initialize_event( unordered_set<Rec_Event_name>& processed_eve
 
 }
 
+/**
+ * All add_to_marginals should take into account the possibility to perform viterbi runs(take only the most likely scenario into account)
+ */
 void Gene_choice::add_to_marginals(long double scenario_proba , Marginal_array_p updated_marginals) const{
-	updated_marginals[this->new_index]+=scenario_proba;
+	if(viterbi_run){
+		updated_marginals[this->new_index]=scenario_proba;
+	}
+	else{
+		updated_marginals[this->new_index]+=scenario_proba;
+	}
 }
 
 bool Gene_choice::has_effect_on(Seq_type seq_type) const{

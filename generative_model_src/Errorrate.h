@@ -49,6 +49,7 @@ public:
 	virtual double get_err_rate_upper_bound() const =0;
 	virtual int get_number_non_zero_likelihood_seqs() const =0;
 	virtual std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const =0;
+	void set_viterbi_run(bool viterbi_like){viterbi_run = viterbi_like;}
 	int debug_number_scenarios;
 
 
@@ -59,6 +60,7 @@ protected:
 	double seq_mean_error_number;
 	long double scenario_new_proba;//TODO rename this guy
 	long double seq_probability; //Probability of generating one sequence without taking errors into account
+	bool viterbi_run;
 
 };
 
