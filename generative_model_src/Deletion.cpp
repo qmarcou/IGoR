@@ -394,6 +394,15 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						//unordered_set<Event_safety> safety_set_copy = safety_set;
 
 						d_5_new_offset = d_5_offset+(*iter).value_int;
+
+						///THIS IS A TEMPORARY FIX// //FIXME
+					/////////////////////////////////////////////////////////////////////////////////
+						if(d_5_new_offset>=int_sequence.size()){ //The D5new offset should be in the sequence
+								continue;
+						}
+					//////////////////////////////////////////////////////////////////////////////////
+
+
 						if(vd_check){
 
 							if( d_5_new_offset <= (v_3_min_offset)){
@@ -424,6 +433,17 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 						//Positive or negative deletion (palindroms) mechanism
 						if((*iter).value_int >= 0){
+
+							///THIS IS A TEMPORARY FIX// //FIXME
+						//////////////////////////////////////////////////////////////////////////
+							if(d_del_opposite_side_processed){
+									if((*iter).value_int>previous_str.size()){
+											continue;
+									}
+							}
+
+						 //////////////////////////////////////////////////////////////////////////
+
 
 							//Delete the beginning of the D-gene (5' end)
 							new_str = previous_str.substr((*iter).value_int,string::npos);
@@ -656,6 +676,17 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 						//Positive or negative deletion (palindroms) mechanism
 						if((*iter).value_int >= 0){
+
+							///THIS IS A TEMPORARY FIX// //FIXME
+						//////////////////////////////////////////////////////////////////////////
+							if(d_del_opposite_side_processed){
+									if((*iter).value_int>previous_str.size()){
+											continue;
+									}
+							}
+						//////////////////////////////////////////////////////////////////////////
+
+
 							//Delete the end of the D-gene (3'end)
 							new_str = previous_str.substr(0,previous_str.size() - (*iter).value_int);
 
