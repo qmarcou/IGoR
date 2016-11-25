@@ -241,20 +241,19 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 				//Normalize the weights on the single_seq_marginal so that each sequence has the same weight when merged to the single_thread_marginals
 				single_thread_err_rate->norm_weights_by_seq_likelihood(single_seq_marginals.marginal_array_p,single_seq_marginals.get_length());
-				#pragma omp critical(output_0_ins_prob)
+				#pragma omp critical(dump_seq_info)
 				{
 					++sequences_processed;
 					//Output useful infos in the log file
 					//log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(D_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_probability()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
 					log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->get_seq_mean_error_number()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
-				}
-				for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
-					iter->second->count_sequence(single_thread_err_rate->get_seq_likelihood() , single_seq_marginals , single_thread_model_parms);
-					#pragma omp critical(dump_counters)
-					{
-						(*iter).second->dump_sequence_data(sequences_processed , iteration_accomplished);//FIXME use the sequence index instead
+
+					for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
+						iter->second->count_sequence(single_thread_err_rate->get_seq_likelihood() , single_seq_marginals , single_thread_model_parms);
+							(*iter).second->dump_sequence_data(sequences_processed , iteration_accomplished);//FIXME use the sequence index instead
 					}
 				}
+
 
 				if(single_thread_err_rate->get_seq_mean_error_number()<=mean_number_seq_err_thresh){
 					//Add weighed errors to the normalized error counter
