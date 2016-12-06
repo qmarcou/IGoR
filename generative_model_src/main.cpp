@@ -132,7 +132,7 @@ int main(int argc , char* argv[]){
 		vector<pair<const int, const string>> indexed_seqlist = read_txt( string("../demo/murugan_naive1_noncoding_demo_seqs.txt") ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
 
 
-/*		v_aligner.align_seqs( string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
+		v_aligner.align_seqs( string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
 		//v_aligner.write_alignments_seq_csv(path + string("alignments_V.csv") , v_alignments);
 
 		d_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"),indexed_seqlist,0,false);
@@ -140,7 +140,7 @@ int main(int argc , char* argv[]){
 
 		j_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
 
-*/		end_time= myclock::now();
+		end_time= myclock::now();
 		chrono::duration<double> elapsed = end_time - begin_time;
 		cout<<"Alignments procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
 		cout<<"for "<<indexed_seqlist.size()<<" TCRb sequences of 60bp(from murugan and al), against ";

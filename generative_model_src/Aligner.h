@@ -60,6 +60,8 @@ private:
 struct Alignment_data {
 	std::string gene_name;
 	int offset;
+	size_t five_p_offset;
+	size_t three_p_offset;
 	std::forward_list<int> insertions; //gap in the genomic sequence
 	std::forward_list<int> deletions; //gap in the data sequence
 	size_t align_length;
@@ -67,8 +69,9 @@ struct Alignment_data {
 	double score;
 
 	Alignment_data(std::string gene , int off): gene_name(gene) , offset(off) , insertions(*(new std::forward_list<int>)) , deletions(*(new std::forward_list<int>)) , score(0) {}
-	Alignment_data(int off , size_t align_len , std::forward_list<int> ins , std::forward_list<int> del , std::vector<int> mis , double alignment_score): gene_name(std::string()) , offset(off) , insertions(ins) , deletions(del) , align_length(align_len) , mismatches(mis) , score(alignment_score) {}
+	Alignment_data(int off, size_t five_p_off , size_t three_p_off , size_t align_len , std::forward_list<int> ins , std::forward_list<int> del , std::vector<int> mis , double alignment_score): gene_name(std::string()) , offset(off) , five_p_offset(five_p_off) , three_p_offset(three_p_off) , insertions(ins) , deletions(del) , align_length(align_len) , mismatches(mis) , score(alignment_score) {}
 	Alignment_data(std::string gene , int off , size_t align_len , std::forward_list<int> ins , std::forward_list<int> del , std::vector<int> mis , double alignment_score): gene_name(gene) , offset(off) , insertions(ins) , deletions(del) , align_length(align_len) , mismatches(mis) , score(alignment_score) {}
+	Alignment_data(std::string gene , int off, size_t five_p_off , size_t three_p_off , size_t align_len , std::forward_list<int> ins , std::forward_list<int> del , std::vector<int> mis , double alignment_score): gene_name(gene) , offset(off) , five_p_offset(five_p_off) , three_p_offset(three_p_off) , insertions(ins) , deletions(del) , align_length(align_len) , mismatches(mis) , score(alignment_score) {}
 
 /*	bool operator<(const Alignment_data& align){
 		//Hardcode to get the alignments in descending order using sort()

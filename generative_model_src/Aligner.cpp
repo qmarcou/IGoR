@@ -275,7 +275,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
 	ofstream outfile(filename);
-	outfile<<"seq_index"<<";"<<"gene_name"<<";"<<"score"<<";"<<"offset"<<";"<<"insertions"<<";"<<"deletions"<<";"<<"mismatches"<<";"<<"length"<<endl;
+	outfile<<"seq_index"<<";"<<"gene_name"<<";"<<"score"<<";"<<"offset"<<";"<<"insertions"<<";"<<"deletions"<<";"<<"mismatches"<<";"<<"length"<<";5_p_align_offset;3_p_align_offset"<<endl;
 
 	int processed_seq_number = 0;
 
@@ -368,7 +368,7 @@ void write_single_seq_alignment(ofstream& outfile , int seq_index , forward_list
 			if(kiter==(*jiter).mismatches.begin()){outfile<<(*kiter);}
 			else{outfile<<","<<(*kiter);}
 		}
-		outfile<<"};"<<(*jiter).align_length<<endl;
+		outfile<<"};"<<(*jiter).align_length<<";"<<(*jiter).five_p_offset<<";"<<(*jiter).three_p_offset<<endl;
 	}
 }
 
@@ -865,6 +865,8 @@ list<pair<int,Alignment_data>> Aligner::sw_align(const Int_Str& int_data_sequenc
 				int i=max_row_coord[align];
 				int j=max_col_coord[align];
 
+				size_t end_align_offset = i;
+
 				//If sequence has been flip compute how the offset and insertion/deletion should be changed
 				int flip_factor;
 				int flip_offset;
@@ -924,10 +926,14 @@ list<pair<int,Alignment_data>> Aligner::sw_align(const Int_Str& int_data_sequenc
 
 				}
 
+				size_t begin_align_offset = flip_factor*i+flip_mis*int_data_sequence_copy.size();
+				end_align_offset = flip_factor*end_align_offset+flip_mis*int_data_sequence_copy.size();
+
 
 				//Offset is the place where the first letter of the genomic sequence aligns
 				//if the alignment does not start from the beginning need to extrapolate
 				int offset = flip_factor*(i-j) + flip_offset + offset_change;
+
 
 
 				if( (offset>=min_offset) & (offset<=max_offset)){ //TODO reduce computation time by truncating the alignment from the beginning?
@@ -1004,7 +1010,7 @@ list<pair<int,Alignment_data>> Aligner::sw_align(const Int_Str& int_data_sequenc
 					if(max_score[align]>max_align_score){
 						max_align_score = max_score[align];
 					}
-					seq_alignments_results.emplace_back(pair<int,Alignment_data>(max_score[align] , Alignment_data(offset , align_length , insertions , deletions , mismatches , max_score[align])));
+					seq_alignments_results.emplace_back(pair<int,Alignment_data>(max_score[align] , Alignment_data(offset , begin_align_offset , end_align_offset , align_length , insertions , deletions , mismatches , max_score[align])));
 
 
 				}

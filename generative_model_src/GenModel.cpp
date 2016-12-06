@@ -198,7 +198,7 @@ bool GenModel::infer_model(const vector<pair<string,unordered_map<Gene_class , v
 
 			//Loop over sequences in parallel, using the number of threads declared previously when declaring the parallel section
 			//Use dynamic scheduling to avoid loss of time due to synchronization
-			#pragma omp for schedule(guided) nowait
+			#pragma omp for schedule(dynamic) nowait
 			for(vector<pair<string,unordered_map<Gene_class , vector<Alignment_data>>>>::const_iterator seq_it = (*sequence_util_ptr).begin() ; seq_it < (*sequence_util_ptr).end() ; ++seq_it){
 
 				//Make a copy of the queue that can be modified in iterate
