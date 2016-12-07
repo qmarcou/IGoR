@@ -17,7 +17,7 @@ public:
 	Coverage_err_counter(Gene_class);
 	Coverage_err_counter(Gene_class,bool,bool);
 	Coverage_err_counter(std::string,Gene_class,bool);
-	Coverage_err_counter(std::string,Gene_class,bool,bool);
+	Coverage_err_counter(std::string,Gene_class,size_t,bool,bool);
 	virtual ~Coverage_err_counter();
 
 	std::string type() const{return "CoverageErrCounter";};//TODO return an enum
@@ -40,6 +40,9 @@ private:
 	void allocate_coverage_and_errors_arrays(size_t,const std::unordered_map<std::string , Event_realization>,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&);
 	void dump_cov_and_err_arrays(int,int,std::shared_ptr<std::ofstream> , size_t , std::pair<size_t,double*>* , std::pair<size_t,double*>*);
 	void normalize_and_add_cov_and_err(double& , size_t , std::pair<size_t,double*>* , std::pair<size_t,double*>* , std::pair<size_t,double*>* , std::pair<size_t,double*>* );
+	void recurs_coverage_count(double scenario_seq_joint_proba , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len);
+	void recurs_errors_count(double scenario_seq_joint_proba , std::vector<int>& v_mismatch_list , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len);
+	void symmetrize();
 
 	std::shared_ptr<std::ofstream> output_cov_err_v_file_ptr;
 	std::shared_ptr<std::ofstream> output_cov_err_d_file_ptr;
@@ -47,6 +50,8 @@ private:
 
 	Gene_class count_on;
 	bool dump_individual_seqs;
+	size_t record_Npoint_occurence;
+	size_t* positions;
 
 	//Normalized coverage and error counters
 	//# V D and J possible realizations and events

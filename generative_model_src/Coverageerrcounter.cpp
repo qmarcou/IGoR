@@ -10,21 +10,21 @@
 using namespace std;
 
 
-Coverage_err_counter::Coverage_err_counter(Gene_class count_on): Coverage_err_counter("/tmp/",count_on,false,false){
+Coverage_err_counter::Coverage_err_counter(Gene_class count_on): Coverage_err_counter("/tmp/",count_on,1,false,false){
 
 }
 
-Coverage_err_counter::Coverage_err_counter(Gene_class count_on , bool dump_all_seq , bool last_iter_only): Coverage_err_counter("/tmp/",count_on,dump_all_seq,last_iter_only){
+Coverage_err_counter::Coverage_err_counter(Gene_class count_on , bool dump_all_seq , bool last_iter_only): Coverage_err_counter("/tmp/",count_on,1,dump_all_seq,last_iter_only){
 
 }
 
 
-Coverage_err_counter::Coverage_err_counter(string path , Gene_class count_on , bool dump_all_seq): Coverage_err_counter(path,count_on,dump_all_seq,false){
+Coverage_err_counter::Coverage_err_counter(string path , Gene_class count_on , bool dump_all_seq): Coverage_err_counter(path,count_on,1,dump_all_seq,false){
 
 }
 
-Coverage_err_counter::Coverage_err_counter(string path , Gene_class count_on , bool dump_all_seq , bool last_iter_only): Counter(path , last_iter_only) ,
-		count_on(count_on) , dump_individual_seqs(dump_all_seq),
+Coverage_err_counter::Coverage_err_counter(string path , Gene_class count_on , size_t Npoint_count , bool dump_all_seq , bool last_iter_only): Counter(path , last_iter_only) ,
+		count_on(count_on) , record_Npoint_occurence(Npoint_count) , dump_individual_seqs(dump_all_seq),
 		v_gene_nucleotide_coverage_p(NULL) , v_gene_per_nucleotide_error_p(NULL),d_gene_nucleotide_coverage_p(NULL) , d_gene_per_nucleotide_error_p(NULL),j_gene_nucleotide_coverage_p(NULL) , j_gene_per_nucleotide_error_p(NULL),
 		v_gene_nucleotide_coverage_seq_p(NULL) , v_gene_per_nucleotide_error_seq_p(NULL) , d_gene_nucleotide_coverage_seq_p(NULL) , d_gene_per_nucleotide_error_seq_p(NULL) , j_gene_nucleotide_coverage_seq_p(NULL) , j_gene_per_nucleotide_error_seq_p(NULL) ,
 		vgene_offset_p(NULL) , dgene_offset_p(NULL) , jgene_offset_p(NULL) ,
@@ -134,7 +134,7 @@ void Coverage_err_counter::initialize_counter(const Model_Parms& parms , const M
 
 
 	if(count_on_d){
-		//Initialize V pointers
+		//Initialize D pointers
 		try{
 			d_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
 			dgene_offset_p = &d_gene_event_p->alignment_offset_p;
@@ -174,7 +174,7 @@ void Coverage_err_counter::initialize_counter(const Model_Parms& parms , const M
 	}
 
 	if(count_on_j){
-		//Initialize V pointers
+		//Initialize J pointers
 		try{
 			j_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
 			jgene_offset_p = &j_gene_event_p->alignment_offset_p;
@@ -205,8 +205,6 @@ void Coverage_err_counter::initialize_counter(const Model_Parms& parms , const M
 
 	}
 
-
-
 }
 
 void Coverage_err_counter::count_scenario(double scenario_seq_joint_proba , double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Mismatch_vectors_map& mismatches_lists){
@@ -221,7 +219,28 @@ void Coverage_err_counter::count_scenario(double scenario_seq_joint_proba , doub
 		tmp_cov_p = v_gene_nucleotide_coverage_seq_p[**vgene_real_index_p].second;
 		tmp_err_p = v_gene_per_nucleotide_error_seq_p[**vgene_real_index_p].second;
 
-		//Get the corrected number of deletions(no negative deletion)
+		/*
+		 * Start at position 0
+		 * Assume V is on the left of the read and compute left bound: max(0,-(**vgene_offset_p))
+		 * Disregard P nucleotides, and set end bound as: tmp_corr_len - max(0,*v_3_del_value_p)
+		 */
+
+		this->recurs_coverage_count(scenario_seq_joint_proba,0,max(0,-(**vgene_offset_p)),tmp_corr_len - max(0,*v_3_del_value_p),tmp_corr_len);
+
+		/*
+		 * compute the position on the mismatch vector of the first Pnuc error and set it as the end bound
+		 */
+		size_t tmp_len_util = v_mismatch_list.size();
+		for( i = 0 ; i != tmp_len_util ; ++i){
+			//Disregard mismatches due to P nucleotides
+			if(	 (v_mismatch_list[i]-(**vgene_offset_p))>=tmp_corr_len ){
+				tmp_len_util = i;
+				break;
+			}
+		}
+		this->recurs_errors_count(scenario_seq_joint_proba,v_mismatch_list,0,0,tmp_len_util,tmp_corr_len);
+
+/*		//Get the corrected number of deletions(no negative deletion)
 		tmp_corr_len -= max(0,*v_3_del_value_p); //FIXME assumes that V is on the left of the read
 
 		// Compute the coverage
@@ -236,7 +255,7 @@ void Coverage_err_counter::count_scenario(double scenario_seq_joint_proba , doub
 			if(	 (v_mismatch_list[i]-(**vgene_offset_p))<tmp_corr_len ){
 				tmp_err_p[v_mismatch_list[i]-(**vgene_offset_p)]+=scenario_seq_joint_proba;
 			}
-		}
+		}*/
 
 	}
 
@@ -255,7 +274,28 @@ void Coverage_err_counter::count_scenario(double scenario_seq_joint_proba , doub
 		tmp_cov_p = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].second;
 		tmp_err_p = j_gene_per_nucleotide_error_seq_p[**jgene_real_index_p].second;
 
-		//Get the corrected number of deletions(no negative deletion)
+		/*
+		 * Start at position 0
+		 * Assume V is on the left of the read and compute left bound: max(0,-(**vgene_offset_p))
+		 * Disregard P nucleotides, and set end bound as: tmp_corr_len - max(0,*v_3_del_value_p)
+		 */
+
+		this->recurs_coverage_count(scenario_seq_joint_proba,0,max(0,(*j_5_del_value_p)),max(0,(*j_5_del_value_p))+(seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1),tmp_corr_len);
+
+		/*
+		 * compute the position on the mismatch vector of the first Pnuc error and set it as the end bound
+		 */
+		size_t tmp_len_util = j_mismatch_list.size();
+		for( i = 0 ; i != tmp_len_util ; ++i){
+			//Disregard mismatches due to P nucleotides
+			if(	 (j_mismatch_list[i] >= (**jgene_offset_p) + tmp_corr_len) ){
+				tmp_len_util = i;
+				break;
+			}
+		}
+		this->recurs_errors_count(scenario_seq_joint_proba,j_mismatch_list,0,tmp_len_util,j_mismatch_list.size(),tmp_corr_len);
+
+/*		//Get the corrected number of deletions(no negative deletion)
 		tmp_corr_len = max(0,(*j_5_del_value_p));
 
 		// Compute the coverage
@@ -271,7 +311,7 @@ void Coverage_err_counter::count_scenario(double scenario_seq_joint_proba , doub
 			if(	(j_mismatch_list[i] >= (**jgene_offset_p) + tmp_corr_len) ){
 				tmp_err_p[j_mismatch_list[i]-(**jgene_offset_p)]+=scenario_seq_joint_proba;
 			}
-		}
+		}*/
 
 	}
 }
@@ -362,7 +402,7 @@ shared_ptr<Counter> Coverage_err_counter::copy() const{
 		}
 	}
 	else{
-		throw runtime_error("Counters should not be copied before stream initalization");
+		throw runtime_error("Counters should not be copied before stream initialization");
 	}
 	return counter_copy_ptr;
 }
@@ -378,14 +418,14 @@ void Coverage_err_counter::allocate_coverage_and_errors_arrays(size_t n_real, co
 	for(unordered_map<string , Event_realization>::const_iterator iter = realizations.begin() ; iter != realizations.end() ; iter++){
 
 		//Initialize normalized counters
-		gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-		gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+		gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [pow((*iter).second.value_str_int.size(),record_Npoint_occurence)]);
+		gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [pow((*iter).second.value_str_int.size(),record_Npoint_occurence)]);
 
 		//Initialize sequence counters
-		gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-		gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
+		gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [pow((*iter).second.value_str_int.size(),record_Npoint_occurence)]);
+		gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [pow((*iter).second.value_str_int.size(),record_Npoint_occurence)]);
 
-		for(i=0 ; i!=(*iter).second.value_str_int.size() ; ++i){
+		for(i=0 ; i!=pow((*iter).second.value_str_int.size(),record_Npoint_occurence) ; ++i){
 			gene_nucleotide_coverage_p[(*iter).second.index].second[i]=0;
 			gene_per_nucleotide_error_p[(*iter).second.index].second[i]=0;
 
@@ -398,7 +438,7 @@ void Coverage_err_counter::allocate_coverage_and_errors_arrays(size_t n_real, co
 
 void Coverage_err_counter::dump_cov_and_err_arrays( int iteration_n ,  int seq_index , shared_ptr<ofstream> outfile_ptr , size_t n_real , pair<size_t,double*>* coverage_array_p , pair<size_t,double*>* error_array_p ){
 	for(i=0 ; i!=n_real; ++i ){
-		tmp_len_util = coverage_array_p[i].first;
+		tmp_len_util = pow(coverage_array_p[i].first,record_Npoint_occurence);
 		tmp_cov_p = coverage_array_p[i].second;
 		tmp_err_p = error_array_p[i].second;
 
@@ -430,7 +470,7 @@ void Coverage_err_counter::dump_cov_and_err_arrays( int iteration_n ,  int seq_i
 
 void Coverage_err_counter::normalize_and_add_cov_and_err(double& normalizing_cst , size_t n_real , pair<size_t,double*>* target_coverage_array_p , pair<size_t,double*>* target_error_array_p , pair<size_t,double*>* base_coverage_array_p , pair<size_t,double*>* base_error_array_p){
 	for(i=0 ; i!=n_real; ++i ){
-		tmp_len_util = base_coverage_array_p[i].first;
+		tmp_len_util = pow(base_coverage_array_p[i].first,record_Npoint_occurence);
 		tmp_cov_p = base_coverage_array_p[i].second;
 		tmp_err_p = base_error_array_p[i].second;
 
@@ -447,6 +487,38 @@ void Coverage_err_counter::normalize_and_add_cov_and_err(double& normalizing_cst
 				target_error_array_p[i].second[j]+=tmp_err_p[j];
 				tmp_err_p[j] = 0; //Clean seq counter
 			}
+		}
+	}
+}
+
+void Coverage_err_counter::recurs_coverage_count(double scenario_seq_joint_proba , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len){
+	for(size_t j = begin_bound ; j!=end_bound ; ++j){
+		this->positions[N] = j;
+		if(N<record_Npoint_occurence-1){
+			this->recurs_coverage_count(scenario_seq_joint_proba , N+1 , j , end_bound , gene_len);
+		}
+		else{
+			size_t adress = 0;
+			for(size_t a = 0 ; a!=record_Npoint_occurence ; ++a){
+				adress+=positions[a]*pow(gene_len,a);
+			}
+			tmp_cov_p[adress] += scenario_seq_joint_proba;
+		}
+	}
+}
+
+void Coverage_err_counter::recurs_errors_count(double scenario_seq_joint_proba , vector<int>& mismatch_list , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len){
+	for(size_t j = begin_bound ; j!=end_bound ; ++j){
+		this->positions[N] = mismatch_list.at(j);
+		if(N<record_Npoint_occurence-1){
+			this->recurs_errors_count(scenario_seq_joint_proba , mismatch_list , N+1 , j , end_bound , gene_len);
+		}
+		else{
+			size_t adress = 0;
+			for(size_t a = 0 ; a!=record_Npoint_occurence ; ++a){
+				adress+=positions[a]*pow(gene_len,a);
+			}
+			tmp_cov_p[adress] += scenario_seq_joint_proba;
 		}
 	}
 }
