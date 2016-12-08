@@ -657,6 +657,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 	this->seq_likelihood += scenario_new_proba;
 	this->seq_probability+=scenario_probability;
+	this->seq_mean_error_number +=  (v_mismatch_list.size() + d_mismatch_list.size() + j_mismatch_list.size())*scenario_new_proba;
 	++debug_number_scenarios;
 
 	return scenario_new_proba;
