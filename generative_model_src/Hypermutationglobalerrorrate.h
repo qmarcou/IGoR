@@ -106,6 +106,9 @@ private:
 	std::pair<size_t,double*>* j_gene_per_nucleotide_error_seq_p;*/
 
 
+	Int_Str* v_sequences;
+	Int_Str* j_sequences;
+
 	bool apply_to_v;
 	bool apply_to_d;
 	bool apply_to_j;

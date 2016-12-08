@@ -396,7 +396,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			else{
 				if( (i<=seq_offsets.at(V_gene_seq,Three_prime)) or (i>=seq_offsets.at(J_gene_seq,Five_prime))){
 					scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
-					//FIXME THIS A SUPER HARD FIX!
+					//FIXME THIS A SUPER HARD FIX! DOES NOT EVEN TAKE D INTO ACCOUNT
 				}
 			}
 
@@ -442,7 +442,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-		//Debug shit
+		//Debug
 /////////////////////////////////////////////////////////////////////////////////////////////
 		current_mismatch = v_mismatch_list.begin();
 
@@ -561,7 +561,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 
 		/////////////////////////////////////////////////////////////////////////////////////////////
-				//Debug shit
+				//Debug
 		/////////////////////////////////////////////////////////////////////////////////////////////
 		if( (seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1 )>=mutation_Nmer_size ){
 				current_mismatch = j_mismatch_list.begin();
@@ -1156,6 +1156,10 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			//Get the number of realizations
 			n_v_real = v_realizations.size();
 
+			v_sequences = new const Int_Str [n_v_real];
+			for (const pair<const string,Event_realization> v_real: v_realizations){
+				v_sequences[v_real.second.index] = v_real.second.value_str_int;
+			}
 
 /*			//Create arrays
 			v_gene_nucleotide_coverage_p = new pair<size_t,double*>[n_v_real];
@@ -1235,6 +1239,10 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			//Get the number of realizations
 			n_j_real = j_realizations.size();
 
+			j_sequences = new const Int_Str [n_j_real];
+			for (const pair<const string,Event_realization> j_real: j_realizations){
+				j_sequences[j_real.second.index] = j_real.second.value_str_int;
+			}
 
 /*			//Create arrays
 			j_gene_nucleotide_coverage_p = new pair<size_t,double*>[n_j_real];
