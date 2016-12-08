@@ -248,7 +248,7 @@ int main(int argc , char* argv[]){
 		//Instantiate a Counter
 		map<size_t,shared_ptr<Counter>> counters_list;
 		 //Collect gene coverage and errors
-		shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter("../demo/run_demo/",VJ_genes,false,false));
+		shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter("../demo/run_demo/",VJ_genes,1,false,false));
 		counters_list.emplace(0,coverage_counter_ptr);
 
 		 //Collect 10 best scenarios per sequence during the last iteration

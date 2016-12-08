@@ -41,8 +41,9 @@ private:
 	void dump_cov_and_err_arrays(int,int,std::shared_ptr<std::ofstream> , size_t , std::pair<size_t,double*>* , std::pair<size_t,double*>*);
 	void normalize_and_add_cov_and_err(double& , size_t , std::pair<size_t,double*>* , std::pair<size_t,double*>* , std::pair<size_t,double*>* , std::pair<size_t,double*>* );
 	void recurs_coverage_count(double scenario_seq_joint_proba , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len);
-	void recurs_errors_count(double scenario_seq_joint_proba , std::vector<int>& v_mismatch_list , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len);
-	void symmetrize();
+	void recurs_errors_count(double scenario_seq_joint_proba , std::vector<int>& v_mismatch_list , 	const int** gene_offset_p  , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len);
+	void symmetrize_counter_array(double* , size_t , size_t,size_t);
+	void symmetrize_counter_array_recurs(size_t , size_t , size_t* , double* , size_t);
 
 	std::shared_ptr<std::ofstream> output_cov_err_v_file_ptr;
 	std::shared_ptr<std::ofstream> output_cov_err_d_file_ptr;
