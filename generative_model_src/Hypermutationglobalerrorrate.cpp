@@ -405,6 +405,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 		}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 		//Hard fix test for taking (mutation_Nmer_size-1)/2 last J nucleotides into account //FIXME
 		//This is assuming that J is last nucleotide of the sequence (does agree with the rest of the code until now)
 		for(i=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2;i!=scenario_resulting_sequence.size();++i){
@@ -439,7 +440,69 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			}
 		}
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+			//Hard fix test for taking (mutation_Nmer_size-1)/2 first V nucleotides into account //FIXME
+			//This is assuming that V is the first nucleotide of the sequence (does agree with the rest of the code until now)
+			Nmer_index = 0;
+			while(!current_Nmer.empty()){
+				current_Nmer.pop();
+			}
+
+			tmp_len_util = -(**vgene_offset_p) - (mutation_Nmer_size-1)/2 ;
+			for(i=0 ; i!=mutation_Nmer_size ; ++i){
+				if(i<(mutation_Nmer_size-1)/2){
+					//Take an unseen nucleotide from the V
+					tmp_int_nt = v_sequences[**vgene_real_index_p][i+tmp_corr_len];
+				}
+				else{
+					//Take a nucleotide seen on the read
+					tmp_int_nt = scenario_resulting_sequence.at(i-(mutation_Nmer_size-1)/2);
+				}
+				current_Nmer.push(tmp_int_nt);
+				Nmer_index+=adressing_vector[i]*tmp_int_nt;
+			}
+
+			//If there is an error on the first nucleotide apply the cost accordingly
+			current_mismatch = v_mismatch_list.begin();
+
+			if( (current_mismatch!=v_mismatch_list.end())
+				&& ((*current_mismatch)== 0) ){
+				scenario_new_proba*=(Nmer_mutation_proba[Nmer_index]/3);
+				++current_mismatch;
+			}
+			else{
+				scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+			}
+
+			for(i=1 ; i!=(mutation_Nmer_size-1)/2;++i){
+				Nmer_index-=current_Nmer.front()*adressing_vector[0];
+				current_Nmer.pop();
+				//Shift the index
+				Nmer_index*=4;
+				//Add the contribution of the new nucleotide
+				tmp_int_nt = scenario_resulting_sequence[i+(mutation_Nmer_size-1)/2];
+				Nmer_index+=tmp_int_nt;
+				current_Nmer.push(tmp_int_nt);
+
+				if( (current_mismatch!=v_mismatch_list.end())
+						&& ((*current_mismatch)==i)){
+
+					scenario_new_proba*=(Nmer_mutation_proba[Nmer_index]/3);
+
+					++current_mismatch;
+				}
+				else{
+					if((i<=seq_offsets.at(V_gene_seq,Three_prime))){
+						scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+						//FIXME THIS A SUPER HARD FIX!
+					}
+				}
+			}
+
 	}
+
+
 
 	if(std::isnan(scenario_new_proba)){
 		cout<<"SHOUT!!"<<endl;
