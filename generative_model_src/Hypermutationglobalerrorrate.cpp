@@ -22,6 +22,7 @@ ofstream debug_stream("/tmp/debug_stream.csv");
 		largest_nuc_adress(-1), tmp_int_nt(-1) , Nmer_index(-1){*/
 
 Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , mutation_Nmer_size(nmer_width) , learn_on(learn) , apply_to(apply) , ei_nucleotide_contributions((new double [4*nmer_width])) , R(starting_flat_value) , n_v_real(0) , n_j_real(0) , n_d_real(0) ,
+		v_sequences(NULL),j_sequences(NULL),
 		dj_ins(true) , vd_ins(true) , vj_ins(true) , v_gene(true) , d_gene(true) , j_gene(true) ,
 		vgene_offset_p(NULL) , dgene_offset_p(NULL) , jgene_offset_p(NULL) ,
 		vgene_real_index_p(NULL) , dgene_real_index_p(NULL) , jgene_real_index_p(NULL),
@@ -239,14 +240,15 @@ Error_rate* Hypermutation_global_errorrate::add_checked(Error_rate* err_r){
 }
 
 double Hypermutation_global_errorrate::get_err_rate_upper_bound() const{
-	double max_proba = 0;
+/*	double max_proba = 0;
 	for(i=0 ; i!=pow(4,mutation_Nmer_size);i++){
 		if(Nmer_mutation_proba[i]>max_proba){
 			max_proba = Nmer_mutation_proba[i];
 		}
 	}
 	cout<<"max_proba: "<<max_proba<<endl;
-	return max_proba/3;
+	return max_proba/3;*/
+	return R/(3*(1+R));
 }
 
 double Hypermutation_global_errorrate::compare_sequences_error_prob (double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){
@@ -403,6 +405,40 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 		}
 
+		//Hard fix test for taking (mutation_Nmer_size-1)/2 last J nucleotides into account //FIXME
+		//This is assuming that J is last nucleotide of the sequence (does agree with the rest of the code until now)
+		for(i=scenario_resulting_sequence.size()-(mutation_Nmer_size-1)/2;i!=scenario_resulting_sequence.size();++i){
+			Nmer_index-=current_Nmer.front()*adressing_vector[0];
+			current_Nmer.pop();
+			//Shift the index
+			Nmer_index*=4;
+			//Add the contribution of the new nucleotide
+			tmp_int_nt = j_sequences[**jgene_real_index_p].at(i-seq_offsets.at(J_gene_seq,Five_prime)+(*j_5_del_value_p));//Assume a symetric Nmer
+			Nmer_index+=tmp_int_nt;
+			current_Nmer.push(tmp_int_nt);
+
+			if( (current_mismatch!=j_mismatch_list.end())
+					&& ((*current_mismatch)==i)){
+
+				scenario_new_proba*=(Nmer_mutation_proba[Nmer_index]/3);
+
+				++current_mismatch;
+
+				if(current_mismatch==v_mismatch_list.end()){
+					current_mismatch = d_mismatch_list.begin();
+				}
+				if(current_mismatch==d_mismatch_list.end()){ //no else if in case d_mismatch list is empty
+					current_mismatch = j_mismatch_list.begin();
+				}
+			}
+			else{
+				if((i>=seq_offsets.at(J_gene_seq,Five_prime))){
+					scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+					//FIXME THIS A SUPER HARD FIX!
+				}
+			}
+		}
+
 	}
 
 	if(std::isnan(scenario_new_proba)){
@@ -520,7 +556,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-		//End of debug shit
+		//End of debug
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -532,38 +568,108 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 	}
 
 	if(learn_on_j){
-/*		//Get the coverage
-		//Get the length of the gene and a pointer to the right array to write on
-		tmp_corr_len = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].first;
-		tmp_cov_p = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].second;
-		tmp_err_p = j_gene_per_nucleotide_error_seq_p[**jgene_real_index_p].second;
 
-		//Get the corrected number of deletions(no negative deletion)
-		tmp_corr_len = min(tmp_corr_len,(int)scenario_resulting_sequence.size()-(**jgene_offset_p));//TODO remove this dirty cast
+		/*
+		 * If at least (mutation_Nmer_size+1)/2 J nucleotides remaining (1 visible to count the error, (mutation_Nmer_size-1)/2 on the 3' side for the context assessment
+		 * Length of the visible part of J: seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1
+		 * Length of the non visible part of J: J_gene_size - #visible - #deleted
+		 * There must be at least one J nucleotide visible (this is ensured by the alignments)
+		 */
 
-		// Compute the coverage
-		for( i = max(0,*j_5_del_value_p) ; i != tmp_corr_len ; ++i ){
-			tmp_cov_p[i]+=scenario_new_proba;
+		if(j_sequences[**jgene_real_index_p].size() - *j_5_del_value_p>=(mutation_Nmer_size+1)/2){
+			current_mismatch = j_mismatch_list.begin();
+
+
+			//Empty the Nmer queue
+			Nmer_index = 0;
+			while(!current_Nmer.empty()){
+				current_Nmer.pop();
+			}
+
+			is_visible_nt = true;
+			tmp_corr_len = seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime)+(mutation_Nmer_size-1)/2;
+			tmp_len_util = seq_offsets.at(J_gene_seq,Five_prime)-(mutation_Nmer_size-1)/2; //Start using the information of the (N-1)/2 inserted (or D) nucleotides before the J
+
+			//Fill in the first Nmer queue (=surroundings of the first J nucleotide)
+			for(i=0 ; i!= mutation_Nmer_size ; ++i){
+				if(is_visible_nt){
+					//For visible nucleotides assume there is no error in the rest of the context => read the scenario resulting sequence
+					tmp_int_nt = scenario_resulting_sequence.at(i+tmp_len_util);
+					if(i==tmp_corr_len){
+						is_visible_nt = false; //All 3' nucleotides are not visible
+						tmp_corr_len = (mutation_Nmer_size-1)/2 - *j_5_del_value_p ; //Correct offset to read the j sequence => Should read the J sequence at position i - #insertions + #deletions
+					}
+				}
+				else{
+					tmp_int_nt = j_sequences[**jgene_real_index_p].at(i-tmp_corr_len);
+				}
+				current_Nmer.push(tmp_int_nt);
+				Nmer_index+=adressing_vector.at(i)*tmp_int_nt;
+			}
+
+
+			//Check if there is an error on the first nucleotide and record Nmer statistics
+			if( (current_mismatch!=j_mismatch_list.end())
+				&& ((*current_mismatch)==seq_offsets.at(J_gene_seq,Five_prime)) ){
+				one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+				one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+				++current_mismatch;
+			}
+			else{
+				one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+			}
+
+			//Now look at all nucleotides
+			/*
+			 * i stands for the position of the last nucleotide of the window
+			 * Need to stop when i== #insertions considered + #visible J considered + #invisible J considered
+			 * i.e i == (N-1)/2 + (J3'_offset - J5'_offset +1) + (N-1)/2 => i!= N + (J3'_offset - J5'_offset +1)
+			 */
+			for(i=mutation_Nmer_size ; i!= mutation_Nmer_size + (seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1) ; ++i){
+				//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+				Nmer_index-=current_Nmer.front()*adressing_vector[0];
+				current_Nmer.pop();
+				//Shift the index
+				Nmer_index*=4;
+
+				//Get the next int nt (either on the visible or invisible part)
+				if(is_visible_nt){
+					//For visible nucleotides assume there is no error in the rest of the context => read the scenario resulting sequence
+					tmp_int_nt = scenario_resulting_sequence.at(i+tmp_len_util);
+					if(i==tmp_corr_len){
+						is_visible_nt = false; //All 3' nucleotides are not visible
+						tmp_corr_len = (mutation_Nmer_size-1)/2 - *j_5_del_value_p; //Correct offset to read the j sequence => #insertion_considered - #deletions + #visible_J_nucs
+					}
+				}
+				else{
+					tmp_int_nt = j_sequences[**jgene_real_index_p].at(i-tmp_corr_len);
+				}
+
+				//Add the contribution of the new nucleotide
+				Nmer_index+=tmp_int_nt;
+				current_Nmer.push(tmp_int_nt);
+
+				//Check if there is an error on the central nucleotide and record Nmer statistics
+				if( (current_mismatch!=j_mismatch_list.end())
+						&& ((*current_mismatch)==i+tmp_len_util-(mutation_Nmer_size-1)/2)){
+					one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+					one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+					++current_mismatch;
+				}
+				else{
+					one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+				}
+			}
+
+		}
+		else{
+			//Do nothing: there is not enough nucleotides on the right to compute an Nmer
 		}
 
-		//Compute the error per nucleotide on the gene
-		tmp_len_util = j_mismatch_list.size();
-		for( i = 0 ; i != tmp_len_util ; ++i){
-			//Disregard mismatches due to P nucleotides
-			if(	(j_mismatch_list[i] < scenario_resulting_sequence.size() - (mutation_Nmer_size-1)/2) //is this criterion necessary?
-					&& (j_mismatch_list[i] >= (**jgene_offset_p) + max(0,*j_5_del_value_p)+ (mutation_Nmer_size-1)/2) ){
-				tmp_err_p[j_mismatch_list[i]-(**jgene_offset_p)]+=scenario_new_proba; //=> ths is a problem with P ins
-				//Debug
-				//debug_mismatch_seq_coverage[j_mismatch_list[i]]+=scenario_new_proba;
-			}
-		}*/
 
+/*		if( (seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1 )>=mutation_Nmer_size ){
+			//There are enough J nucleotides on the read to start counting at the first J position
 
-
-		/////////////////////////////////////////////////////////////////////////////////////////////
-				//Debug
-		/////////////////////////////////////////////////////////////////////////////////////////////
-		if( (seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1 )>=mutation_Nmer_size ){
 				current_mismatch = j_mismatch_list.begin();
 
 				//TODO Need to get the previous V nucleotides and last J ones
@@ -580,7 +686,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 					Nmer_index+=adressing_vector.at(i-seq_offsets.at(J_gene_seq,Five_prime)+1)*tmp_int_nt;
 				}
 
-/*
+
 				//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
 				while((current_mismatch!=j_mismatch_list.end())
 						&& (*current_mismatch)<(mutation_Nmer_size-1)/2){
@@ -589,7 +695,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 					//this needs a true correct fix
 				}
 				//FIXME more!!!!
-*/
+
 
 				//FIXME maybe should iterate the other way around, what happens for errors/context of first nucleotides?
 
@@ -638,10 +744,16 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 					}
 				}
 		}
+		else if(){
+			//There is not enough J nucleotides on the read, however using the "unseen" 3' J nucleotides at least one position can be counted
+		}
+		else{
+			//There is not enough nucleotides on the 3' side to be able to count this position
+		}*/
 
 
 		/////////////////////////////////////////////////////////////////////////////////////////
-				//End of debug shit
+				//End of debug
 		/////////////////////////////////////////////////////////////////////////////////////////
 	}
 
@@ -1156,7 +1268,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			//Get the number of realizations
 			n_v_real = v_realizations.size();
 
-			v_sequences = new const Int_Str [n_v_real];
+			v_sequences = new Int_Str [n_v_real];
 			for (const pair<const string,Event_realization> v_real: v_realizations){
 				v_sequences[v_real.second.index] = v_real.second.value_str_int;
 			}
@@ -1239,7 +1351,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			//Get the number of realizations
 			n_j_real = j_realizations.size();
 
-			j_sequences = new const Int_Str [n_j_real];
+			j_sequences = new Int_Str [n_j_real];
 			for (const pair<const string,Event_realization> j_real: j_realizations){
 				j_sequences[j_real.second.index] = j_real.second.value_str_int;
 			}
@@ -1521,7 +1633,7 @@ void Hypermutation_global_errorrate::update_Nmers_proba(int current_pos , int cu
 		}
 		else{
 			this->Nmer_mutation_proba[new_index]= new_score*R/(1+new_score*R);
-			cout<<"Nmerproba: "<<new_index<<";"<<new_score*R/(1+new_score*R)<<endl;
+			//cout<<"Nmerproba: "<<new_index<<";"<<new_score*R/(1+new_score*R)<<endl;
 		}
 	}
 }
