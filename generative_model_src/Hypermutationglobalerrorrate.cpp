@@ -444,6 +444,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 ////////////////////////////////////////////////////////////////////////////////////////////////
 			//Hard fix test for taking (mutation_Nmer_size-1)/2 first V nucleotides into account //FIXME
 			//This is assuming that V is the first nucleotide of the sequence (does agree with the rest of the code until now)
+		if(v_gene){
 			Nmer_index = 0;
 			while(!current_Nmer.empty()){
 				current_Nmer.pop();
@@ -453,7 +454,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			for(i=0 ; i!=mutation_Nmer_size ; ++i){
 				if(i<(mutation_Nmer_size-1)/2){
 					//Take an unseen nucleotide from the V
-					tmp_int_nt = v_sequences[**vgene_real_index_p][i+tmp_corr_len];
+					tmp_int_nt = v_sequences[**vgene_real_index_p][i+tmp_len_util];
 				}
 				else{
 					//Take a nucleotide seen on the read
@@ -499,6 +500,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 					}
 				}
 			}
+		}
 
 	}
 
@@ -1319,46 +1321,47 @@ void Hypermutation_global_errorrate::increment_base_10_and_4(int& base_10_counte
 void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map){
 	//FIXME look for previous initialization to avoid memory leak
 
+	//Initialize booleans for constructed sequences
+	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side))>0){
+		v_gene=true;
+	}
+	else{v_gene=false;}
+	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side))>0){
+		d_gene=true;
+	}
+	else{d_gene=false;}
+	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side))>0){
+		j_gene=true;
+	}
+	else{j_gene=false;}
+	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VJ_genes,Undefined_side))>0){
+		vj_ins=true;
+	}
+	else{vj_ins=false;}
+	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side))>0){
+		vd_ins=true;
+	}
+	else{vd_ins=false;}
+	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,DJ_genes,Undefined_side))>0){
+		dj_ins=true;
+	}
+	else{dj_ins=false;}
+
 	//Get the right pointers for the V gene
-	if(learn_on == V_gene | learn_on == VJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
-		try{
-			v_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side)));
-			vgene_offset_p = &v_gene_event_p->alignment_offset_p;
-			vgene_real_index_p = &v_gene_event_p->current_realization_index;
 
-			//Initialize gene counters
-			v_realizations = v_gene_event_p->get_realizations_map();
-			//Get the number of realizations
-			n_v_real = v_realizations.size();
+	if(v_gene){
+		v_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side)));
+		vgene_offset_p = &v_gene_event_p->alignment_offset_p;
+		vgene_real_index_p = &v_gene_event_p->current_realization_index;
 
-			v_sequences = new Int_Str [n_v_real];
-			for (const pair<const string,Event_realization> v_real: v_realizations){
-				v_sequences[v_real.second.index] = v_real.second.value_str_int;
-			}
+		//Initialize gene counters
+		v_realizations = v_gene_event_p->get_realizations_map();
+		//Get the number of realizations
+		n_v_real = v_realizations.size();
 
-/*			//Create arrays
-			v_gene_nucleotide_coverage_p = new pair<size_t,double*>[n_v_real];
-			v_gene_per_nucleotide_error_p = new pair<size_t,double*>[n_v_real];
-			v_gene_nucleotide_coverage_seq_p = new pair<size_t,double*>[n_v_real];
-			v_gene_per_nucleotide_error_seq_p = new pair<size_t,double*>[n_v_real];
-
-			for(unordered_map<string , Event_realization>::const_iterator iter = v_realizations.begin() ; iter != v_realizations.end() ; iter++){
-
-				//Initialize normalized counters
-				v_gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-				v_gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-
-				//Initialize sequence counters
-				v_gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-				v_gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-			}*/
-
-		}
-		catch(exception& except){
-			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
-			cout<<"Exception caught trying to initialize V gene pointers"<<endl;
-			cout<<endl<<"throwing exception now..."<<endl;
-			throw except;
+		v_sequences = new Int_Str [n_v_real];
+		for (const pair<const string,Event_realization> v_real: v_realizations){
+			v_sequences[v_real.second.index] = v_real.second.value_str_int;
 		}
 
 		//Get deletion value pointer for V 3' deletions if it exists
@@ -1369,6 +1372,16 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 		else{v_3_del_value_p = &no_del_buffer;}
 
 	}
+	else{
+		if(learn_on == V_gene | learn_on == VJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
+			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
+			cout<<"Exception caught trying to initialize V gene pointers"<<endl;
+			cout<<endl<<"throwing exception now..."<<endl;
+			throw runtime_error("Cannot learn on V gene without V gene in the model!");
+		}
+	}
+
+
 
 	//Get the right pointers for the D gene
 	if(learn_on == D_gene | learn_on == DJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
@@ -1452,31 +1465,7 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 	}
 	else{j_5_del_value_p = &no_del_buffer;}
 
-	//Initialize booleans for constructed sequences
-	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side))>0){
-		v_gene=true;
-	}
-	else{v_gene=false;}
-	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side))>0){
-		d_gene=true;
-	}
-	else{d_gene=false;}
-	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side))>0){
-		j_gene=true;
-	}
-	else{j_gene=false;}
-	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VJ_genes,Undefined_side))>0){
-		vj_ins=true;
-	}
-	else{vj_ins=false;}
-	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,VD_genes,Undefined_side))>0){
-		vd_ins=true;
-	}
-	else{vd_ins=false;}
-	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Insertion_t,DJ_genes,Undefined_side))>0){
-		dj_ins=true;
-	}
-	else{dj_ins=false;}
+
 
 	this->clean_all_counters();
 
