@@ -1348,7 +1348,6 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 	else{dj_ins=false;}
 
 	//Get the right pointers for the V gene
-
 	if(v_gene){
 		v_gene_event_p = dynamic_pointer_cast<Gene_choice> (events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side)));
 		vgene_offset_p = &v_gene_event_p->alignment_offset_p;
@@ -1377,27 +1376,17 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
 			cout<<"Exception caught trying to initialize V gene pointers"<<endl;
 			cout<<endl<<"throwing exception now..."<<endl;
-			throw runtime_error("Cannot learn on V gene without V gene in the model!");
+			throw runtime_error("Cannot learn on V gene without V choice in the model!");
 		}
 	}
 
 
 
 	//Get the right pointers for the D gene
-	if(learn_on == D_gene | learn_on == DJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
-		try{
-			d_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
-			dgene_offset_p = &d_gene_event_p->alignment_offset_p;
-			dgene_real_index_p = &d_gene_event_p->current_realization_index;
-			//Initialize gene counters
-
-		}
-		catch(exception& except){
-			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
-			cout<<"Exception caught trying to initialize D gene pointers"<<endl;
-			cout<<endl<<"throwing exception now..."<<endl;
-			throw except;
-		}
+	if(d_gene){
+		d_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side)));
+		dgene_offset_p = &d_gene_event_p->alignment_offset_p;
+		dgene_real_index_p = &d_gene_event_p->current_realization_index;
 
 		//Get deletion value pointer for D 5' deletions if it exists
 		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,D_gene,Five_prime)) != 0){
@@ -1414,57 +1403,47 @@ void Hypermutation_global_errorrate::initialize(const unordered_map<tuple<Event_
 		else{d_3_del_value_p = &no_del_buffer;}
 
 	}
+	else{
+		if(learn_on == D_gene | learn_on == DJ_genes | learn_on == VD_genes | learn_on == VDJ_genes){
+			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
+			cout<<"Exception caught trying to initialize D gene pointers"<<endl;
+			cout<<endl<<"throwing exception now..."<<endl;
+			throw runtime_error("Cannot learn on D gene without D choice in the model!");
+		}
+	}
+
 
 	//Get the right pointers for the J gene
-	if(learn_on == J_gene | learn_on == DJ_genes | learn_on == VJ_genes | learn_on == VDJ_genes){
-		try{
-			j_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
-			jgene_offset_p = &j_gene_event_p->alignment_offset_p;
-			jgene_real_index_p = &j_gene_event_p->current_realization_index;
+	if(j_gene){
+		j_gene_event_p = dynamic_pointer_cast<Gene_choice>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side)));
+		jgene_offset_p = &j_gene_event_p->alignment_offset_p;
+		jgene_real_index_p = &j_gene_event_p->current_realization_index;
 
-			//Initialize gene counters
-			j_realizations = j_gene_event_p->get_realizations_map();
-			//Get the number of realizations
-			n_j_real = j_realizations.size();
+		//Initialize gene counters
+		j_realizations = j_gene_event_p->get_realizations_map();
+		//Get the number of realizations
+		n_j_real = j_realizations.size();
 
-			j_sequences = new Int_Str [n_j_real];
-			for (const pair<const string,Event_realization> j_real: j_realizations){
-				j_sequences[j_real.second.index] = j_real.second.value_str_int;
-			}
-
-/*			//Create arrays
-			j_gene_nucleotide_coverage_p = new pair<size_t,double*>[n_j_real];
-			j_gene_per_nucleotide_error_p = new pair<size_t,double*>[n_j_real];
-			j_gene_nucleotide_coverage_seq_p = new pair<size_t,double*>[n_j_real];
-			j_gene_per_nucleotide_error_seq_p = new pair<size_t,double*>[n_j_real];
-
-			for(unordered_map<string , Event_realization>::const_iterator iter = j_realizations.begin() ; iter != j_realizations.end() ; iter++){
-
-				//Initialize normalized counters
-				j_gene_nucleotide_coverage_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-				j_gene_per_nucleotide_error_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-
-				//Initialize sequence counters
-				j_gene_nucleotide_coverage_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-				j_gene_per_nucleotide_error_seq_p[(*iter).second.index] = pair<size_t,double*>((*iter).second.value_str_int.size(),new double [(*iter).second.value_str_int.size()]);
-			}*/
-
+		j_sequences = new Int_Str [n_j_real];
+		for (const pair<const string,Event_realization> j_real: j_realizations){
+			j_sequences[j_real.second.index] = j_real.second.value_str_int;
 		}
-		catch(exception& except){
+
+		//Get deletion value pointer for J 5' deletions if it exists
+		if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)) != 0){
+			shared_ptr<const Deletion> j_5_del_event_p = dynamic_pointer_cast<Deletion>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)));
+			j_5_del_value_p = &(j_5_del_event_p->deletion_value);
+		}
+		else{j_5_del_value_p = &no_del_buffer;}
+	}
+	else{
+		if(learn_on == J_gene | learn_on == DJ_genes | learn_on == VJ_genes | learn_on == VDJ_genes){
 			cout<<"Exception caught during initialization of Hypermutation global error rate"<<endl;
 			cout<<"Exception caught trying to initialize J gene pointers"<<endl;
 			cout<<endl<<"throwing exception now..."<<endl;
-			throw except;
+			throw runtime_error("Cannot learn on J gene without J choice in the model!");
 		}
 	}
-
-	//Get deletion value pointer for J 5' deletions if it exists
-	if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)) != 0){
-		shared_ptr<const Deletion> j_5_del_event_p = dynamic_pointer_cast<Deletion>(events_map.at(tuple<Event_type,Gene_class,Seq_side>(Deletion_t,J_gene,Five_prime)));
-		j_5_del_value_p = &(j_5_del_event_p->deletion_value);
-	}
-	else{j_5_del_value_p = &no_del_buffer;}
-
 
 
 	this->clean_all_counters();
