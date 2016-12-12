@@ -515,36 +515,98 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 	if(learn_on_v){
 
-/*		//Get the coverage
-		//Get the length of the gene and a pointer to the right array to write on
-		tmp_corr_len = v_gene_nucleotide_coverage_seq_p[**vgene_real_index_p].first;
-		tmp_cov_p = v_gene_nucleotide_coverage_seq_p[**vgene_real_index_p].second;
-		tmp_err_p = v_gene_per_nucleotide_error_seq_p[**vgene_real_index_p].second;
 
-		//Get the corrected number of deletions(no negative deletion)
-		tmp_corr_len -= max(0,*v_3_del_value_p);
+		/*
+		 * If at least (mutation_Nmer_size+1)/2 V nucleotides remaining (1 visible to count the error, (mutation_Nmer_size-1)/2 on the 3' side for the context assessment
+		 * => this is most likely ALWAYS the case for V since it is ~300bp long
+		 * Length of the visible part of V: seq_offsets.at(V_gene_seq,Three_prime) - seq_offsets.at(V_gene_seq,Five_prime) +1
+		 * Length of the non visible part of V: V_gene_size - #visible - #deleted
+		 * (could also use vgene offset) => this is what is done for now until I find a good reason why V should not be assumed to be seen all the way 5'
+		 * There must be at least one V nucleotide visible (this is ensured by the alignments)
+		 *
+		 * The situation is simpler for V than J since all non visible nucleotides are included at the beginning
+		 */
+		if(v_sequences[**vgene_real_index_p].size()- *v_3_del_value_p >= (mutation_Nmer_size+1)/2){
+			current_mismatch = v_mismatch_list.begin();
 
-		// Compute the coverage
-		for( i = max(0,-(**vgene_offset_p)) ; i != tmp_corr_len ; ++i ){
-			tmp_cov_p[i]+=scenario_new_proba;
+			//Empty the Nmer queue
+			Nmer_index = 0;
+			while(!current_Nmer.empty()){
+				current_Nmer.pop();
+			}
+
+			is_visible_nt = false;
+			tmp_corr_len = -(**vgene_offset_p) - (mutation_Nmer_size-1)/2;
+			tmp_len_util = seq_offsets.at(J_gene_seq,Five_prime)-(mutation_Nmer_size-1)/2; //Start using the information of the (N-1)/2 inserted (or D) nucleotides before the J
+
+			//Fill in the first Nmer queue (=surroundings of the first V nucleotide)
+			for(i=0 ; i!=mutation_Nmer_size ; ++i){
+				if(is_visible_nt){
+					tmp_int_nt = scenario_resulting_sequence.at(i-tmp_len_util);
+				}
+				else{
+					tmp_int_nt = v_sequences[**vgene_real_index_p].at(i+tmp_corr_len);
+					if(i==(mutation_Nmer_size-1)/2){
+						is_visible_nt = true;
+						tmp_len_util = (mutation_Nmer_size-1)/2;
+					}
+
+				}
+				current_Nmer.push(tmp_int_nt);
+				Nmer_index+=adressing_vector.at(i)*tmp_int_nt;
+			}
+
+			//Check if there is an error on the first nucleotide and record Nmer statistics
+			if( (current_mismatch!=v_mismatch_list.end())
+				&& ((*current_mismatch)== 0 )){
+				one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+				one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+				++current_mismatch;
+			}
+			else{
+				one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+			}
+
+			//Now look at all nucleotides
+			/*
+			 * i stands for the position of the last nucleotide of the window
+			 * Need to stop when i== Vgene 3' offset + #Insertions considered
+			 * i.e i == v3' offset + (N-1)/2
+			 */
+			for(i=(mutation_Nmer_size-1)/2 +1 ; i!= (seq_offsets.at(V_gene_seq,Three_prime) + (mutation_Nmer_size-1)/2 +1) ; ++i){
+				//Remove the previous first nucleotide of the Nmer and it's contribution to the index
+				Nmer_index-=current_Nmer.front()*adressing_vector[0];
+				current_Nmer.pop();
+				//Shift the index
+				Nmer_index*=4;
+
+				//Get the next int nt
+				//In this part all nucleotides are visible
+				tmp_int_nt = scenario_resulting_sequence.at(i);
+
+				//Add the contribution of the new nucleotide
+				Nmer_index+=tmp_int_nt;
+				current_Nmer.push(tmp_int_nt);
+
+				//Check if there is an error on the central nucleotide and record Nmer statistics
+				if( (current_mismatch!=v_mismatch_list.end())
+						&& ((*current_mismatch)==(i-(mutation_Nmer_size-1)/2))){
+					one_seq_Nmer_N_SHM[Nmer_index] += scenario_new_proba;
+					one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+					++current_mismatch;
+				}
+				else{
+					one_seq_Nmer_N_bg[Nmer_index] += scenario_new_proba;
+				}
+			}
+
+		}
+		else{
+			//Do nothing: there is not enough nucleotides on the right to compute an Nmer
 		}
 
-		//Compute the error per nucleotide on the gene
-		tmp_len_util = v_mismatch_list.size();
-		for( i = 0 ; i != tmp_len_util ; ++i){
-			//Disregard mismatches due to P nucleotides
-			if(	(v_mismatch_list[i]>=(mutation_Nmer_size-1)/2)
-					&& (v_mismatch_list[i]-(**vgene_offset_p))<tmp_corr_len - (mutation_Nmer_size-1)/2){
-				tmp_err_p[v_mismatch_list[i]-(**vgene_offset_p)]+=scenario_new_proba;
-				//Debug
-				debug_mismatch_seq_coverage[v_mismatch_list[i]]+=scenario_new_proba;
-			}
-		}*/
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-		//Debug
-/////////////////////////////////////////////////////////////////////////////////////////////
+/*
 		current_mismatch = v_mismatch_list.begin();
 
 		if(seq_offsets.at(V_gene_seq,Three_prime) >= (mutation_Nmer_size-1)){
@@ -616,7 +678,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 				}
 			}
-		}
+		}*/
 
 
 
