@@ -396,12 +396,19 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 				}
 			}
 			else{
-				if( (i<=seq_offsets.at(V_gene_seq,Three_prime)) or (i>=seq_offsets.at(J_gene_seq,Five_prime))){
-					scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
-					//FIXME THIS A SUPER HARD FIX! DOES NOT EVEN TAKE D INTO ACCOUNT
+				if(d_gene){
+					if( (i<=seq_offsets.at(V_gene_seq,Three_prime)) or ((i>=seq_offsets.at(D_gene_seq,Five_prime)) and ((i<=seq_offsets.at(D_gene_seq,Three_prime)))) or (i>=seq_offsets.at(J_gene_seq,Five_prime))){
+						scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+						//FIXME THIS A SUPER HARD FIX! DOES NOT EVEN TAKE D INTO ACCOUNT
+					}
+				}
+				else{
+					if( (i<=seq_offsets.at(V_gene_seq,Three_prime)) or (i>=seq_offsets.at(J_gene_seq,Five_prime))){
+						scenario_new_proba*=(1-Nmer_mutation_proba[Nmer_index]);
+						//FIXME THIS A SUPER HARD FIX! DOES NOT EVEN TAKE D INTO ACCOUNT
+					}
 				}
 			}
-
 
 		}
 
