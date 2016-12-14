@@ -701,7 +701,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 		//throw runtime_error("Cannot learn a hypermutation model on D so far");
 		if((seq_offsets.at(D_gene_seq,Five_prime)<=seq_offsets.at(D_gene_seq,Three_prime))	//Makes sure there is at least one D nucleotide(not fully deleted)
 				and (seq_offsets.at(D_gene_seq,Five_prime)-(mutation_Nmer_size-1)/2 >0) 	//Makes sure there are enough nucleotides on the left
-				and (seq_offsets.at(D_gene_seq,Three_prime)-(mutation_Nmer_size-1)/2<scenario_resulting_sequence.size())){	//Makes sure there are enough nucleotides on the right
+				and (seq_offsets.at(D_gene_seq,Three_prime)+(mutation_Nmer_size-1)/2<scenario_resulting_sequence.size())){	//Makes sure there are enough nucleotides on the right
 			current_mismatch = d_mismatch_list.begin();
 
 			//Empty the Nmer queue
@@ -710,17 +710,13 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 				current_Nmer.pop();
 			}
 
-			tmp_corr_len = seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime)+(mutation_Nmer_size-1)/2;
+			//tmp_corr_len = seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime)+(mutation_Nmer_size-1)/2;
 			tmp_len_util = seq_offsets.at(D_gene_seq,Five_prime)-(mutation_Nmer_size-1)/2; //Start using the information of the (N-1)/2 inserted (or D) nucleotides before the J
 
 			//Fill in the first Nmer queue (=surroundings of the first J nucleotide)
 			for(i=0 ; i!= mutation_Nmer_size ; ++i){
 				//assume there is no error in the rest of the context => read the scenario resulting sequence
 				tmp_int_nt = scenario_resulting_sequence.at(i+tmp_len_util);
-				if(i==tmp_corr_len){
-					is_visible_nt = false; //All 3' nucleotides are not visible
-					tmp_corr_len = (mutation_Nmer_size-1)/2 - *j_5_del_value_p ; //Correct offset to read the j sequence => Should read the J sequence at position i - #insertions + #deletions
-				}
 
 				current_Nmer.push(tmp_int_nt);
 				Nmer_index+=adressing_vector.at(i)*tmp_int_nt;
@@ -743,7 +739,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 			 * Need to stop when i== dgene 3' offset + #Insertions/J nucs considered
 			 * i.e i == d3' offset + (N-1)/2
 			 */
-			for(i=(mutation_Nmer_size-1)/2 +1 ; i!= (seq_offsets.at(D_gene_seq,Three_prime) + (mutation_Nmer_size-1)/2 +1) ; ++i){
+			for(i=(seq_offsets.at(D_gene_seq,Five_prime)+(mutation_Nmer_size-1)/2 +1 ); i!= (seq_offsets.at(D_gene_seq,Three_prime) + (mutation_Nmer_size-1)/2 +1) ; ++i){
 				//Remove the previous first nucleotide of the Nmer and it's contribution to the index
 				Nmer_index-=current_Nmer.front()*adressing_vector[0];
 				current_Nmer.pop();
