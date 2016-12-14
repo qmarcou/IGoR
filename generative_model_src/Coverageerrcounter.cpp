@@ -26,6 +26,7 @@ Coverage_err_counter::Coverage_err_counter(string path , Gene_class count_on , b
 Coverage_err_counter::Coverage_err_counter(string path , Gene_class count_on , size_t Npoint_count , bool dump_all_seq , bool last_iter_only): Counter(path , last_iter_only) ,
 		count_on(count_on) , dump_individual_seqs(dump_all_seq), record_Npoint_occurence(Npoint_count),
 		positions(NULL),
+		n_v_real(0),n_d_real(0),n_j_real(0),
 		v_gene_nucleotide_coverage_p(NULL) , v_gene_per_nucleotide_error_p(NULL),d_gene_nucleotide_coverage_p(NULL) , d_gene_per_nucleotide_error_p(NULL),j_gene_nucleotide_coverage_p(NULL) , j_gene_per_nucleotide_error_p(NULL),
 		v_gene_nucleotide_coverage_seq_p(NULL) , v_gene_per_nucleotide_error_seq_p(NULL) , d_gene_nucleotide_coverage_seq_p(NULL) , d_gene_per_nucleotide_error_seq_p(NULL) , j_gene_nucleotide_coverage_seq_p(NULL) , j_gene_per_nucleotide_error_seq_p(NULL) ,
 		vgene_offset_p(NULL) , dgene_offset_p(NULL) , jgene_offset_p(NULL) ,
@@ -51,6 +52,16 @@ Coverage_err_counter::Coverage_err_counter(string path , Gene_class count_on , s
 
 Coverage_err_counter::~Coverage_err_counter() {
 	//FIXME TONS OF STUFF TO DELETE
+	if(count_on_v){
+		this->deallocate_coverage_and_errors_arrays(n_v_real,v_realizations,v_gene_nucleotide_coverage_p,v_gene_per_nucleotide_error_p,v_gene_nucleotide_coverage_seq_p,v_gene_per_nucleotide_error_seq_p);
+	}
+	if(count_on_d){
+		this->deallocate_coverage_and_errors_arrays(n_d_real,d_realizations,d_gene_nucleotide_coverage_p,d_gene_per_nucleotide_error_p,d_gene_nucleotide_coverage_seq_p,d_gene_per_nucleotide_error_seq_p);
+	}
+	if(count_on_j){
+		this->deallocate_coverage_and_errors_arrays(n_j_real,j_realizations,j_gene_nucleotide_coverage_p,j_gene_per_nucleotide_error_p,j_gene_nucleotide_coverage_seq_p,j_gene_per_nucleotide_error_seq_p);
+	}
+
 }
 
 void Coverage_err_counter::initialize_counter(const Model_Parms& parms , const Model_marginals& marginals){
@@ -437,6 +448,30 @@ void Coverage_err_counter::allocate_coverage_and_errors_arrays(size_t n_real, co
 		}
 	}
 
+}
+
+void Coverage_err_counter::deallocate_coverage_and_errors_arrays(size_t n_real, const unordered_map<string , Event_realization> realizations ,pair<size_t,double*>*& gene_nucleotide_coverage_p,pair<size_t,double*>*& gene_per_nucleotide_error_p,pair<size_t,double*>*& gene_nucleotide_coverage_seq_p,pair<size_t,double*>*& gene_per_nucleotide_error_seq_p){
+
+	if(n_real!=0){
+		//If n_real==0 then the Counter has probably not been initialized
+		for(unordered_map<string , Event_realization>::const_iterator iter = realizations.begin() ; iter != realizations.end() ; iter++){
+
+			//Deallocate normalized counters
+			delete [] gene_nucleotide_coverage_p[(*iter).second.index].second;
+			delete [] gene_per_nucleotide_error_p[(*iter).second.index].second;
+
+			//Deallocate sequence counters
+			delete [] gene_nucleotide_coverage_seq_p[(*iter).second.index].second;
+			delete [] gene_per_nucleotide_error_seq_p[(*iter).second.index].second;
+
+		}
+
+		//Deallocate coverage and errors arrays
+		delete [] gene_nucleotide_coverage_p;
+		delete [] gene_per_nucleotide_error_p;
+		delete [] gene_nucleotide_coverage_seq_p;
+		delete [] gene_per_nucleotide_error_seq_p;
+	}
 }
 
 void Coverage_err_counter::dump_cov_and_err_arrays( int iteration_n ,  int seq_index , shared_ptr<ofstream> outfile_ptr , size_t n_real , pair<size_t,double*>* coverage_array_p , pair<size_t,double*>* error_array_p ){

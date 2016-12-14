@@ -38,6 +38,7 @@ public:
 private:
 
 	void allocate_coverage_and_errors_arrays(size_t,const std::unordered_map<std::string , Event_realization>,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&);
+	void deallocate_coverage_and_errors_arrays(size_t,const std::unordered_map<std::string , Event_realization>,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&,std::pair<size_t,double*>*&);
 	void dump_cov_and_err_arrays(int,int,std::shared_ptr<std::ofstream> , size_t , std::pair<size_t,double*>* , std::pair<size_t,double*>*);
 	void normalize_and_add_cov_and_err(double& , size_t , std::pair<size_t,double*>* , std::pair<size_t,double*>* , std::pair<size_t,double*>* , std::pair<size_t,double*>* );
 	void recurs_coverage_count(double scenario_seq_joint_proba , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len);
