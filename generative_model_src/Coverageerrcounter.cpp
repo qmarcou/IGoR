@@ -562,7 +562,7 @@ void Coverage_err_counter::recurs_errors_count(double scenario_seq_joint_proba ,
 			for(size_t a = 0 ; a!=record_Npoint_occurence ; ++a){
 				adress+=positions[a]*pow(gene_len,a);
 			}
-			tmp_cov_p[adress] += scenario_seq_joint_proba;
+			tmp_err_p[adress] += scenario_seq_joint_proba;
 		}
 	}
 }
