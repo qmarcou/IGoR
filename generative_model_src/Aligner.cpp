@@ -212,8 +212,8 @@ vector<pair<const int , const string>> read_indexed_csv(string filename){
 	}
 	return sequence_vect;
 }
-/*
- * This method aligns every genomic template to one sequence
+/**
+ * \brief This method aligns every genomic template to one sequence
  */
 forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , int min_offset , int max_offset){
 	Int_Str int_seq = nt2int(nt_seq);
@@ -274,6 +274,25 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset){
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
+	string folder_path = filename.substr(0,filename.rfind("/")+1); //Get the file path
+	ofstream align_infos_file(folder_path + "aligns_info.out",fstream::out | fstream::app); //Opens the file in append mode
+
+	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
+	std::time_t tt;
+	tt = chrono::system_clock::to_time_t ( begin_time );
+
+	align_infos_file<<endl<<"================================================================"<<endl;
+	align_infos_file<<"Alignments in file: "<<filename<<endl;
+	align_infos_file<<"Date: "<< ctime(&tt)<<endl;
+	align_infos_file<<"Score threshold = "<<score_threshold<<endl;
+	align_infos_file<<"Best only = "<<best_only<<endl;
+	align_infos_file<<"Min Offset = "<<min_offset<<endl;
+	align_infos_file<<"Max Offset = "<<max_offset<<endl;
+	align_infos_file<<"Gap penalty = "<<this->gap_penalty<<endl;
+	align_infos_file<<"Substitution matrix:"<<endl;
+	align_infos_file<<this->substitution_matrix<<endl;
+	align_infos_file<<sequence_list.size()<<" sequences processed in ";
+
 	ofstream outfile(filename);
 	outfile<<"seq_index"<<";"<<"gene_name"<<";"<<"score"<<";"<<"offset"<<";"<<"insertions"<<";"<<"deletions"<<";"<<"mismatches"<<";"<<"length"<<";5_p_align_offset;3_p_align_offset"<<endl;
 
@@ -309,6 +328,9 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 
 
 	}
+
+	chrono::duration<double> elapsed_time = chrono::system_clock::now() - begin_time;
+	align_infos_file<<elapsed_time.count()<<endl;
 
 }
 

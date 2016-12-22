@@ -102,6 +102,15 @@ public:
 		}
 		return array_p[i + rows*j];
 	}
+
+	T get_field(int i ,int j ) const{
+		if( (i>rows-1) || (j>cols-1) ){
+			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
+			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
+		}
+		return array_p[i + rows*j];
+	}
+
 	//Accessors
 	const int& get_n_rows() const {return rows;}
 	const int& get_n_cols() const {return cols;}
@@ -110,6 +119,21 @@ private:
 	int cols;
 	T* array_p ;
 };
+
+template <typename T>
+std::ostream& operator<<(std::ostream& stream ,const Matrix<T>& mat){
+	stream<<mat.get_n_rows()<<"x"<<mat.get_n_cols()<<" Matrix"<<std::endl;
+	for(int j = 0 ; j!= mat.get_n_cols() ; ++j){
+		for(int i = 0 ; i!= mat.get_n_rows() ; ++i){
+			if(i!=0){
+				stream<<" ";
+			}
+			stream<<mat.get_field(i,j);
+		}
+		stream<<std::endl;
+	}
+	return stream;
+}
 
 
 /*

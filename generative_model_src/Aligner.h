@@ -24,6 +24,7 @@
 #include "IntStr.h"
 
 
+
 struct Alignment_data {
 	std::string gene_name;
 	int offset;
