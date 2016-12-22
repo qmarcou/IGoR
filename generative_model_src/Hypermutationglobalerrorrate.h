@@ -57,7 +57,7 @@ private:
 	size_t mutation_Nmer_size;
 	//std::unique_ptr<double[]> ei_nucleotide_contributions;
 	double* ei_nucleotide_contributions;
-	double R;
+	double mu;
 	//std::map<int,double> Nmer_background_proba;
 	double* Nmer_mutation_proba;
 
@@ -86,24 +86,6 @@ private:
 	double* one_seq_Nmer_N_bg;
 	double* Nmer_N_SHM;
 	double* Nmer_N_bg;
-
-/*	//Use C arrays (faster than maps)
-	//size_t is the length of the sequence
-	//double* is the pointer to the array for coverage/error per nucleotide
-	std::pair<size_t,double*>* v_gene_nucleotide_coverage_p;
-	std::pair<size_t,double*>* v_gene_per_nucleotide_error_p;
-	std::pair<size_t,double*>* d_gene_nucleotide_coverage_p;
-	std::pair<size_t,double*>* d_gene_per_nucleotide_error_p;
-	std::pair<size_t,double*>* j_gene_nucleotide_coverage_p;
-	std::pair<size_t,double*>* j_gene_per_nucleotide_error_p;
-
-	//One seq coverage and error counters
-	std::pair<size_t,double*>* v_gene_nucleotide_coverage_seq_p;
-	std::pair<size_t,double*>* v_gene_per_nucleotide_error_seq_p;
-	std::pair<size_t,double*>* d_gene_nucleotide_coverage_seq_p;
-	std::pair<size_t,double*>* d_gene_per_nucleotide_error_seq_p;
-	std::pair<size_t,double*>* j_gene_nucleotide_coverage_seq_p;
-	std::pair<size_t,double*>* j_gene_per_nucleotide_error_seq_p;*/
 
 
 	Int_Str* v_sequences;
