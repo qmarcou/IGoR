@@ -41,14 +41,30 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 		proba_threshold_factor = 1.0;
 	}
 
+	ofstream likelihood_file(path + "likelihoods.out");
+	likelihood_file<<"iteration;mean_log_Likelihood;n_seq"<<endl;
+
 
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = model_marginals.get_index_map(model_parms,model_queue);
 	unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> inv_offset_map = model_marginals.get_inverse_offset_map(model_parms,model_queue);
 	int iteration_accomplished = 0;
 	ofstream log_file(path + string("inference_logs.txt"));
-	log_file<<"iteration_n;seq_processed;seq_index;nt_sequence;n_V_aligns;n_J_aligns;seq_likelihood;seq_mean_n_errors;seq_n_scenarios;seq_best_scenario"<<endl;
-	ofstream general_logs(path + string("inference.out"));
+	log_file<<"iteration_n;seq_processed;seq_index;nt_sequence;n_V_aligns;n_J_aligns;seq_likelihood;seq_mean_n_errors;seq_n_scenarios;seq_best_scenario;time"<<endl;
+	ofstream general_logs(path + string("inference_info.out"));
+	//Dump all inference parameters to file
+	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
+	std::time_t tt;
+	tt = chrono::system_clock::to_time_t ( begin_time );
+
+	general_logs<<"Date: "<< ctime(&tt)<<endl;
+	general_logs<<"Max #iterations to be performed: "<<iterations<<endl;
+	general_logs<<"Path: "<<path<<endl;
+	general_logs<<"First iter fast(only best V and best J considered): "<<fast_iter<<endl;
+	general_logs<<"Min Likelihood threshold: "<<likelihood_threshold<<endl;
+	general_logs<<"Viterbi like (only keeps the best scenario): "<<viterbi_like<<endl;
+	general_logs<<"Proba threshold ratio: "<<proba_threshold_factor<<"\t#(ratio between best scenario and current scenario needed to explore/count the scenario)"<<endl;
+	general_logs<<"Mean #errors threshold: "<<mean_number_seq_err_thresh<<"\t#Needs a very good reason to be set to another value than INFINITY"<<endl;
 
 	//Write initial condition to file
 	this->model_marginals.write2txt(path+string("initial_marginals.txt"),this->model_parms);
@@ -206,6 +222,9 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 			}
 			cout<<"Initialization of proba bounds over"<<endl;
 
+			chrono::system_clock::time_point single_seq_begin;
+			chrono::duration<double> seq_time;
+
 
 			//Loop over sequences in parallel, using the number of threads declared previously when declaring the parallel section
 			//Use dynamic scheduling to avoid loss of time due to synchronization
@@ -213,6 +232,7 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 			#pragma omp for schedule(dynamic) nowait
 			for(vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>>::const_iterator seq_it = (*sequence_util_ptr).begin() ; seq_it < (*sequence_util_ptr).end() ; ++seq_it){
 
+				single_seq_begin = chrono::system_clock::now();
 
 				//Make a copy of the queue that can be modified in iterate
 				queue<shared_ptr<Rec_Event>> model_queue_copy(single_thread_model_queue);
@@ -259,12 +279,13 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 
 				//Normalize the weights on the single_seq_marginal so that each sequence has the same weight when merged to the single_thread_marginals
 				single_thread_err_rate->norm_weights_by_seq_likelihood(single_seq_marginals.marginal_array_smart_p,single_seq_marginals.get_length());
+				seq_time = chrono::system_clock::now() - single_seq_begin;
 				#pragma omp critical(dump_seq_info)
 				{
 					++sequences_processed;
 					//Output useful infos in the log file
 					//log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<(*seq_it).first<<";"<<(*seq_it).second.at(V_gene).size()<<";"<<(*seq_it).second.at(D_gene).size()<<";"<<(*seq_it).second.at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_probability()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
-					log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<get<0>(*seq_it)<<";"<<get<1>(*seq_it)<<";"<<get<2>(*seq_it).at(V_gene).size()<<";"<<get<2>(*seq_it).at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->get_seq_mean_error_number()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<endl;
+					log_file<<iteration_accomplished<<";"<<sequences_processed<<";"<<get<0>(*seq_it)<<";"<<get<1>(*seq_it)<<";"<<get<2>(*seq_it).at(V_gene).size()<<";"<<get<2>(*seq_it).at(J_gene).size()<<";"<<single_thread_err_rate->get_seq_likelihood()<<";"<<single_thread_err_rate->get_seq_mean_error_number()<<";"<<single_thread_err_rate->debug_number_scenarios<<";"<<max_proba_scenario<<";"<<seq_time.count()<<endl;
 				}
 				for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
 					iter->second->count_sequence(single_thread_err_rate->get_seq_likelihood() , single_seq_marginals , single_thread_model_parms);
@@ -306,7 +327,7 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 			(*iter).second->dump_data_summary(iteration_accomplished);
 		}
 
-		general_logs<<"Iteration "<<iteration_accomplished+1<<" model_mean_seq_likelihood: "<<error_rate_copy->get_model_likelihood()/error_rate_copy->get_number_non_zero_likelihood_seqs()<<"; # of sequences with non zero likelihood: "<<error_rate_copy->get_number_non_zero_likelihood_seqs()<<endl;
+		likelihood_file<<iteration_accomplished+1<<";"<<error_rate_copy->get_model_likelihood()/error_rate_copy->get_number_non_zero_likelihood_seqs()<<";"<<error_rate_copy->get_number_non_zero_likelihood_seqs()<<endl;
 		error_rate_copy->update();
 		this->model_parms.set_error_ratep(error_rate_copy);
 		new_marginals.normalize(inv_offset_map , index_map , model_queue);
@@ -388,8 +409,8 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		//string tmp = sequence.first.substr(sequence.first.size()-101,100);
 		//string tmp = sequence.first.substr(sequence.first.size()-128,127);
 		//string tmp = sequence.first.substr(sequence.first.size()-130,130);//Harlan BCR with too much J not enough V
-		string tmp = sequence.first.substr(sequence.first.size()-160,160);
-		sequence.first = tmp;
+		//string tmp = sequence.first.substr(sequence.first.size()-160,160);
+		//sequence.first = tmp;
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
