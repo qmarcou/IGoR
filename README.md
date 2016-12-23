@@ -44,11 +44,28 @@ Widely tested on several Debian related distros
 # Command line tools
 Although the full flexibility of IGoR is reachable through C++ highlevel functions (*see next section*) we provide some command line options to perform most frequent tasks on immune receptor sequences.
 
+## General
+
+### Working directory
+Use command -wd path/to/directory to set the working directory, by default assuming a Unix based system it will be set in /tmp
+
 ## Alignments
+Performs Smith-Waterman alignments of the genomic templates
 
 ## Inference
 
 ## Outputs 
+
+### Best scenarios
+*Output the N best scenarios for each sequence*
+
+Use command --scenarios
+
+### Generation probability
+*Estimates the probability of generation of the error free/unmutated ancestor sequence*
+
+Use command --Pgen
+
 # C++
 
 # Contribute
