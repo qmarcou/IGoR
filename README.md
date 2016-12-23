@@ -8,15 +8,16 @@ This repository contains all sources and models useful to infer V(D)J recombinat
 ### Quick summary ###
 
 IGoR is a C++ software designed to infer V(D)J recombination related processes from sequencing data such as:
-* Recombination model probability distribution
-* Hypermutation model
-* Best candidates recombination scenarios
-* Generation probabilities of sequences (even hypermutated)
 
-Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features. 
++ Recombination model probability distribution
++ Hypermutation model
++ Best candidates recombination scenarios
++ Generation probabilities of sequences (even hypermutated)
+
+Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures. 
 
 ### Version ###
-
+1.0
 
 ### How do I get set up? ###
 
