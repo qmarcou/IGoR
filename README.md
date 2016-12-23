@@ -28,13 +28,12 @@ Its heavily object oriented and modular style was designed to ensure long term s
 * How to run tests
 * Deployment instructions
 
-### Contribution guidelines ###
+### Contribute ###
 
-* Writing tests
-* Code review
-* Other guidelines
+* Your feedbacks are valuable, please send your comments about usability and new features you would like to see  
+* Code contribution: IGoR was designed to be modular and evolve, please get in touch if you would like to do something new with your data and would like some more guidance on the code structure
 
-### Who do I talk to? ###
 
-* Repo owner or admin
-* Other community or team contact
+### Contact ###
+
+For any question please file an issue on github or email quentin.marcou@lpt.ens.fr
