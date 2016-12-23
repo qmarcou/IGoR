@@ -1,6 +1,6 @@
 # README #
 
-**IGoR: Inference and Generation Of Repertoires**
+# **IGoR: Inference and Generation Of Repertoires** #
 
 This README would normally document whatever steps are necessary to get your application up and running.
 
