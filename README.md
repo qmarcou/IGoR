@@ -3,13 +3,20 @@
 # README #
 
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This repository contains all sources and models useful to infer V(D)J recombination related processes for TCR or BCR sequencing data using **IGoR**
 
-### What is this repository for? ###
+### Quick summary ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+IGoR is a C++ software designed to infer V(D)J recombination related processes from sequencing data such as:
+* Recombination model probability distribution
+* Hypermutation model
+* Best candidates recombination scenarios
+* Generation probabilities of sequences (even hypermutated)
+
+Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features. 
+
+### Version ###
+
 
 ### How do I get set up? ###
 
