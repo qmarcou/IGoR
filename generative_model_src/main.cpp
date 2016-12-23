@@ -33,6 +33,33 @@ int main(int argc , char* argv[]){
 	bool run_demo = false;
 	bool align = false;
 	bool infer = false;
+	bool evaluate = false;
+	bool generate = false;
+	bool wd = false;
+	string cl_path;
+	bool chain_provided = false;
+	bool custom = false;
+	bool has_D = false;
+	bool custom_v = false;
+	bool custom_d = false;
+	bool custom_j = false;
+
+	//Genomic templates list and aligns parms
+	vector<pair<string,string>> v_genomic;
+	vector<pair<string,string>> d_genomic;
+	vector<pair<string,string>> j_genomic;
+
+	//Model parms and marginals
+	Model_Parms cl_model_parms;
+	Model_marginals cl_model_marginals;
+	map<size_t,shared_ptr<Counter>> cl_counters_list;
+
+	//Sequence generation parms
+	size_t generate_n_seq;
+	bool generate_werr = true;
+
+
+
 
 	while(carg_i<argc){
 
@@ -59,8 +86,69 @@ int main(int argc , char* argv[]){
 		}
 
 		if(string(argv[carg_i]) == "-infer"){
-			//Provide a boolean for infering
+			//Provide a boolean for inference
 			infer = true;
+			if(string(argv[carg_i+1]).substr(0,2)=="--"){
+				++carg_i;
+				//Some inference parameters are passed
+
+			}
+		}
+
+		if(string(argv[carg_i]) == "-evaluate"){
+			//Provide a boolean for sequence evaluation (1 iteration model inference)
+			evaluate = true;
+
+		}
+
+		if(string(argv[carg_i]) == "-chain"){
+			//Provide a boolean for the choice of a chain type (thus a set of genomic templates and model)
+			chain_provided = true;
+			++carg_i;
+			if(string(argv[carg_i]) == "--alpha"){
+				has_D = false;
+				v_genomic = read_genomic_fasta();
+				j_genomic = read_genomic_fasta();
+
+			}
+			else if(string(argv[carg_i]) == "--beta"){
+				has_D = true;
+				v_genomic = read_genomic_fasta();
+				d_genomic = read_genomic_fasta();
+				j_genomic = read_genomic_fasta();
+			}
+			else if(string(argv[carg_i]) == "--light"){
+				cout<<"Support for light chains in command line is not ready yet due to the lack of genomic templates and suitable model"<<endl;
+				cout<<"If you wish to use IGoR on light chains please contact us so we can work on incorporating a light chain model to IGoR"<<endl;
+				throw invalid_argument("Light chains support does not exist yet for command line");
+			}
+			else if( (string(argv[carg_i]) == "--heavy_naive") or (string(argv[carg_i]) == "--heavy_memory") ){
+				has_D = true;
+				v_genomic = read_genomic_fasta();
+				d_genomic = read_genomic_fasta();
+				j_genomic = read_genomic_fasta();
+
+				if( string(argv[carg_i]) == "--heavy_naive" ){
+					//Use a single error rate
+				}
+				else{
+					//Memory
+				}
+			}
+			else{
+				throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: --alpha, --beta, --heavy_naive , --heavy_memory , --light");
+			}
+		}
+
+		if(string(argv[carg_i]) == "-set_wd"){
+			wd = true;
+			++carg_i;
+			cl_path = string(string(argv[carg_i]));
+
+			//Append a "/" if there is not one at the end of the directory path
+			if (cl_path[cl_path.size()-1] != '/'){
+				cl_path+="/";
+			}
 		}
 
 		//Read the next command line argument
@@ -69,7 +157,11 @@ int main(int argc , char* argv[]){
 
 	}
 
+	if(not wd){
+		cl_path = "/tmp/";
+	}
 
+	cout<<"Working directory set to: \""+cl_path+"\"";
 
 
 
