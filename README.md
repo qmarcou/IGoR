@@ -39,6 +39,8 @@ Widely tested on several Debian related distros
 * How to run tests
 * Deployment instructions
 
+# Workflow
+
 # Command line tools
 Although the full flexibility of IGoR is reachable through C++ highlevel functions (*see next section*) we provide some command line options to perform most frequent tasks on immune receptor sequences.
 
