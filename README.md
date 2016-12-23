@@ -54,6 +54,10 @@ Performs Smith-Waterman alignments of the genomic templates
 
 ## Inference
 
+### Troubleshoots
+map base at exception => check genomic templates (explain try catch expensive)
+run smoothly but all 0: alignments!!
+
 ## Outputs 
 
 ### Best scenarios
@@ -65,6 +69,9 @@ Use command --scenarios
 *Estimates the probability of generation of the error free/unmutated ancestor sequence*
 
 Use command --Pgen
+
+## Sequence generation
+
 
 # C++
 
