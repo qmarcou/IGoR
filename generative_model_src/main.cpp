@@ -28,21 +28,36 @@ using namespace std;
 
 int main(int argc , char* argv[]){
 
+	//Command line argument iterator
 	size_t carg_i = 1;
-	cout<<argv[argc-1]<<endl;
+	//cout<<argv[argc-1]<<endl;
+
+	//Task variables
 	bool run_demo = false;
 	bool align = false;
 	bool infer = false;
 	bool evaluate = false;
 	bool generate = false;
+	bool custom = false;
+
+
+	//Working directory vars
 	bool wd = false;
 	string cl_path;
+
+	//Chains vars
 	bool chain_provided = false;
-	bool custom = false;
 	bool has_D = false;
+
+	//Custom genomic templates loading variables
 	bool custom_v = false;
 	bool custom_d = false;
 	bool custom_j = false;
+
+	//Input sequences variables
+	bool read_seqs = false;
+	bool fasta_seqs = false;
+	string input_seqs_file;
 
 	//Genomic templates list and aligns parms
 	vector<pair<string,string>> v_genomic;
@@ -58,6 +73,17 @@ int main(int argc , char* argv[]){
 	size_t generate_n_seq;
 	bool generate_werr = true;
 
+	//Inference parms
+	bool viterbi_inference;
+	double likelihood_thresh_inference;
+	double proba_threshold_ratio_inference;
+	size_t n_iter_inference;
+
+	//Sequence evaluation parms
+	bool viterbi_evaluate;
+	double likelihood_thresh_evaluate;
+	double proba_threshold_ratio_evaluate;
+
 
 
 
@@ -70,38 +96,94 @@ int main(int argc , char* argv[]){
 		}
 
 		//Command line to redirect the standard output to a file
-		if(string(argv[carg_i]) == string("-stdout_f")){
+		else if(string(argv[carg_i]) == string("-stdout_f")){
 			cout<<"Redirecting output to file: "<<argv[carg_i+1]<<endl;
 			freopen(argv[++carg_i],"a+",stdout);
 		}
 
-		if(string(argv[carg_i]) == "-run_demo"){
+		else if(string(argv[carg_i]) == "-run_demo"){
 			cout<<"running demo code"<<endl;
 			run_demo = true;
 		}
 
-		if(string(argv[carg_i]) == "-align"){
+		else if(string(argv[carg_i]) == "-align"){
 			//Provide a boolean for aligning
 			align = true;
 		}
 
-		if(string(argv[carg_i]) == "-infer"){
+		else if( (string(argv[carg_i]) == "-infer") or (string(argv[carg_i]) == "-evaluate")){
 			//Provide a boolean for inference
-			infer = true;
-			if(string(argv[carg_i+1]).substr(0,2)=="--"){
+			if(string(argv[carg_i]) == "-infer"){
+				infer = true;
+			}
+			else{
+				evaluate = true;
+			}
+
+			while(string(argv[carg_i+1]).substr(0,2)=="--"){
 				++carg_i;
 				//Some inference parameters are passed
+				if(string(argv[carg_i]) == "--L_thresh"){
+					double l_thresh;
+					++carg_i;
+					try{
+						l_thresh = stod(string(argv[carg_i]));
+					}
+					catch(exception& e){
+						cout<<"Expected a float for the likelihood threshold, received: \"" + argv[carg_i] + "\""<<endl;
+						cout<<"Terminating and throwing exception now..."<<endl;
+						throw e;
+					}
+				}
+				else if(string(argv[carg_i]) == "--viterbi"){
+					if(string(argv[carg_i]) == "-infer"){
+						viterbi_inference = true;
+					}
+					else{
+						viterbi_evaluate = true;
+					}
+				}
+				else if(string(argv[carg_i]) == "--P_ratio_thresh"){
+					double p_ratio;
+					++carg_i;
+					try{
+						p_ratio = stod(string(argv[carg_i]));
+					}
+					catch(exception& e){
+						cout<<"Expected a float for the probability ratio threshold, received: \"" + argv[carg_i] + "\""<<endl;
+						cout<<"Terminating and throwing exception now..."<<endl;
+						throw e;
+					}
 
+					if(string(argv[carg_i]) == "-infer"){
+						proba_threshold_ratio_inference = p_ratio;
+					}
+					else{
+						proba_threshold_ratio_evaluate = p_ratio;
+					}
+
+				}
+				else if(string(argv[carg_i]) == "--N_iter"){
+					if(string(argv[carg_i]) == "-infer"){
+						try{
+
+						}
+						catch(exception& e){
+							cout<<"Expected an integer for the number of iterations to perform for the inference, received: \"" + argv[carg_i] + "\""<<endl;
+							cout<<"Terminating and throwing exception now..."<<endl;
+							throw e;
+						}
+					}
+				}
+				else{
+					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify inference/evaluate parameters");
+				}
 			}
 		}
 
-		if(string(argv[carg_i]) == "-evaluate"){
-			//Provide a boolean for sequence evaluation (1 iteration model inference)
-			evaluate = true;
 
-		}
 
-		if(string(argv[carg_i]) == "-chain"){
+		else if(string(argv[carg_i]) == "-chain"){
 			//Provide a boolean for the choice of a chain type (thus a set of genomic templates and model)
 			chain_provided = true;
 			++carg_i;
@@ -140,7 +222,11 @@ int main(int argc , char* argv[]){
 			}
 		}
 
-		if(string(argv[carg_i]) == "-set_wd"){
+		/*
+		 * Set the working directory
+		 * /!\ Needs to be set before all the counters !  /!\
+		 */
+		else if(string(argv[carg_i]) == "-set_wd"){
 			wd = true;
 			++carg_i;
 			cl_path = string(string(argv[carg_i]));
@@ -149,10 +235,132 @@ int main(int argc , char* argv[]){
 			if (cl_path[cl_path.size()-1] != '/'){
 				cl_path+="/";
 			}
+
+			if( not cl_counters_list.empty()){
+				throw invalid_argument("Working directory needs to be set before declaring the counters, please re-order the arguments");
+			}
+		}
+
+		/*
+		 * Output arguments parsing
+		 */
+		else if(string(argv[carg_i]) == "-output"){
+			++carg_i;
+			/*
+			 * TODO For now forget about outputing for every sequences / every iterations (more command line parameters to code)
+			 */
+			if(string(argv[carg_i]) == "--Pgen"){
+				shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter (cl_path + "output/"));
+				cl_counters_list.emplace(cl_counters_list.size(),pgen_counter_ptr);
+			}
+			else if(string(argv[carg_i]) == "--scenarios"){
+				int n_record_scenarios;
+				++carg_i;
+				try{
+					n_record_scenarios = stoi(string(argv[carg_i]));
+				}
+				catch(exception& e){
+					cout<<"Expected the number of scenarios to be recorded by the best scenario counter, received: \"" + argv[carg_i] + "\""<<endl;
+					cout<<"Terminating and throwing exception now..."<<endl;
+					throw e;
+				}
+
+				if(n_record_scenarios<=0){
+					throw invalid_argument("Number of scenarios to be recorded must be greater than zero");
+				}
+
+				shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , cl_path + "output/" ,true));
+				cl_counters_list.emplace(cl_counters_list.size(),best_sc_ptr);
+			}
+			else if(string(argv[carg_i]) == "--coverage"){
+				Gene_class chosen_gc;
+				++carg_i;
+				try{
+					chosen_gc = str2GeneClass(string(argv[carg_i]));
+				}
+				catch(exception& e){
+					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify coverage target!\n Supported arguments are: V_gene, VD_genes, D_gene, DJ_gene, VJ_gene, J_gene, VDJ_genes");
+				}
+				shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter(cl_path + "output/",chosen_gc,1,false,true));
+				cl_counters_list.emplace(cl_counters_list.size(),coverage_counter_ptr);
+			}
+
+		}
+
+		/*
+		 * Sequence generation arguments parsing
+		 */
+		else if(string(argv[carg_i]) == "-generate"){
+			generate = true;
+			++carg_i;
+			if(string(argv[carg_i]).substr(0,2) == "--"){
+				while(string(argv[carg_i]).substr(0,2) == "--"){
+					if(string(argv[carg_i]) == "--noerr"){
+						generate_werr = false;
+					}
+					else{
+						throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
+					}
+				}
+				// The number of sequences to be generated has to be given after the arguments
+				try{
+					generate_n_seq = stoi(string(argv[carg_i]));
+				}
+				catch(exception& e){
+					cout<<"Expected the number of sequences to generate, received: \"" + argv[carg_i] + "\""<<endl;
+					cout<<"Terminating and throwing exception now..."<<endl;
+					throw e;
+				}
+			}
+			else{
+				// or before the other generation arguments
+				try{
+					generate_n_seq = stoi(string(argv[carg_i]));
+				}
+				catch(exception& e){
+					cout<<"Expected the number of sequences to generate, received: \"" + argv[carg_i] + "\""<<endl;
+					cout<<"Terminating and throwing exception now..."<<endl;
+					throw e;
+				}
+				if(string(argv[carg_i]).substr(0,2) == "--"){
+					while(string(argv[carg_i]).substr(0,2) == "--"){
+						if(string(argv[carg_i]) == "--noerr"){
+							generate_werr = false;
+						}
+						else{
+							throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
+						}
+					}
+				}
+			}
+		}
+
+		/*
+		 * Input sequences argument parsing
+		 */
+		else if(string(argv[carg_i]) == "-read_seqs"){
+			++carg_i;
+			string tmp_str = string(argv[carg_i]);
+			tmp_str = tmp_str.substr(tmp_str.size() -6 , string::npos );
+			transform(tmp_str.begin(),tmp_str.end(),tmp_str.begin(),::tolower);
+			if( tmp_str == ".fasta" ){
+				fasta_seqs = true;
+				cout<<"FASTA extension detected for the input sequence file"<<endl;
+			}
+			else{
+				cout<<"No FASTA extension detected for the input sequence file assuming a text file without header"<<endl;
+			}
+		}
+
+		//If the argument does not correspond to any previous section throw an exception
+		else{
+			throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" ");
 		}
 
 		//Read the next command line argument
 		++carg_i;
+
+
 
 
 	}
@@ -385,6 +593,9 @@ int main(int argc , char* argv[]){
 
 	}
 
+	else if (not custom){
+		//Execute code dictated by command line arguments
+	}
 
 	else{
 		//Write your custom procedure here
