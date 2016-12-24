@@ -595,6 +595,72 @@ int main(int argc , char* argv[]){
 
 	else if (not custom){
 		//Execute code dictated by command line arguments
+		if(read_seqs){
+			vector<pair<const int, const string>> indexed_seqlist;
+			if(fasta_seqs){
+				indexed_seqlist = read_fasta(input_seqs_file);
+			}
+			else{
+				indexed_seqlist = read_txt(input_seqs_file);
+			}
+			//TODO create the directory
+			write_indexed_seq_csv(cl_path + "aligns/indexed_sequences.csv",indexed_seqlist);
+		}
+
+		if(align){
+			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/indexed_sequences.csv");
+
+			//Declare substitution matrix used for alignments(nuc44 here)
+			double nuc44_vect [] = {5,-14,-14,-14 , -14 ,5,-14,-14 , -14,-14,5,-14 , -14,-14,-14,5};
+			Matrix<double> nuc44_sub_matrix(4,4,nuc44_vect);
+
+			//Instantiate aligner with substitution matrix declared above and gap penalty of 50
+
+			//Performs V alignments
+			cout<<"Performing V alignments...."<<endl;
+			Aligner v_aligner = Aligner(nuc44_sub_matrix , 50 , V_gene);
+			v_aligner.set_genomic_sequences(v_genomic);
+
+			v_aligner.align_seqs(cl_path + "aligns/V_alignments.csv" , indexed_seqlist , 50 , true);
+
+			if(has_D){
+				//Performs D alignments if the chain contains a D
+				cout<<"Performing D alignments...."<<endl;
+				Aligner d_aligner = Aligner(nuc44_sub_matrix , 50 , D_gene);
+				d_aligner.set_genomic_sequences(d_genomic);
+
+				d_aligner.align_seqs(cl_path + "aligns/D_alignments.csv",indexed_seqlist,0,false);
+			}
+
+			cout<<"Performing J alignments...."<<endl;
+			Aligner j_aligner (nuc44_sub_matrix , 50 , J_gene);
+			j_aligner.set_genomic_sequences(j_genomic);
+
+			j_aligner.align_seqs(cl_path + "aligns/D_alignments.csv",indexed_seqlist,10,true); //TODO allow for setting offsets bounds
+		}
+
+		if(infer){
+			//TODO create inference + output directory
+			GenModel genmodel(cl_model_parms,cl_model_marginals,cl_counters_list);
+
+			//Reading alignments
+			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/indexed_sequences.csv");
+
+			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/V_alignments.csv", V_gene , 55 , false , indexed_seqlist  );
+			if(has_D){
+				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/D_alignments.csv", D_gene , 35 , false , indexed_seqlist , sorted_alignments);
+			}
+			sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/J_alignments.csv", J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+
+			vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
+
+			genmodel.infer_model(sorted_alignments_vec , n_iter_inference , cl_path + "inference/" , true , likelihood_thresh_inference , proba_threshold_ratio_inference);
+		}
+
+		if(evaluate){
+			//TODO create evaluate directory
+
+		}
 	}
 
 	else{
