@@ -21,15 +21,18 @@ Its heavily object oriented and modular style was designed to ensure long term s
 
 # Dependencies
 
++ GCC (sufficiently recent to work with C++11 standards and OpenMP 3.8)
 + GSL library : currently working on shipping it with IGoR
 + jemalloc (optional although recommended for full parallel proficiency)
 
 # Install
 
 ## Linux
-Widely tested on several Debian related distros
+Widely tested on several Debian related distros.
+Install gcc/g++ if not already installed.
 
 ## MacOS
+MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports and install gcc from there.
 
 
 * Summary of set up
@@ -40,6 +43,7 @@ Widely tested on several Debian related distros
 * Deployment instructions
 
 # Workflow
+As a preprocessing step IGoR first needs some alignments of the genomic templates to the read before exploring all putative recombination scenarios for this read.
 
 # Command line tools
 Although the full flexibility of IGoR is reachable through C++ highlevel functions (*see next section*) we provide some command line options to perform most frequent tasks on immune receptor sequences.
@@ -48,37 +52,53 @@ Although the full flexibility of IGoR is reachable through C++ highlevel functio
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `-set_wd /path/to/dir/`      | Sets the working directory to */path/to/dir/*, default is /tmp   |
-| `-threads X`   | Sets the number of OpenMP threads to *X* for alignments and inference     |
+| `-threads N`   | Sets the number of OpenMP threads to *N* for alignments and inference     |
 | `-stdout_f /path/to/file`  | Redirects the standard output to the file */path/to/file*  |
 | `-read_seqs /path/to/file`  | Reads the input sequences file */path/to/file* and reformat it in the working directory. **This step is necessary for running any action on sequences using the command line**. Can be a fasta file or a text file with one sequence per line (format recognition is based on the file extension). |
 | `-chain --chainname` | Selects a model and a set of genomic template according to the value. Possible values for `--chainname` are: `--alpha`, `--beta`, `--light`, `--heavy_naive`, and `--heavy_memory`. **This needs to be set in order to use provided genomic templates/model**
 | `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
 
 ### Working directory
-Use command -wd path/to/directory to set the working directory, by default assuming a Unix based system it will be set in /tmp
+This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference , evaluation and outputs.
 
 ## Alignments
-Performs Smith-Waterman alignments of the genomic templates
+Performs Smith-Waterman alignments of the genomic templates.
 
 ## Inference
+The inference is reached using the command `-infer`. Logs and models parameters values for each iteration will be created in the folder *inference* of the working directory. Optional parameters are the following:
+
+| Command line argument | Description                    |
+| :------------- | :------------------------------ |
+| `--N_iter`  | |
+| `--L_thresh X`  | |
+| `--P_ratio_thresh`  | |
+| `--viterbi`  | |
 
 ### Troubleshoots
 map base at exception => check genomic templates (explain try catch expensive)
 run smoothly but all 0: alignments!!
+
+## Evaluate
+Reached using the command `-evaluate`. This is the same as performing an iteration of the inference on the whole dataset and thus accepts the same arguments as `-infer` except for `--N_iter`. The logs of the sequences evaluation are created in the folder *eval*.
 
 ## Outputs 
 
 ### Best scenarios
 *Output the N best scenarios for each sequence*
 
-Use command --scenarios
+Use command `--scenarios N`
 
 ### Generation probability
 *Estimates the probability of generation of the error free/unmutated ancestor sequence*
 
-Use command --Pgen
+Use command `--Pgen`
 
+### Coverage
+*Counts for each genomic nucleotide how many times it has been seen and how many times it was mutated/erroneous*
+
+Use command `--coverage`
 ## Sequence generation
+Reached using the command `-generate N`
 
 
 # C++
