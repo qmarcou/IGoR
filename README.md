@@ -45,6 +45,14 @@ Widely tested on several Debian related distros
 Although the full flexibility of IGoR is reachable through C++ highlevel functions (*see next section*) we provide some command line options to perform most frequent tasks on immune receptor sequences.
 
 ## General
+| Command line argument | Description                    |
+| :------------- | :------------------------------ |
+| `-set_wd /path/to/dir/`      | Sets the working directory to */path/to/dir/*, default is /tmp   |
+| `-threads X`   | Sets the number of OpenMP threads to *X* for alignments and inference     |
+| `-stdout_f /path/to/file`  | Redirects the standard output to the file */path/to/file*  |
+| `-read_seqs /path/to/file`  | Reads the input sequences file */path/to/file* and reformat it in the working directory. **This step is necessary for running any action on sequences using the command line**. Can be a fasta file or a text file with one sequence per line (format recognition is based on the file extension). |
+| `-chain --chainname` | Selects a model and a set of genomic template according to the value. Possible values for `--chainname` are: `--alpha`, `--beta`, `--light`, `--heavy_naive`, and `--heavy_memory`. **This needs to be set in order to use provided genomic templates/model**
+| `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
 
 ### Working directory
 Use command -wd path/to/directory to set the working directory, by default assuming a Unix based system it will be set in /tmp
