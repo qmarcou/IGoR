@@ -41,6 +41,14 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 		proba_threshold_factor = 1.0;
 	}
 
+	if(likelihood_threshold>1.0){
+		throw invalid_argument("Likelihood threshold must be lesser or equal than one");
+	}
+
+	if(proba_threshold_factor>1.0){
+		throw invalid_argument("Probability threshold ratio must be lesser or equal than one");
+	}
+
 	ofstream likelihood_file(path + "likelihoods.out");
 	likelihood_file<<"iteration;mean_log_Likelihood;n_seq"<<endl;
 
@@ -375,6 +383,12 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	ofstream outfile_ind_seq(filename_ind_seq);
 	ofstream outfile_ind_real(filename_ind_real);
 
+	string folder_path = filename_ind_seq.substr(0,filename_ind_seq.rfind("/")+1); //Get the file path
+	ofstream generation_infos_file(folder_path + "generation_info.out",fstream::out | fstream::app); //Opens the file in append mode
+
+
+
+
 	//Create a header for the files
 	outfile_ind_seq<<"seq_index;nt_sequence"<<endl;
 	queue<shared_ptr<Rec_Event>> model_queue = this->model_parms.get_model_queue();
@@ -398,6 +412,19 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	cout<<"Seed: "<<time_seed<<endl;
 	//Instantiate random number generator
 	default_random_engine generator =  default_random_engine(time_seed);
+
+
+	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
+	std::time_t tt;
+	tt = chrono::system_clock::to_time_t ( begin_time );
+
+	generation_infos_file<<endl<<"================================================================"<<endl;
+	generation_infos_file<<"Generated sequences in file: "<<filename_ind_seq<<endl;
+	generation_infos_file<<"Generated sequences realizations in file: "<<filename_ind_real<<endl;
+	generation_infos_file<<"Date: "<< ctime(&tt)<<endl;
+	generation_infos_file<<"Number of sequences = "<<number_seq<<endl;
+	generation_infos_file<<"Generated with errors = "<<generate_errors<<endl;
+	generation_infos_file<<"Seed  = "<<time_seed<<endl;
 
 	for(int seq = 0 ; seq != number_seq ; ++seq){
 		pair<string,queue<queue<int>>> sequence = this->generate_unique_sequence(model_queue , index_map ,offset_map , generator);
