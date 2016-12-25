@@ -69,10 +69,10 @@ The inference is reached using the command `-infer`. Logs and models parameters 
 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
-| `--N_iter`  | |
-| `--L_thresh X`  | |
-| `--P_ratio_thresh`  | |
-| `--viterbi`  | |
+| `--N_iter N`  | Sets the number of EM iterations for the inference to N|
+| `--L_thresh X`  | Sets the sequence likelihood threshold to X. |
+| `--P_ratio_thresh X`  | |
+| `--viterbi`  | Runs the algorithm in a 'Viterbi like' fashion. Only accounts for the most likely scenario (as fast as using a probability ratio threshold of 1.0) |
 
 ### Troubleshoots
 map base at exception => check genomic templates (explain try catch expensive)
@@ -82,6 +82,7 @@ run smoothly but all 0: alignments!!
 Reached using the command `-evaluate`. This is the same as performing an iteration of the inference on the whole dataset and thus accepts the same arguments as `-infer` except for `--N_iter`. The logs of the sequences evaluation are created in the folder *eval*.
 
 ## Outputs 
+Outputs are scenario/sequence statistics each presented below. They are all written in the `output` folder.
 
 ### Best scenarios
 *Output the N best scenarios for each sequence*
