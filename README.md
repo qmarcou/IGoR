@@ -105,6 +105,10 @@ Reached using the command `-generate N`
 
 # C++
 
+# Python
+A set of Python modules are shipped with Igor in order to parse IGoR's outputs (alignments,models etc)
+For further versions a Python/Cython interface for IGoR might be supplied 
+
 # Contribute
 
 * Your feedbacks are valuable, please send your comments about usability and new features you would like to see  
