@@ -71,7 +71,7 @@ The inference is reached using the command `-infer`. Logs and models parameters 
 | :------------- | :------------------------------ |
 | `--N_iter N`  | Sets the number of EM iterations for the inference to N|
 | `--L_thresh X`  | Sets the sequence likelihood threshold to X. |
-| `--P_ratio_thresh X`  | |
+| `--P_ratio_thresh X`  | Sets the probability ratio threshold to X. This influences how much the tree of scenarios is pruned. Setting it 0.0 means exploring every possible scenario (exact but very slow), while setting it to 1.0 only explores scenarios that are more likely than the best scenario explored so far (very fast but inaccurate). This sets a trade off between speed and accuracy, the best value is the largest one for which the likelihood of the sequences almost doesn't change when decreasing it further.  |
 | `--viterbi`  | Runs the algorithm in a 'Viterbi like' fashion. Only accounts for the most likely scenario (as fast as using a probability ratio threshold of 1.0) |
 
 ### Troubleshoots
@@ -82,7 +82,8 @@ run smoothly but all 0: alignments!!
 Reached using the command `-evaluate`. This is the same as performing an iteration of the inference on the whole dataset and thus accepts the same arguments as `-infer` except for `--N_iter`. The logs of the sequences evaluation are created in the folder *eval*.
 
 ## Outputs 
-Outputs are scenario/sequence statistics each presented below. They are all written in the `output` folder.
+Outputs are scenario/sequence statistics each presented below. They are all written in the *output* folder.
+The different outputs are detailed in the next sections.
 
 ### Best scenarios
 *Output the N best scenarios for each sequence*
