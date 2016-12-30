@@ -97,9 +97,26 @@ Model_marginals& Model_marginals::operator +=(Model_marginals marginals){
 	return *this;
 }
 
+Model_marginals& Model_marginals::operator -=(Model_marginals marginals){
+	if(this->marginal_arr_size != marginals.marginal_arr_size){
+		throw invalid_argument("Model_marginals must have the same size in : Model_marginals::operator+=");
+	}
+	else{
+		for(size_t i = 0 ; i!= this->marginal_arr_size ; ++i){
+			this->marginal_array_smart_p[i]-=marginals.marginal_array_smart_p[i];
+		}
+	}
+	return *this;
+}
+
 Model_marginals Model_marginals::operator +(Model_marginals marginals){
 	Model_marginals temp = *this;
 	return temp+=marginals;
+}
+
+Model_marginals Model_marginals::operator -(Model_marginals marginals){
+	Model_marginals temp = *this;
+	return temp-=marginals;
 }
 
 

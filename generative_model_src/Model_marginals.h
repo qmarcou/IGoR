@@ -37,7 +37,9 @@ public:
 	size_t get_event_size( std::shared_ptr<const Rec_Event> , const Model_Parms&) const;
 	Model_marginals& operator=(const Model_marginals&);
 	Model_marginals& operator +=(Model_marginals );
+	Model_marginals& operator -=(Model_marginals );
 	Model_marginals operator +(Model_marginals );
+	Model_marginals operator -(Model_marginals );
 	void normalize(std::unordered_map<Rec_Event_name,std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>> , std::unordered_map<Rec_Event_name,int> , std::queue<std::shared_ptr<Rec_Event>>);
 	void uniform_initialize(const Model_Parms&);
 	void null_initialize();
