@@ -38,7 +38,8 @@ public:
 	std::string type() const {return "HypermutationGlobalErrorRate";}
 	Hypermutation_global_errorrate& operator+=(Hypermutation_global_errorrate);
 	Error_rate* add_checked (Error_rate*);
-	double get_err_rate_upper_bound() const;
+	const double& get_err_rate_upper_bound(size_t,size_t) ;
+	void build_upper_bound_matrix(size_t,size_t);
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
 	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
 	unsigned generate_random_contributions(double);

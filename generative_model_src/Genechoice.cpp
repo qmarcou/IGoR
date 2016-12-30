@@ -247,7 +247,7 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 						++endogeneous_mismatches;
 						++mism_iter;
 					}
-					downstream_proba_map.set_value(V_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+					downstream_proba_map.set_value(V_gene_seq , error_rate_p->get_err_rate_upper_bound(endogeneous_mismatches,gene_seq.size()-v_3_max_del) , memory_layer_proba_map_seq);
 
 					//Multiply all downstream probas
 					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
@@ -417,7 +417,7 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 						}
 					}
 
-					downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+					downstream_proba_map.set_value(D_gene_seq , error_rate_p->get_err_rate_upper_bound(endogeneous_mismatches,0) , memory_layer_proba_map_seq);
 
 					//Multiply all downstream probas
 					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
@@ -533,7 +533,7 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 									++mism_iter;
 								}
 								//Weigh D_gene_seq accordingly
-								downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+								downstream_proba_map.set_value(D_gene_seq , error_rate_p->get_err_rate_upper_bound(endogeneous_mismatches,(d_full_3_offset + d_3_max_del)-(d_5_off - d_5_max_del)) , memory_layer_proba_map_seq);
 
 								//Multiply all downstream probas
 								scenario_upper_bound_proba = new_scenario_proba;
@@ -677,7 +677,7 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 									}
 								}
 
-								downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+								downstream_proba_map.set_value(D_gene_seq , error_rate_p->get_err_rate_upper_bound(endogeneous_mismatches,0) , memory_layer_proba_map_seq);
 
 								//Multiply all downstream probas
 								downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
@@ -855,7 +855,7 @@ void Gene_choice::iterate( double& scenario_proba , Downstream_scenario_proba_bo
 						++endogeneous_mismatches;
 						++rev_mism_iter;
 					}
-					downstream_proba_map.set_value(J_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+					downstream_proba_map.set_value(J_gene_seq , error_rate_p->get_err_rate_upper_bound(endogeneous_mismatches,gene_seq.size()-j_5_max_del) , memory_layer_proba_map_seq);
 
 					//Multiply all downstream probas
 					downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);

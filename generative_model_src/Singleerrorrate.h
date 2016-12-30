@@ -30,7 +30,8 @@ public:
 	std::shared_ptr<Error_rate> copy()const;
 	std::string type() const {return "SingleErrorRate";}
 	Error_rate* add_checked (Error_rate*);
-	double get_err_rate_upper_bound() const;
+	const double& get_err_rate_upper_bound(size_t,size_t) ;
+	void build_upper_bound_matrix(size_t,size_t);
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
 	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
 

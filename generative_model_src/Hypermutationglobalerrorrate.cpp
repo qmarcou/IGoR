@@ -30,6 +30,9 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 		i(-1) , j(-1) , v_3_del_value_corr(INT16_MAX) , d_5_del_value_corr(INT16_MAX) , d_3_del_value_corr(INT16_MAX) , j_5_del_value_corr(INT16_MAX) , tmp_cov_p(NULL) , tmp_err_p(NULL) , tmp_corr_len(-1) , tmp_len_util(-1) , scenario_new_proba(-1) ,
 		largest_nuc_adress(-1), tmp_int_nt(-1) , Nmer_index(-1){
 
+	build_upper_bound_matrix(1,1);
+
+
 	if(fmod(nmer_width,2)==0){
 		throw runtime_error("Cannot instanciate hypermutation globale error rate with an even size Nmer(need to be symmetric)");
 	}
@@ -208,7 +211,7 @@ Error_rate* Hypermutation_global_errorrate::add_checked(Error_rate* err_r){
 	return &(this->operator +=( *(dynamic_cast<Hypermutation_global_errorrate*>(err_r) ) ));
 }
 
-double Hypermutation_global_errorrate::get_err_rate_upper_bound() const{
+const double& Hypermutation_global_errorrate::get_err_rate_upper_bound(size_t n_errors , size_t n_error_free) {
 /*	double max_proba = 0;
 	for(i=0 ; i!=pow(4,mutation_Nmer_size);i++){
 		if(Nmer_mutation_proba[i]>max_proba){
@@ -217,7 +220,44 @@ double Hypermutation_global_errorrate::get_err_rate_upper_bound() const{
 	}
 	cout<<"max_proba: "<<max_proba<<endl;
 	return max_proba/3;*/
-	return mu/(3*(1+mu));
+	//return mu/(3*(1+mu));
+	if( n_errors>this->max_err || n_error_free>this->max_noerr){
+		//Need to increase the matrix size (anyway the matrix is at very most read_len^2
+		Matrix<double> new_bound_mat (max(this->max_err,n_errors + 10) , max(this->max_noerr , n_error_free+10));
+		for(size_t i=0 ; i!=new_bound_mat.get_n_rows() ; ++i){
+			for(size_t j=0 ; j!=new_bound_mat.get_n_cols() ; ++j){
+				if(i<this->max_err and j<this->max_noerr){
+					new_bound_mat(i,j) = this->upper_bound_proba_mat(i,j);
+				}
+				else{
+					new_bound_mat(i,j) = pow(this->mu/(3*(1+mu)),i)*pow(1-mu/((1+mu)),j);
+				}
+			}
+		}
+		this->upper_bound_proba_mat = new_bound_mat;
+		this->max_err = new_bound_mat.get_n_rows()-1; //-1 since 0 errors is at index 0
+		this->max_noerr = new_bound_mat.get_n_cols()-1;
+	}
+	//TODO find something more sophisticated than mu/(1+mu) approximation
+
+	return this->upper_bound_proba_mat(n_errors,n_error_free);
+}
+
+void Hypermutation_global_errorrate::build_upper_bound_matrix(size_t m,size_t n){
+	Matrix<double> new_bound_mat (m,n);
+	for(size_t i=0 ; i!=new_bound_mat.get_n_rows() ; ++i){
+		for(size_t j=0 ; j!=new_bound_mat.get_n_cols() ; ++j){
+			if(i<this->max_err and j<this->max_noerr){
+				new_bound_mat(i,j) = this->upper_bound_proba_mat(i,j);
+			}
+			else{
+				new_bound_mat(i,j) = pow(this->mu/(3*(1+mu)),i)*pow(1-mu/((1+mu)),j);
+			}
+		}
+	}
+	this->upper_bound_proba_mat = new_bound_mat;
+	this->max_err = new_bound_mat.get_n_rows()-1;
+	this->max_noerr = new_bound_mat.get_n_cols()-1;
 }
 
 double Hypermutation_global_errorrate::compare_sequences_error_prob (double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Mismatch_vectors_map& mismatches_lists , double& seq_max_prob_scenario , double& proba_threshold_factor){

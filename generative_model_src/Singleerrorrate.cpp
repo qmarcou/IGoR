@@ -9,9 +9,11 @@
 
 using namespace std;
 
-Single_error_rate::Single_error_rate(): Error_rate() , model_rate(0) , normalized_counter(0) , seq_weighted_er(0) {}
+Single_error_rate::Single_error_rate(): Single_error_rate(0.0) {}
 
-Single_error_rate::Single_error_rate(double error_rate): Error_rate() , model_rate(error_rate) , normalized_counter(0) , seq_weighted_er(0)  {}
+Single_error_rate::Single_error_rate(double error_rate): Error_rate() , model_rate(error_rate) , normalized_counter(0) , seq_weighted_er(0)  {
+	build_upper_bound_matrix(1,1);
+}
 
 Single_error_rate::~Single_error_rate() {
 	// TODO Auto-generated destructor stub
@@ -40,9 +42,34 @@ Error_rate* Single_error_rate::add_checked(Error_rate* err_r){
 	return &( this->operator +=( *( dynamic_cast< Single_error_rate*> (err_r) ) ) );
 }
 
-double Single_error_rate::get_err_rate_upper_bound() const{
-	return this->model_rate/3;
+const double& Single_error_rate::get_err_rate_upper_bound(size_t n_errors , size_t n_error_free) {
+	if( n_errors>this->max_err || n_error_free>this->max_noerr){
+		//Need to increase the matrix size (anyway the matrix is at very most read_len^2
+		this->build_upper_bound_matrix(max(this->max_err,n_errors + 10) , max(this->max_noerr , n_error_free+10));
+	}
+
+	return this->upper_bound_proba_mat(n_errors,n_error_free);
+
+	//return this->model_rate/3;
 	//TODO remove factor 3
+}
+
+void Single_error_rate::build_upper_bound_matrix(size_t m , size_t n){
+	Matrix<double> new_bound_mat (m,n);
+	for(size_t i=0 ; i!=new_bound_mat.get_n_rows() ; ++i){
+		for(size_t j=0 ; j!=new_bound_mat.get_n_cols() ; ++j){
+			if(i<this->max_err and j<this->max_noerr){
+				new_bound_mat(i,j) = this->upper_bound_proba_mat(i,j);
+			}
+			else{
+				new_bound_mat(i,j) = pow(this->model_rate/3,i)*pow(1-this->model_rate,j);
+			}
+			//new_bound_mat(i,j) = pow(this->model_rate/3,i)*pow(1-this->model_rate,j);
+		}
+	}
+	this->upper_bound_proba_mat = new_bound_mat;
+	this->max_err = new_bound_mat.get_n_rows()-1;
+	this->max_noerr = new_bound_mat.get_n_cols()-1;
 }
 
 

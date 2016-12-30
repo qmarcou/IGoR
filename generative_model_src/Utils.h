@@ -62,7 +62,11 @@ template<class T> struct null_delete{
 template<typename T> struct Matrix {
 public:
 	Matrix():rows(0) , cols(0) , array_p(new T [0]){}
-	Matrix(int m ,int n ): rows(m) , cols(n) , array_p(new T [m*n] ){}
+	Matrix(int m ,int n ): rows(m) , cols(n) , array_p(nullptr){
+		if(m*n>0 and m>0){
+			array_p = new T [m*n];
+		}
+	}
 	Matrix(int m , int n , T arr[]):rows(m) , cols(n) , array_p(new T [m*n]){
 		for(size_t i = 0 ; i != m*n ; i++){
 			array_p[i] = arr[i];
@@ -77,7 +81,20 @@ public:
 			this->array_p[i] = other.array_p[i];
 		}
 	}
-	~Matrix(){delete [] array_p;}
+	~Matrix(){
+			delete [] array_p;
+	}
+
+	Matrix<T>& operator=(const Matrix& other){
+		delete [] array_p;
+		this->rows = other.rows;
+		this->cols = other.cols;
+		this->array_p = new T [rows*cols];
+		for(int i = 0 ; i != rows*cols ; i++){
+			this->array_p[i] = other.array_p[i];
+		}
+	}
+
 	T& operator()(int i ,int j ){
 		if( (i>rows-1) || (j>cols-1) ){
 			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
@@ -85,6 +102,9 @@ public:
 		}
 		return array_p[i + rows*j];
 	}
+	//Accessors
+	const int& get_n_rows() const {return rows;}
+	const int& get_n_cols() const {return cols;}
 private:
 	int rows;
 	int cols;

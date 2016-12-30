@@ -329,7 +329,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						}
 
 						//Update the mismatches penalty
-						downstream_proba_map.set_value(V_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),mismatches_vector.size()) , memory_layer_proba_map_seq);
+						downstream_proba_map.set_value(V_gene_seq , error_rate_p->get_err_rate_upper_bound(mismatches_vector.size(),new_str.size()-mismatches_vector.size()) , memory_layer_proba_map_seq);
 
 						//Multiply all downstream probas
 						downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
@@ -555,7 +555,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 							//Update the mismatches penalty
 							if(d_del_opposite_side_processed){
 								endogeneous_mismatches = mismatches_vector.size();
-								downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+								downstream_proba_map.set_value(D_gene_seq , error_rate_p->get_err_rate_upper_bound(mismatches_vector.size(),new_str.size()-mismatches_vector.size()) , memory_layer_proba_map_seq);
 							}
 							else{
 								mis_iter = mismatches_vector.begin();
@@ -817,7 +817,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 							//Update the mismatches penalty
 							if(d_del_opposite_side_processed){
 								endogeneous_mismatches = mismatches_vector.size();
-								downstream_proba_map.set_value(D_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),endogeneous_mismatches) , memory_layer_proba_map_seq);
+								downstream_proba_map.set_value(D_gene_seq , error_rate_p->get_err_rate_upper_bound(endogeneous_mismatches,new_str.size()-endogeneous_mismatches) , memory_layer_proba_map_seq);
 							}
 							else{
 								mis_iter = mismatches_vector.begin();
@@ -1111,7 +1111,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 						}
 
 						//Count the number of mismatches that will not go away even with maximum number of deletions
-						downstream_proba_map.set_value(J_gene_seq , pow(error_rate_p->get_err_rate_upper_bound(),mismatches_vector.size()) , memory_layer_proba_map_seq);
+						downstream_proba_map.set_value(J_gene_seq , error_rate_p->get_err_rate_upper_bound(mismatches_vector.size(),new_str.size()-mismatches_vector.size()) , memory_layer_proba_map_seq);
 
 						//Multiply all downstream probas
 						downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
@@ -1291,7 +1291,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
  void Deletion::initialize_event( unordered_set<Rec_Event_name>& processed_events , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , Downstream_scenario_proba_bound_map& downstream_proba_map , Seq_type_str_p_map& constructed_sequences , Safety_bool_map& safety_set , shared_ptr<Error_rate> error_rate_p , Mismatch_vectors_map& mismatches_list , Seq_offsets_map& seq_offsets , Index_map& index_map){
 
-	 err_rate_upper_bound = error_rate_p->get_err_rate_upper_bound(); //TODO should be removed
+	 //err_rate_upper_bound = error_rate_p->get_err_rate_upper_bound(); //TODO should be removed
 
 
 	 //TODO change this and the usage of int_value_and_index
