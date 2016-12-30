@@ -55,6 +55,42 @@ template<class T> struct null_delete{
 	void operator()(T*&){};
 };
 
+/*
+ * Declare a simple matrix class
+ *
+ */
+template<typename T> struct Matrix {
+public:
+	Matrix():rows(0) , cols(0) , array_p(new T [0]){}
+	Matrix(int m ,int n ): rows(m) , cols(n) , array_p(new T [m*n] ){}
+	Matrix(int m , int n , T arr[]):rows(m) , cols(n) , array_p(new T [m*n]){
+		for(size_t i = 0 ; i != m*n ; i++){
+			array_p[i] = arr[i];
+		}
+	}
+	Matrix(const Matrix<T>& other){
+		//Provides deep copy of a matrix
+		this->rows = other.rows;
+		this->cols = other.cols;
+		this->array_p = new T [rows*cols];
+		for(int i = 0 ; i != rows*cols ; i++){
+			this->array_p[i] = other.array_p[i];
+		}
+	}
+	~Matrix(){delete [] array_p;}
+	T& operator()(int i ,int j ){
+		if( (i>rows-1) || (j>cols-1) ){
+			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
+			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
+		}
+		return array_p[i + rows*j];
+	}
+private:
+	int rows;
+	int cols;
+	T* array_p ;
+};
+
 
 /*
  * This class provides a fast alternative to unordered_map<Seq_type,string*> for the constructed_sequences objects
@@ -198,7 +234,7 @@ public:
 /*				std::cout<<i<<std::endl;
 				std::cout<<(*(value_ptr_arr + i))<<std::endl;
 				std::cout<<(*(memory_adresses + i))*range<<std::endl;*/
-				prod_operand *= (*(value_ptr_arr + i +(*(memory_adresses + i))*range));
+				prod_operand *= value_ptr_arr[ i +memory_adresses[i]*range];
 			}
 		}
 
