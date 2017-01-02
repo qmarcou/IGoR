@@ -62,7 +62,7 @@ Although the full flexibility of IGoR is reachable through C++ highlevel functio
 This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference , evaluation and outputs.
 
 ## Alignments
-Performs Smith-Waterman alignments of the genomic templates.
+Performs Smith-Waterman alignments of the genomic templates. Using a slight alteration of the smith waterman score matrix, we enforce that V can only be deleted on the 3' side and J on the 5' side (thus enforcing the alignment on the other side until the end of the read or of the genomic template). D is aligned using a classical smith waterman local alignment approach allowing gene deletions on both sides.
 
 ## Inference
 The inference is reached using the command `-infer`. Logs and models parameters values for each iteration will be created in the folder *inference* of the working directory. Optional parameters are the following:
@@ -104,6 +104,7 @@ Reached using the command `-generate N`
 
 
 # C++
+Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-custom` command line when launching IGoR from the shell. An example of the workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
 
 # Python
 A set of Python modules are shipped with Igor in order to parse IGoR's outputs (alignments,models etc)
