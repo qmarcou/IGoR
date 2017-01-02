@@ -104,7 +104,7 @@ Reached using the command `-generate N`
 
 
 # C++
-Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-custom` command line when launching IGoR from the shell. An example of the workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
+Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions on which all previous command lines are built. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-custom` command line when launching IGoR from the shell. An example of the workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
 
 # Python
 A set of Python modules are shipped with Igor in order to parse IGoR's outputs (alignments,models etc)
