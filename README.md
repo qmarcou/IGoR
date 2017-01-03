@@ -101,6 +101,7 @@ Use command `--Pgen`
 Use command `--coverage`
 ## Sequence generation
 Reached using the command `-generate N` where *N* is the number of sequences to be generated. Optional parameters are the following:
+
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `--noerr`  | Generate sequences without sequencing error (the rate and the way those errors are generated is controlled by the model error rate)|
