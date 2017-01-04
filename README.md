@@ -63,6 +63,15 @@ This is where all IGoR outputs will appear. Specific folders will be created for
 
 ## Alignments
 Performs Smith-Waterman alignments of the genomic templates. Using a slight alteration of the smith waterman score matrix, we enforce that V can only be deleted on the 3' side and J on the 5' side (thus enforcing the alignment on the other side until the end of the read or of the genomic template). D is aligned using a classical smith waterman local alignment approach allowing gene deletions on both sides.
+Alignment of the sequences is performed upon detection of the `-align` switch in the command line. For each gene, alignment parameters can be set using `--V`,`--D` or `--J`. The arguments for setting the different parameters are given in the table below.
+
+| Command line argument | Description                    |
+| :------------- | :------------------------------ |
+| `---thresh X`  | Sets the score threshold for the considered gene alignments to *X*. Default is ZZ for V, ZZ for D and ZZ for J |
+| `---matrix path/to/file` | Sets the substitution matrix to the one given in the file. Must be ZZZ delimited. Default is a NUC44 matrix with stronger penalty on errors (5,-14) |
+| `---gap_penalty X` | Sets the gap penalty to X |
+| `---best_only` | |
+| `---offset_bounds M N` | Constrains the possible positions of the alignments. The offset is defined as the position on the read to which the first nucleotide of the genomic template aligns (can be negative, e.g for V for which most of the V is on the 5' of the read and cannot be seen)  |
 
 ## Inference
 The inference is reached using the command `-infer`. Logs and models parameters values for each iteration will be created in the folder *inference* of the working directory. Optional parameters are the following:
