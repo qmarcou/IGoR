@@ -30,6 +30,7 @@
 
 class Model_marginals {
 public:
+	Model_marginals();
 	Model_marginals(const Model_Parms&);
 	Model_marginals(const Model_marginals&);
 	virtual ~Model_marginals();

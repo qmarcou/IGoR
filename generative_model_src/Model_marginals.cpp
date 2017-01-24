@@ -10,6 +10,9 @@
 
 using namespace std;
 
+Model_marginals::Model_marginals() {
+	marginal_array_smart_p = NULL;
+}
 
 Model_marginals::Model_marginals(const Model_Parms& model_parms) {
 	marginal_arr_size = compute_size(model_parms);
