@@ -120,6 +120,8 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 # C++
 Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions on which all previous command lines are built. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-custom` command line when launching IGoR from the shell. An example of the workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
 
+Good practice would be to append the C++ code in the main in the scope where "//Write your custom procedure here" is written. This part of the code is reachable using the `-custom` command line argument. This is done so that even after appending some custom code the command line interface is still usable.
+
 # Python
 A set of Python modules are shipped with Igor in order to parse IGoR's outputs (alignments,models etc)
 For further versions a Python/Cython interface for IGoR might be supplied 
