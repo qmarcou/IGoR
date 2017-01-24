@@ -20,6 +20,7 @@
 #include "Coverageerrcounter.h"
 #include "Bestscenarioscounter.h"
 #include "Pgencounter.h"
+#include "Utils.h"
 #include <chrono>
 
 
@@ -72,6 +73,7 @@ int main(int argc , char* argv[]){
 	//Sequence generation parms
 	size_t generate_n_seq;
 	bool generate_werr = true;
+	string generated_batchname = "";
 
 	//Inference parms
 	bool viterbi_inference;
@@ -106,6 +108,10 @@ int main(int argc , char* argv[]){
 			run_demo = true;
 		}
 
+		else if(string(argv[carg_i]) == "-run_custom"){
+			cout<<"running custom code"<<endl;
+			run_demo = custom;
+		}
 		else if(string(argv[carg_i]) == "-align"){
 			//Provide a boolean for aligning
 			align = true;
@@ -130,7 +136,7 @@ int main(int argc , char* argv[]){
 						l_thresh = stod(string(argv[carg_i]));
 					}
 					catch(exception& e){
-						cout<<"Expected a float for the likelihood threshold, received: \"" + argv[carg_i] + "\""<<endl;
+						cout<<"Expected a float for the likelihood threshold, received: \"" + string(argv[carg_i]) + "\""<<endl;
 						cout<<"Terminating and throwing exception now..."<<endl;
 						throw e;
 					}
@@ -150,7 +156,7 @@ int main(int argc , char* argv[]){
 						p_ratio = stod(string(argv[carg_i]));
 					}
 					catch(exception& e){
-						cout<<"Expected a float for the probability ratio threshold, received: \"" + argv[carg_i] + "\""<<endl;
+						cout<<"Expected a float for the probability ratio threshold, received: \"" + string(argv[carg_i]) + "\""<<endl;
 						cout<<"Terminating and throwing exception now..."<<endl;
 						throw e;
 					}
@@ -169,7 +175,7 @@ int main(int argc , char* argv[]){
 
 						}
 						catch(exception& e){
-							cout<<"Expected an integer for the number of iterations to perform for the inference, received: \"" + argv[carg_i] + "\""<<endl;
+							cout<<"Expected an integer for the number of iterations to perform for the inference, received: \"" + string(argv[carg_i]) + "\""<<endl;
 							cout<<"Terminating and throwing exception now..."<<endl;
 							throw e;
 						}
@@ -189,15 +195,15 @@ int main(int argc , char* argv[]){
 			++carg_i;
 			if(string(argv[carg_i]) == "--alpha"){
 				has_D = false;
-				v_genomic = read_genomic_fasta();
-				j_genomic = read_genomic_fasta();
+				v_genomic = read_genomic_fasta("../models/human/tcr_alpha/ref_genome/genomicVs.fasta");
+				j_genomic = read_genomic_fasta("../models/human/tcr_alpha/ref_genome/genomicJs.fasta");
 
 			}
 			else if(string(argv[carg_i]) == "--beta"){
 				has_D = true;
-				v_genomic = read_genomic_fasta();
-				d_genomic = read_genomic_fasta();
-				j_genomic = read_genomic_fasta();
+				v_genomic = read_genomic_fasta("../models/human/tcr_beta/ref_genome/genomicVs.fasta");
+				d_genomic = read_genomic_fasta("../models/human/tcr_beta/ref_genome/genomicDs.fasta");
+				j_genomic = read_genomic_fasta("../models/human/tcr_beta/ref_genome/genomicJs.fasta");
 			}
 			else if(string(argv[carg_i]) == "--light"){
 				cout<<"Support for light chains in command line is not ready yet due to the lack of genomic templates and suitable model"<<endl;
@@ -206,15 +212,17 @@ int main(int argc , char* argv[]){
 			}
 			else if( (string(argv[carg_i]) == "--heavy_naive") or (string(argv[carg_i]) == "--heavy_memory") ){
 				has_D = true;
-				v_genomic = read_genomic_fasta();
-				d_genomic = read_genomic_fasta();
-				j_genomic = read_genomic_fasta();
+				v_genomic = read_genomic_fasta("../models/human/bcr_heavy/ref_genome/genomicVs.fasta");
+				d_genomic = read_genomic_fasta("../models/human/bcr_heavy/ref_genome/genomicDs.fasta");
+				j_genomic = read_genomic_fasta("../models/human/bcr_heavy/ref_genome/genomicJs.fasta");
 
 				if( string(argv[carg_i]) == "--heavy_naive" ){
 					//Use a single error rate
 				}
 				else{
 					//Memory
+
+					//TODO infer only \mu for the hypermutation model
 				}
 			}
 			else{
@@ -260,7 +268,7 @@ int main(int argc , char* argv[]){
 					n_record_scenarios = stoi(string(argv[carg_i]));
 				}
 				catch(exception& e){
-					cout<<"Expected the number of scenarios to be recorded by the best scenario counter, received: \"" + argv[carg_i] + "\""<<endl;
+					cout<<"Expected the number of scenarios to be recorded by the best scenario counter, received: \"" + string(argv[carg_i]) + "\""<<endl;
 					cout<<"Terminating and throwing exception now..."<<endl;
 					throw e;
 				}
@@ -307,7 +315,7 @@ int main(int argc , char* argv[]){
 					generate_n_seq = stoi(string(argv[carg_i]));
 				}
 				catch(exception& e){
-					cout<<"Expected the number of sequences to generate, received: \"" + argv[carg_i] + "\""<<endl;
+					cout<<"Expected the number of sequences to generate, received: \"" + string(argv[carg_i]) + "\""<<endl;
 					cout<<"Terminating and throwing exception now..."<<endl;
 					throw e;
 				}
@@ -318,7 +326,7 @@ int main(int argc , char* argv[]){
 					generate_n_seq = stoi(string(argv[carg_i]));
 				}
 				catch(exception& e){
-					cout<<"Expected the number of sequences to generate, received: \"" + argv[carg_i] + "\""<<endl;
+					cout<<"Expected the number of sequences to generate, received: \"" + string(argv[carg_i]) + "\""<<endl;
 					cout<<"Terminating and throwing exception now..."<<endl;
 					throw e;
 				}
@@ -326,6 +334,11 @@ int main(int argc , char* argv[]){
 					while(string(argv[carg_i]).substr(0,2) == "--"){
 						if(string(argv[carg_i]) == "--noerr"){
 							generate_werr = false;
+						}
+						else if(string(argv[carg_i]) == "--name"){
+							++carg_i;
+							generated_batchname = argv[carg_i];
+							++carg_i;
 						}
 						else{
 							throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
@@ -603,7 +616,9 @@ int main(int argc , char* argv[]){
 			else{
 				indexed_seqlist = read_txt(input_seqs_file);
 			}
-			//TODO create the directory
+			//create the directory
+			system(&("mkdir " + cl_path + "aligns")[0]);
+
 			write_indexed_seq_csv(cl_path + "aligns/indexed_sequences.csv",indexed_seqlist);
 		}
 
@@ -639,8 +654,8 @@ int main(int argc , char* argv[]){
 			j_aligner.align_seqs(cl_path + "aligns/D_alignments.csv",indexed_seqlist,10,true); //TODO allow for setting offsets bounds
 		}
 
-		if(infer){
-			//TODO create inference + output directory
+		if(infer xor evaluate){
+
 			GenModel genmodel(cl_model_parms,cl_model_marginals,cl_counters_list);
 
 			//Reading alignments
@@ -654,13 +669,40 @@ int main(int argc , char* argv[]){
 
 			vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
-			genmodel.infer_model(sorted_alignments_vec , n_iter_inference , cl_path + "inference/" , true , likelihood_thresh_inference , proba_threshold_ratio_inference);
+			//create the output directory
+			system(&("mkdir " + cl_path + "output")[0]);
+
+			if(infer){
+				//create inference directory directory
+				system(&("mkdir " + cl_path + "inference")[0]);
+				genmodel.infer_model(sorted_alignments_vec , n_iter_inference , cl_path + "inference/" , true , likelihood_thresh_inference , viterbi_inference , proba_threshold_ratio_inference);
+			}
+
+			if(evaluate){
+				//create evaluate directory
+				system(&("mkdir " + cl_path + "evaluate")[0]);
+				genmodel.infer_model(sorted_alignments_vec , 1 , cl_path + "evaluate/" , false , likelihood_thresh_evaluate , viterbi_evaluate , proba_threshold_ratio_evaluate);
+			}
+		}
+		else if(infer and evaluate){
+			cout<<"Cannot infer and evaluate in a single command, please split in two commands (otherwise the model used to evaluate is ambiguous)"<<endl;
 		}
 
-		if(evaluate){
-			//TODO create evaluate directory
+		if(generate){
+			GenModel genmodel(cl_model_parms,cl_model_marginals,cl_counters_list);
 
+			//TODO create generated folder
+			string w_err_str;
+			if(generate_werr){
+				w_err_str = "werr";
+			}
+			else{
+				w_err_str = "noerr";
+			}
+
+			genmodel.generate_sequences(generate_n_seq,generate_werr,cl_path + "generated/" +  generated_batchname+"generated_seqs_" + w_err_str + ".csv",cl_path + "generated/" +  generated_batchname+"generated_realizations_" + w_err_str + ".csv");
 		}
+
 	}
 
 	else{
