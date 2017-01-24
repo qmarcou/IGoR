@@ -114,6 +114,7 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `--noerr`  | Generate sequences without sequencing error (the rate and the way those errors are generated is controlled by the model error rate)|
+| `--name batchname`  | Batch name for the generated sequences filename (useful if one needs to generate several sets of generated sequences). |
 
 
 # C++
