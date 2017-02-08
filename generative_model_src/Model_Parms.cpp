@@ -457,7 +457,7 @@ void Model_Parms::read_model_parms(string filename){
 			vector<double> ei_contributions ;
 			while( semicolon_index!=string::npos ){
 				if(semicolon_index==0){
-					ei_contributions.push_back(stod(line_str.substr(semicolon_index , (next_semicolon_index - semicolon_index -1))));
+					ei_contributions.push_back(stod(line_str.substr(semicolon_index , (next_semicolon_index - semicolon_index ))));
 				}
 				else{
 					ei_contributions.push_back(stod(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1))));
