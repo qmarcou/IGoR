@@ -28,7 +28,8 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 		vgene_real_index_p(NULL) , dgene_real_index_p(NULL) , jgene_real_index_p(NULL),
 		v_3_del_value_p(NULL) , d_5_del_value_p(NULL) , d_3_del_value_p(NULL) , j_5_del_value_p(NULL),
 		i(-1) , j(-1) , v_3_del_value_corr(INT16_MAX) , d_5_del_value_corr(INT16_MAX) , d_3_del_value_corr(INT16_MAX) , j_5_del_value_corr(INT16_MAX) , tmp_cov_p(NULL) , tmp_err_p(NULL) , tmp_corr_len(-1) , tmp_len_util(-1) , scenario_new_proba(-1) ,
-		largest_nuc_adress(-1), tmp_int_nt(-1) , Nmer_index(-1){
+		largest_nuc_adress(-1), tmp_int_nt(-1) , Nmer_index(-1),
+		output_Nmer_stat_stream(new ofstream){
 
 	build_upper_bound_matrix(1,1);
 
@@ -105,15 +106,10 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 	}
 
 
-	debug_v_seq_coverage = new double[130];
-	debug_mismatch_seq_coverage = new double[130];
-	for(int zz=0 ; zz!=130 ; ++zz){
-		debug_v_seq_coverage[zz] = 0;
-		debug_mismatch_seq_coverage[zz] = 0;
-	}
-
 	empty_vec_util = vector<int>();
 	vec_ptr_util = NULL;
+
+	output_Nmer_stat = false;
 }
 
 Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value , vector<double> ei_contributions): Hypermutation_global_errorrate(nmer_width , learn , apply , starting_flat_value){
@@ -127,6 +123,14 @@ Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width
 	}
 
 	this->update_Nmers_proba(0,0,1);
+}
+
+Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value,string filename):Hypermutation_global_errorrate(nmer_width , learn , apply , starting_flat_value) {
+	this->set_output_Nmer_stream(filename);
+}
+
+Hypermutation_global_errorrate::Hypermutation_global_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value, vector<double> ei_contributions,string filename):Hypermutation_global_errorrate(nmer_width , learn , apply , starting_flat_value,ei_contributions) {
+	this->set_output_Nmer_stream(filename);
 }
 
 Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
@@ -163,10 +167,19 @@ Hypermutation_global_errorrate::~Hypermutation_global_errorrate() {
 
 }
 
+void Hypermutation_global_errorrate::set_output_Nmer_stream(string filename){
+	cout<<"Nmer hypermutation model output set to: "<<filename<<endl;
+	output_Nmer_stat_stream->open(filename);
+	(*output_Nmer_stat_stream)<<"Nmer_index,N_bg,N_mut"<<endl;
+	output_Nmer_stat = true;
+}
+
 shared_ptr<Error_rate> Hypermutation_global_errorrate::copy()const{
 
 	shared_ptr<Hypermutation_global_errorrate> copy_err_r = shared_ptr<Hypermutation_global_errorrate>( new Hypermutation_global_errorrate(this->mutation_Nmer_size , this->learn_on , this->apply_to , this->mu) );
 	copy_err_r->updated = this->updated;
+	copy_err_r->output_Nmer_stat = this->output_Nmer_stat;
+	copy_err_r->output_Nmer_stat_stream = this->output_Nmer_stat_stream;
 	//copy_err_r->R = this->R;
 	for(int ii = 0 ; ii != mutation_Nmer_size*4 ; ++ii){
 		copy_err_r->ei_nucleotide_contributions[ii] = this->ei_nucleotide_contributions[ii];
@@ -515,8 +528,9 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 
 
-	if(std::isnan(scenario_new_proba)){
-		cout<<"SHOUT!!"<<endl;
+	//If viterbi learning clean seq counters in order to count only this new most likely scenario
+	if(viterbi_run){
+		this->clean_seq_counters();
 	}
 
 	//Record the number of times each Nmer is seen and the number of times it is mutated
@@ -1061,8 +1075,13 @@ unsigned Hypermutation_global_errorrate::generate_random_contributions(double ei
 
 void Hypermutation_global_errorrate::update(){
 
-	//Compute P_SHM and P_bg for each possible Nmer
-	//this->compute_P_SHM_and_BG();
+	//If an output stream is provided outputs Nmer statistics in a file (mostly for debugging)
+	if(output_Nmer_stat){
+		for(int zzz=0 ; zzz!=pow(4,mutation_Nmer_size) ; ++zzz){
+			(*output_Nmer_stat_stream)<<zzz<<","<<Nmer_N_bg[zzz]<<","<<Nmer_N_SHM[zzz]<<endl;
+		}
+	}
+
 
 	//Update the error rate by maximizing the likelihood of the error model
 

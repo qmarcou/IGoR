@@ -25,6 +25,8 @@ class Hypermutation_global_errorrate: public Error_rate {
 public:
 	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double);
 	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>);
+	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double,std::string);
+	Hypermutation_global_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>,std::string);
 	//Hypermutation_global_errorrate(size_t,Gene_class,Gene_class, ??); Constructor to read or copy the error rate
 	virtual ~Hypermutation_global_errorrate();
 	double compare_sequences_error_prob( double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Mismatch_vectors_map& , double& , double& );
@@ -34,6 +36,7 @@ public:
 	void clean_seq_counters();
 	void clean_all_counters();
 	void write2txt(std::ofstream&);
+	void set_output_Nmer_stream(std::string);
 	std::shared_ptr<Error_rate> copy()const;
 	std::string type() const {return "HypermutationGlobalErrorRate";}
 	Hypermutation_global_errorrate& operator+=(Hypermutation_global_errorrate);
@@ -43,6 +46,7 @@ public:
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
 	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
 	unsigned generate_random_contributions(double);
+
 
 private:
 	void update_Nmers_proba(int,int,double);
@@ -151,6 +155,9 @@ private:
 	double* debug_v_seq_coverage;
 	double* debug_mismatch_seq_coverage;
 	std::string debug_current_string;
+
+	std::shared_ptr<std::ofstream> output_Nmer_stat_stream;
+	bool output_Nmer_stat;
 
 
 
