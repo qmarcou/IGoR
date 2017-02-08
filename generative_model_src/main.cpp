@@ -110,7 +110,7 @@ int main(int argc , char* argv[]){
 
 		else if(string(argv[carg_i]) == "-run_custom"){
 			cout<<"running custom code"<<endl;
-			run_demo = custom;
+			custom = true;
 		}
 		else if(string(argv[carg_i]) == "-align"){
 			//Provide a boolean for aligning
@@ -382,7 +382,7 @@ int main(int argc , char* argv[]){
 		cl_path = "/tmp/";
 	}
 
-	cout<<"Working directory set to: \""+cl_path+"\"";
+	cout<<"Working directory set to: \""+cl_path+"\""<<endl;
 
 
 
