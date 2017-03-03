@@ -21,26 +21,26 @@ Its heavily object oriented and modular style was designed to ensure long term s
 
 # Dependencies
 
-+ GCC (sufficiently recent to work with C++11 standards and OpenMP 3.8)
-+ GSL library : currently working on shipping it with IGoR
-+ jemalloc (optional although recommended for full parallel proficiency)
++ a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread)
++ GSL library : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies 
++ jemalloc (optional although recommended for full parallel proficiency) memory allocation library: also shipped with IGoR to avoid dependencies issues (requires pthreads)
++ bash
 
 # Install
+IGoR uses the autotools suite for compilation and installation in order to ensure portability to many systems. 
 
 ## Linux
 Widely tested on several Debian related distros.
-Install gcc/g++ if not already installed.
+Install gcc/g++ if not already installed (although can also be compiled using icc for instance).
+With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Once over, type `make` to compile the sources and obtain IGoR's executable.
 
 ## MacOS
 MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports and install gcc from there.
 
+Once done, as for Linux simply go to IGoR's root folder and type `./configure;make` 
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+## Windows (not tested)
+The configure script relies on bash to work. A first step is to download a bash interpreter (such as Cygwin or MinGW). Open the command line of the one of your choice and use `./configure;make`
 
 # Workflow
 As a preprocessing step IGoR first needs some alignments of the genomic templates to the read before exploring all putative recombination scenarios for this read.
