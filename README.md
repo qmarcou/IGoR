@@ -55,7 +55,8 @@ Although the full flexibility of IGoR is reachable through C++ highlevel functio
 | `-threads N`   | Sets the number of OpenMP threads to *N* for alignments and inference     |
 | `-stdout_f /path/to/file`  | Redirects the standard output to the file */path/to/file*  |
 | `-read_seqs /path/to/file`  | Reads the input sequences file */path/to/file* and reformat it in the working directory. **This step is necessary for running any action on sequences using the command line**. Can be a fasta file or a text file with one sequence per line (format recognition is based on the file extension). |
-| `-chain --chainname` | Selects a model and a set of genomic template according to the value. Possible values for `--chainname` are: `--alpha`, `--beta`, `--light`, `--heavy_naive`, and `--heavy_memory`. **This needs to be set in order to use provided genomic templates/model**
+| `-chain --chainname` | Selects a model and a set of genomic template according to the value. Possible values for `--chainname` are: `--alpha`, `--beta`, `--light`, `--heavy_naive`, and `--heavy_memory`. **This needs to be set in order to use provided genomic templates/model**|
+|`-set_genomic --*gene* /path/to/file.fasta`| Set a set of custom genomic templates for gene *gene* (possible values are V,D and J) with a list of genomic templates contained in the file */path/to/file.fasta* in fasta format|
 | `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
 | `-run_custom`  |  Runs the code inside the custom section of the main.cpp file |
 
@@ -117,6 +118,8 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | `--noerr`  | Generate sequences without sequencing error (the rate and the way those errors are generated is controlled by the model error rate)|
 | `--name batchname`  | Batch name for the generated sequences filename (useful if one needs to generate several sets of generated sequences). |
 
+## Command examples
+Here we give a few command examples for a typical workflow.
 
 # C++
 Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions on which all previous command lines are built. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-custom` command line when launching IGoR from the shell. An example of the workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
