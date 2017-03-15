@@ -48,12 +48,21 @@ int main(int argc , char* argv[]){
 
 	//Chains vars
 	bool chain_provided = false;
+	string chain_arg_str;
+	string chain_path_str;
 	bool has_D = false;
+
+	//Species vars
+	bool species_provided = false;
+	string species_str = "";
 
 	//Custom genomic templates loading variables
 	bool custom_v = false;
+	string custom_v_path;
 	bool custom_d = false;
+	string custom_d_path;
 	bool custom_j = false;
+	string custom_j_path;
 
 	//Input sequences variables
 	bool read_seqs = false;
@@ -66,6 +75,7 @@ int main(int argc , char* argv[]){
 	vector<pair<string,string>> j_genomic;
 
 	//Model parms and marginals
+	bool  custom_cl_parms = false;
 	Model_Parms cl_model_parms;
 	Model_marginals cl_model_marginals;
 	map<size_t,shared_ptr<Counter>> cl_counters_list;
@@ -86,6 +96,11 @@ int main(int argc , char* argv[]){
 	double likelihood_thresh_evaluate;
 	double proba_threshold_ratio_evaluate;
 
+	//Alignment parameters
+	double v_align_score_threshold = 50.0;
+	bool v_align_bounds_provided = false;
+
+
 
 
 
@@ -103,6 +118,40 @@ int main(int argc , char* argv[]){
 			freopen(argv[++carg_i],"a+",stdout);
 		}
 
+		//Set custom genomic template
+		else if(string(argv[carg_i]) == string("-set_genomic")){
+			++carg_i;
+			//Throw an error if not found?
+			while(string(argv[carg_i]).substr(0,2) == "--"){
+				if(string(argv[carg_i]) == "--V"){
+					custom_v = true;
+					++carg_i;
+					custom_v_path = string(argv[carg_i]);
+				}
+				else if(string(argv[carg_i]) == "--D"){
+					custom_d = true;
+					++carg_i;
+					custom_d_path = string(argv[carg_i]);
+				}
+				else if(string(argv[carg_i]) == "--J"){
+					custom_j = true;
+					++carg_i;
+					custom_j_path = string(argv[carg_i]);
+				}
+				else{
+					throw invalid_argument("Unknown gene argument \"" + string(argv[carg_i]) +"\" to set genomic templates");
+				}
+			}
+		}
+
+		else if(string(argv[carg_i]) == "-set_custom_model"){
+			custom_cl_parms = true;
+			++carg_i;
+			cl_model_parms.read_model_parms(string(argv[carg_i]));
+			++carg_i;
+			cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+		}
+
 		else if(string(argv[carg_i]) == "-run_demo"){
 			cout<<"running demo code"<<endl;
 			run_demo = true;
@@ -112,9 +161,59 @@ int main(int argc , char* argv[]){
 			cout<<"running custom code"<<endl;
 			custom = true;
 		}
+
 		else if(string(argv[carg_i]) == "-align"){
 			//Provide a boolean for aligning
 			align = true;
+			//Check for additional parameters specific to each gene
+			while(string(argv[carg_i+1]).substr(0,2) == "--"){
+				++carg_i;
+				string gene_str_val = string(argv[carg_i]);
+
+				if( (gene_str_val == "--V")
+						or (gene_str_val == "--D")
+						or (gene_str_val == "--J")
+						or (gene_str_val == "--all")){
+					while(string(argv[carg_i+1]).substr(0,3) == "---"){
+						++carg_i;
+
+						//define tons of variables and their corresponding booleans
+
+						if(string(argv[carg_i]) == "---thresh"){
+
+						}
+						else if(string(argv[carg_i]) == "---matrix"){
+
+						}
+						else if(string(argv[carg_i]) == "---gap_penalty"){
+
+						}
+						else if(string(argv[carg_i]) == "---best_only"){
+
+						}
+						else if(string(argv[carg_i]) == "---offset_bounds"){
+
+						}
+						else{
+							throw invalid_argument("Unknown parameter\"" + string(argv[carg_i]) +"\" for gene " + gene_str_val + " in -align " );
+						}
+					}
+				}
+
+				//Now assign back the values to the correct variables
+				if(gene_str_val == "--V"){
+
+				}
+				else if(gene_str_val == "--D"){
+
+				}
+				else if(gene_str_val == "--J"){
+
+				}
+				else{
+					throw invalid_argument("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
+				}
+			}
 		}
 
 		else if( (string(argv[carg_i]) == "-infer") or (string(argv[carg_i]) == "-evaluate")){
@@ -193,41 +292,25 @@ int main(int argc , char* argv[]){
 			//Provide a boolean for the choice of a chain type (thus a set of genomic templates and model)
 			chain_provided = true;
 			++carg_i;
-			if(string(argv[carg_i]) == "--alpha"){
-				has_D = false;
-				v_genomic = read_genomic_fasta("../models/human/tcr_alpha/ref_genome/genomicVs.fasta");
-				j_genomic = read_genomic_fasta("../models/human/tcr_alpha/ref_genome/genomicJs.fasta");
-
-			}
-			else if(string(argv[carg_i]) == "--beta"){
-				has_D = true;
-				v_genomic = read_genomic_fasta("../models/human/tcr_beta/ref_genome/genomicVs.fasta");
-				d_genomic = read_genomic_fasta("../models/human/tcr_beta/ref_genome/genomicDs.fasta");
-				j_genomic = read_genomic_fasta("../models/human/tcr_beta/ref_genome/genomicJs.fasta");
-			}
-			else if(string(argv[carg_i]) == "--light"){
-				cout<<"Support for light chains in command line is not ready yet due to the lack of genomic templates and suitable model"<<endl;
-				cout<<"If you wish to use IGoR on light chains please contact us so we can work on incorporating a light chain model to IGoR"<<endl;
-				throw invalid_argument("Light chains support does not exist yet for command line");
-			}
-			else if( (string(argv[carg_i]) == "--heavy_naive") or (string(argv[carg_i]) == "--heavy_memory") ){
-				has_D = true;
-				v_genomic = read_genomic_fasta("../models/human/bcr_heavy/ref_genome/genomicVs.fasta");
-				d_genomic = read_genomic_fasta("../models/human/bcr_heavy/ref_genome/genomicDs.fasta");
-				j_genomic = read_genomic_fasta("../models/human/bcr_heavy/ref_genome/genomicJs.fasta");
-
-				if( string(argv[carg_i]) == "--heavy_naive" ){
-					//Use a single error rate
-				}
-				else{
-					//Memory
-
-					//TODO infer only \mu for the hypermutation model
-				}
+			if( (string(argv[carg_i]) == "alpha")
+					or (string(argv[carg_i]) == "beta")
+					or (string(argv[carg_i]) == "light")
+					or (string(argv[carg_i]) == "heavy_naive")
+					or (string(argv[carg_i]) == "heavy_memory")){
+				chain_arg_str = string(argv[carg_i]);
+				cout<<"Chain parameter set to: "<<chain_arg_str<<endl;
 			}
 			else{
-				throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: --alpha, --beta, --heavy_naive , --heavy_memory , --light");
+				throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: alpha, beta, heavy_naive , heavy_memory , light");
 			}
+		}
+
+		else if(string(argv[carg_i]) == "-species"){
+			//TODO add a check on the existence of the species
+			species_provided = true;
+			++carg_i;
+			species_str = string(argv[carg_i]);
+			cout<<"Species parameter set to: "<<species_str<<endl;
 		}
 
 		/*
@@ -352,9 +435,10 @@ int main(int argc , char* argv[]){
 		 * Input sequences argument parsing
 		 */
 		else if(string(argv[carg_i]) == "-read_seqs"){
+			read_seqs = true;
 			++carg_i;
-			string tmp_str = string(argv[carg_i]);
-			tmp_str = tmp_str.substr(tmp_str.size() -6 , string::npos );
+			input_seqs_file = string(argv[carg_i]);
+			string tmp_str = input_seqs_file.substr(tmp_str.size() -6 , string::npos );
 			transform(tmp_str.begin(),tmp_str.end(),tmp_str.begin(),::tolower);
 			if( tmp_str == ".fasta" ){
 				fasta_seqs = true;
@@ -375,6 +459,101 @@ int main(int argc , char* argv[]){
 
 
 
+
+	}
+	if(chain_provided){
+		if(chain_arg_str == "alpha"){
+			has_D = false;
+			chain_path_str = "tcr_alpha";
+			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+
+		}
+		else if(chain_arg_str == "beta"){
+			has_D = true;
+			chain_path_str = "tcr_beta";
+			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			d_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+		}
+		else if(chain_arg_str == "light"){
+			cout<<"Support for light chains in command line is not ready yet due to the lack of genomic templates and suitable model"<<endl;
+			cout<<"If you wish to use IGoR on light chains please contact us so we can work on incorporating a light chain model to IGoR"<<endl;
+			throw invalid_argument("Light chains support does not exist yet for command line");
+		}
+		else if( (chain_arg_str == "heavy_naive") or (chain_arg_str == "heavy_memory") ){
+			has_D = true;
+			chain_path_str = "bcr_heavy";
+			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			d_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+
+			if( chain_arg_str == "heavy_naive" ){
+				//Use a single error rate
+			}
+			else{
+				//Memory
+
+				//TODO infer only \mu for the hypermutation model
+			}
+		}
+	}
+
+	//Read custom genomic templates if some custom ones were specified
+	if(custom_v){
+		v_genomic = read_genomic_fasta(custom_v_path);
+	}
+	if(custom_d){
+		d_genomic = read_genomic_fasta(custom_d_path);
+	}
+	if(custom_j){
+		j_genomic = read_genomic_fasta(custom_j_path);
+	}
+
+	/*
+	 * Read supplied model parms and marginals
+	 * If some custom genomic templates were supplied, we replace the genomic templates contained in the model by the supplied ones
+	 * and re-initialize the marginals
+	 */
+	if(not custom_cl_parms
+			and (infer or evaluate or generate)){
+		cl_model_parms.read_model_parms("../models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
+
+
+		bool any_custom_gene = false;
+		unordered_map<tuple<Event_type,Gene_class,Seq_side>,shared_ptr<Rec_Event>> tmp_events_map = cl_model_parms.get_events_map();
+		if(custom_v){
+			any_custom_gene = true;
+			shared_ptr<Rec_Event> v_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side));
+			shared_ptr<Gene_choice> v_choice_gc = dynamic_pointer_cast<Gene_choice>(v_choice);
+			v_choice_gc->set_genomic_templates(v_genomic);
+		}
+		if(has_D and custom_d){
+			any_custom_gene = true;
+			shared_ptr<Rec_Event> d_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side));
+			shared_ptr<Gene_choice> d_choice_gc = dynamic_pointer_cast<Gene_choice>(d_choice);
+			d_choice_gc->set_genomic_templates(d_genomic);
+		}
+		if(custom_j){
+			any_custom_gene = true;
+			shared_ptr<Rec_Event> j_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side));
+			shared_ptr<Gene_choice> j_choice_gc = dynamic_pointer_cast<Gene_choice>(j_choice);
+			j_choice_gc->set_genomic_templates(j_genomic);
+		}
+
+		if(any_custom_gene){
+			/*
+			 * If some custom genomic templates were provided we have replaced the genomic templates contained in the model
+			 * Thus other components (e.g deletion profiles) might not match anymore and re inferring a model is necessary
+			 * Marginals are initialized with a uniform distribution
+			 */
+
+			cl_model_marginals = Model_marginals(cl_model_parms);
+			cl_model_marginals.uniform_initialize(cl_model_parms);
+		}
+		else{
+			cl_model_marginals.txt2marginals("../models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
+		}
 
 	}
 
@@ -651,7 +830,7 @@ int main(int argc , char* argv[]){
 			Aligner j_aligner (nuc44_sub_matrix , 50 , J_gene);
 			j_aligner.set_genomic_sequences(j_genomic);
 
-			j_aligner.align_seqs(cl_path + "aligns/D_alignments.csv",indexed_seqlist,10,true); //TODO allow for setting offsets bounds
+			j_aligner.align_seqs(cl_path + "aligns/J_alignments.csv",indexed_seqlist,10,true); //TODO allow for setting offsets bounds
 		}
 
 		if(infer xor evaluate){
