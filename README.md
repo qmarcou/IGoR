@@ -66,8 +66,8 @@ Although the full flexibility of IGoR is reachable through C++ highlevel functio
 This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference , evaluation and outputs.
 
 ## Alignments
-Performs Smith-Waterman alignments of the genomic templates. Using a slight alteration of the smith waterman score matrix, we enforce that V can only be deleted on the 3' side and J on the 5' side (thus enforcing the alignment on the other side until the end of the read or of the genomic template). D is aligned using a classical smith waterman local alignment approach allowing gene deletions on both sides.
-Alignment of the sequences is performed upon detection of the `-align` switch in the command line. For each gene, alignment parameters can be set using `--V`,`--D` or `--J`. The arguments for setting the different parameters are given in the table below.
+Performs Smith-Waterman alignments of the genomic templates. Using a slight alteration of the Smith-Waterman score matrix, we enforce that V can only be deleted on the 3' side and J on the 5' side (thus enforcing the alignment on the other side until the end of the read or of the genomic template). D is aligned using a classical Smith-Waterman local alignment approach allowing gene deletions on both sides.
+Alignment of the sequences is performed upon detection of the `-align` switch in the command line. For each gene, alignment parameters can be set using `--V`,`--D` or `--J`. **Specifying any of those three argument will cause to align only the specified genes**. In order to specify a set of parameters for all genes or force to align all genes the argument `--all` should be passed. The arguments for setting the different parameters are given in the table below.
 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
