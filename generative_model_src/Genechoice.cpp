@@ -81,6 +81,13 @@ bool Gene_choice::add_realization(string gene_name , string gene_sequence  ){
 	return 1;
 }
 
+void Gene_choice::set_genomic_templates(const vector<pair<string,string>>& genomic_templates){
+	//First remove previous realizations
+	this->event_realizations.clear();
+	for(vector<pair<string,string>>::const_iterator iter = genomic_templates.begin() ; iter != genomic_templates.end() ; ++iter){
+		this->add_realization((*iter).first,(*iter).second);
+	}
+}
 
 
 
