@@ -86,7 +86,7 @@ The inference is reached using the command `-infer`. Logs and models parameters 
 | `--N_iter N`  | Sets the number of EM iterations for the inference to N|
 | `--L_thresh X`  | Sets the sequence likelihood threshold to X. |
 | `--P_ratio_thresh X`  | Sets the probability ratio threshold to X. This influences how much the tree of scenarios is pruned. Setting it 0.0 means exploring every possible scenario (exact but very slow), while setting it to 1.0 only explores scenarios that are more likely than the best scenario explored so far (very fast but inaccurate). This sets a trade off between speed and accuracy, the best value is the largest one for which the likelihood of the sequences almost doesn't change when decreasing it further.  |
-| `--viterbi`  | Runs the algorithm in a 'Viterbi like' fashion. Only accounts for the most likely scenario (as fast as using a probability ratio threshold of 1.0) |
+| `--MLSO`  | Runs the algorithm in a 'Viterbi like' fashion. Accounts for the Most Likely Scenario Only (as fast as using a probability ratio threshold of 1.0) |
 
 ### Troubleshoots
 map base at exception => check genomic templates (explain try catch expensive)
@@ -114,12 +114,11 @@ Use command `--Pgen`
 
 Use command `--coverage`
 ## Sequence generation
-Reached using the command `-generate N` where *N* is the number of sequences to be generated. Optional parameters are the following:
+Reached using the command `-generate N` where *N* is the number of sequences to be generated. The number of sequences to generate must be passed before optional arguments. Optional parameters are the following:
 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `--noerr`  | Generate sequences without sequencing error (the rate and the way those errors are generated is controlled by the model error rate)|
-| `--name batchname`  | Batch name for the generated sequences filename (useful if one needs to generate several sets of generated sequences). |
 
 ## Command examples
 Here we give a few command examples for a typical workflow.
