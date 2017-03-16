@@ -50,7 +50,7 @@ int main(int argc , char* argv[]){
 	bool chain_provided = false;
 	string chain_arg_str;
 	string chain_path_str;
-	bool has_D = false;
+	bool has_D = true;
 
 	//Species vars
 	bool species_provided = false;
@@ -97,11 +97,38 @@ int main(int argc , char* argv[]){
 	double proba_threshold_ratio_evaluate;
 
 	//Alignment parameters
-	double v_align_score_threshold = 50.0;
-	bool v_align_bounds_provided = false;
+	double heavy_pen_nuc44_vect [] = {5,-14,-14,-14 , -14 ,5,-14,-14 , -14,-14,5,-14 , -14,-14,-14,5};
+	Matrix<double> heavy_pen_nuc44_sub_matrix(4,4,heavy_pen_nuc44_vect);
 
+		//V alignment vars
+		bool align_v = false;
+		string v_align_filename = "V_alignments.csv";
+		double v_align_thresh_value = 50.0;
+		Matrix<double> v_subst_matrix = heavy_pen_nuc44_sub_matrix;
+		double v_gap_penalty = 50.0;
+		bool v_best_only = true;
+		int v_left_offset_bound = INT16_MIN;
+		int v_right_offset_bound = INT16_MAX;
 
+		//D alignment vars
+		bool align_d = false;
+		string d_align_filename = "D_alignments.csv";
+		double d_align_thresh_value = 15.0;
+		Matrix<double> d_subst_matrix = heavy_pen_nuc44_sub_matrix;
+		double d_gap_penalty = 50.0;
+		bool d_best_only = false;
+		int d_left_offset_bound = INT16_MIN;
+		int d_right_offset_bound = INT16_MAX;
 
+		//J alignment vars
+		bool align_j = false;
+		string j_align_filename = "J_alignments.csv";
+		double j_align_thresh_value = 15.0;
+		Matrix<double> j_subst_matrix = heavy_pen_nuc44_sub_matrix;
+		double j_gap_penalty = 50.0;
+		bool j_best_only = true;
+		int j_left_offset_bound = INT16_MIN;
+		int j_right_offset_bound = INT16_MAX;
 
 
 	while(carg_i<argc){
@@ -170,29 +197,99 @@ int main(int argc , char* argv[]){
 				++carg_i;
 				string gene_str_val = string(argv[carg_i]);
 
+				//Define init booleans and corresponding variables
+				bool thresh_provided = false;
+				double thresh_value;
+
+				bool matrix_provided = false;
+				//Matrix subst_matrix;
+
+				bool gap_penalty_provided = false;
+				double gap_penalty;
+
+				bool best_only_provided = false;
+				bool best_only;
+
+				bool offset_bounds_provided = false;
+				int left_offset_bound;
+				int right_offset_bound;
+
 				if( (gene_str_val == "--V")
 						or (gene_str_val == "--D")
 						or (gene_str_val == "--J")
 						or (gene_str_val == "--all")){
+
 					while(string(argv[carg_i+1]).substr(0,3) == "---"){
 						++carg_i;
 
-						//define tons of variables and their corresponding booleans
-
 						if(string(argv[carg_i]) == "---thresh"){
-
+							//Read the alignment score threshold
+							++carg_i;
+							try{
+								thresh_value = stod(string(argv[carg_i]));
+							}
+							catch (exception& e) {
+								cout<<"Expected a float for the alignment score threshold, received: \"" + string(argv[carg_i]) + "\""<<endl;
+								cout<<"Terminating and throwing exception now..."<<endl;
+								throw e;
+							}
+							thresh_provided = true;
 						}
 						else if(string(argv[carg_i]) == "---matrix"){
-
+							//Read the substitution matrix from a file
+							//TODO code this
+							throw invalid_argument("Support for a changing the substitution matrix from a file is not coded yet");
 						}
 						else if(string(argv[carg_i]) == "---gap_penalty"){
-
+							//Read the gap penalty
+							++carg_i;
+							try{
+								gap_penalty = stod(string(argv[carg_i]));
+							}
+							catch (exception& e) {
+								cout<<"Expected a float for the alignment gap penalty, received: \"" + string(argv[carg_i]) + "\""<<endl;
+								cout<<"Terminating and throwing exception now..."<<endl;
+								throw e;
+							}
+							gap_penalty_provided = true;
 						}
 						else if(string(argv[carg_i]) == "---best_only"){
+							//Set the best alignment only boolean
+							++carg_i;
+							if(string(argv[carg_i]) == "true"){
+								best_only = true;
+							}
+							else if(string(argv[carg_i]) == "false"){
+								best_only = false;
+							}
+							else{
+								throw invalid_argument("Unkown argument received\"" + string(argv[carg_i]) + "\"to set best alignment only boolean, existing values are: true, false");
+							}
+							best_only_provided = true;
 
 						}
 						else if(string(argv[carg_i]) == "---offset_bounds"){
+							//Read the offset bounds
+							++carg_i;
+							try{
+								left_offset_bound = stoi(string(argv[carg_i]));
+							}
+							catch (exception& e) {
+								cout<<"Expected an integer for the left offset bound, received: \"" + string(argv[carg_i]) + "\""<<endl;
+								cout<<"Terminating and throwing exception now..."<<endl;
+								throw e;
+							}
 
+							++carg_i;
+							try{
+								right_offset_bound = stoi(string(argv[carg_i]));
+							}
+							catch (exception& e) {
+								cout<<"Expected an integer for the right offset bound, received: \"" + string(argv[carg_i]) + "\""<<endl;
+								cout<<"Terminating and throwing exception now..."<<endl;
+								throw e;
+							}
+							offset_bounds_provided = true;
 						}
 						else{
 							throw invalid_argument("Unknown parameter\"" + string(argv[carg_i]) +"\" for gene " + gene_str_val + " in -align " );
@@ -201,14 +298,74 @@ int main(int argc , char* argv[]){
 				}
 
 				//Now assign back the values to the correct variables
-				if(gene_str_val == "--V"){
+				if( (gene_str_val == "--V") or (gene_str_val == "--all")){
+					align_v = true;
+					if(thresh_provided){
+						v_align_thresh_value = thresh_value;
+					}
 
+					if(matrix_provided){
+						//v_subst_matrix = subst_matrix;
+					}
+
+					if(gap_penalty_provided){
+						v_gap_penalty = gap_penalty;
+					}
+
+					if(best_only_provided){
+						v_best_only = best_only;
+					}
+
+					if(offset_bounds_provided){
+						v_left_offset_bound = left_offset_bound;
+						v_right_offset_bound = right_offset_bound;
+					}
 				}
-				else if(gene_str_val == "--D"){
+				if( (gene_str_val == "--D") or (gene_str_val == "--all")){
+					align_d = true;
+					if(thresh_provided){
+						d_align_thresh_value = thresh_value;
+					}
 
+					if(matrix_provided){
+						//d_subst_matrix = subst_matrix;
+					}
+
+					if(gap_penalty_provided){
+						d_gap_penalty = gap_penalty;
+					}
+
+					if(best_only_provided){
+						d_best_only = best_only;
+					}
+
+					if(offset_bounds_provided){
+						d_left_offset_bound = left_offset_bound;
+						d_right_offset_bound = right_offset_bound;
+					}
 				}
-				else if(gene_str_val == "--J"){
+				if( (gene_str_val == "--J") or (gene_str_val == "--all")){
+					align_j = true;
+					if(thresh_provided){
+						j_align_thresh_value = thresh_value;
+					}
 
+					if(matrix_provided){
+						//j_subst_matrix = subst_matrix;
+					}
+
+					if(gap_penalty_provided){
+						j_gap_penalty = gap_penalty;
+					}
+
+					if(best_only_provided){
+						j_best_only = best_only;
+					}
+
+					if(offset_bounds_provided){
+						j_left_offset_bound = left_offset_bound;
+						j_right_offset_bound = right_offset_bound;
+					}
 				}
 				else{
 					throw invalid_argument("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
@@ -804,33 +961,33 @@ int main(int argc , char* argv[]){
 		if(align){
 			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/indexed_sequences.csv");
 
-			//Declare substitution matrix used for alignments(nuc44 here)
-			double nuc44_vect [] = {5,-14,-14,-14 , -14 ,5,-14,-14 , -14,-14,5,-14 , -14,-14,-14,5};
-			Matrix<double> nuc44_sub_matrix(4,4,nuc44_vect);
+			if(align_v){
+				//Performs V alignments
+				cout<<"Performing V alignments...."<<endl;
+				Aligner v_aligner = Aligner(v_subst_matrix , v_gap_penalty , V_gene);
+				v_aligner.set_genomic_sequences(v_genomic);
 
-			//Instantiate aligner with substitution matrix declared above and gap penalty of 50
-
-			//Performs V alignments
-			cout<<"Performing V alignments...."<<endl;
-			Aligner v_aligner = Aligner(nuc44_sub_matrix , 50 , V_gene);
-			v_aligner.set_genomic_sequences(v_genomic);
-
-			v_aligner.align_seqs(cl_path + "aligns/V_alignments.csv" , indexed_seqlist , 50 , true);
-
-			if(has_D){
-				//Performs D alignments if the chain contains a D
-				cout<<"Performing D alignments...."<<endl;
-				Aligner d_aligner = Aligner(nuc44_sub_matrix , 50 , D_gene);
-				d_aligner.set_genomic_sequences(d_genomic);
-
-				d_aligner.align_seqs(cl_path + "aligns/D_alignments.csv",indexed_seqlist,0,false);
+				v_aligner.align_seqs(cl_path + "aligns/" + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
 			}
 
-			cout<<"Performing J alignments...."<<endl;
-			Aligner j_aligner (nuc44_sub_matrix , 50 , J_gene);
-			j_aligner.set_genomic_sequences(j_genomic);
 
-			j_aligner.align_seqs(cl_path + "aligns/J_alignments.csv",indexed_seqlist,10,true); //TODO allow for setting offsets bounds
+			if(has_D and align_d){
+				//Performs D alignments if the chain contains a D
+				cout<<"Performing D alignments...."<<endl;
+				Aligner d_aligner = Aligner(d_subst_matrix , d_gap_penalty , D_gene);
+				d_aligner.set_genomic_sequences(d_genomic);
+
+				d_aligner.align_seqs(cl_path + "aligns/" + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
+			}
+
+			if(align_j){
+				cout<<"Performing J alignments...."<<endl;
+				Aligner j_aligner (j_subst_matrix , j_gap_penalty , J_gene);
+				j_aligner.set_genomic_sequences(j_genomic);
+
+				j_aligner.align_seqs(cl_path + "aligns/" + j_align_filename,indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+			}
+
 		}
 
 		if(infer xor evaluate){
