@@ -342,9 +342,15 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 		new_marginals.copy_fixed_events_marginals(this->model_marginals,this->model_parms,index_map);
 		this->model_marginals = new_marginals;
 		++iteration_accomplished;
+
 		this->model_marginals.write2txt(path+string("iteration_")+to_string(iteration_accomplished)+string(".txt"),this->model_parms);
 		this->model_parms.write_model_parms(path+string("iteration_")+to_string(iteration_accomplished)+string("_parms.txt"));
+
 	}
+	//Create a copy of the last iteration results with identifiable name
+	this->model_marginals.write2txt(path+string("final_marginals.txt"),this->model_parms);
+	this->model_parms.write_model_parms(path+string("final_parms.txt"));
+
 	return 0;
 }
 

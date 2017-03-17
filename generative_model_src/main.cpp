@@ -41,6 +41,9 @@ int main(int argc , char* argv[]){
 	bool generate = false;
 	bool custom = false;
 
+	//Common vars
+	string batchname="";
+
 
 	//Working directory vars
 	bool wd = false;
@@ -50,7 +53,7 @@ int main(int argc , char* argv[]){
 	bool chain_provided = false;
 	string chain_arg_str;
 	string chain_path_str;
-	bool has_D = true;
+	bool has_D = false;
 
 	//Species vars
 	bool species_provided = false;
@@ -75,7 +78,8 @@ int main(int argc , char* argv[]){
 	vector<pair<string,string>> j_genomic;
 
 	//Model parms and marginals
-	bool  custom_cl_parms = false;
+	bool load_last_inferred_parms = false;
+	bool custom_cl_parms = false;
 	Model_Parms cl_model_parms;
 	Model_marginals cl_model_marginals;
 	map<size_t,shared_ptr<Counter>> cl_counters_list;
@@ -83,18 +87,17 @@ int main(int argc , char* argv[]){
 	//Sequence generation parms
 	size_t generate_n_seq;
 	bool generate_werr = true;
-	string generated_batchname = "";
 
 	//Inference parms
-	bool viterbi_inference;
-	double likelihood_thresh_inference;
-	double proba_threshold_ratio_inference;
-	size_t n_iter_inference;
+	bool viterbi_inference = false;
+	double likelihood_thresh_inference = 1e-60;
+	double proba_threshold_ratio_inference = 1e-5;
+	size_t n_iter_inference = 5;
 
 	//Sequence evaluation parms
-	bool viterbi_evaluate;
-	double likelihood_thresh_evaluate;
-	double proba_threshold_ratio_evaluate;
+	bool viterbi_evaluate = false;
+	double likelihood_thresh_evaluate = 1e-60;;
+	double proba_threshold_ratio_evaluate = 1e-5;
 
 	//Alignment parameters
 	double heavy_pen_nuc44_vect [] = {5,-14,-14,-14 , -14 ,5,-14,-14 , -14,-14,5,-14 , -14,-14,-14,5};
@@ -145,11 +148,24 @@ int main(int argc , char* argv[]){
 			freopen(argv[++carg_i],"a+",stdout);
 		}
 
+		else if(string(argv[carg_i]) == string("-batch")){
+			++carg_i;
+			batchname = argv[carg_i];
+			if(batchname[batchname.size()-1] != '_'){
+				batchname.append("_");
+			}
+			cout<<"Batch name set to: "<<batchname<<endl;
+		}
+
 		//Set custom genomic template
 		else if(string(argv[carg_i]) == string("-set_genomic")){
-			++carg_i;
 			//Throw an error if not found?
-			while(string(argv[carg_i]).substr(0,2) == "--"){
+			while((carg_i+1<argc)
+					and (string(argv[carg_i+1]).size()>2)
+					and string(argv[carg_i+1]).substr(0,2) == "--"){
+
+				++carg_i;
+
 				if(string(argv[carg_i]) == "--V"){
 					custom_v = true;
 					++carg_i;
@@ -169,6 +185,12 @@ int main(int argc , char* argv[]){
 					throw invalid_argument("Unknown gene argument \"" + string(argv[carg_i]) +"\" to set genomic templates");
 				}
 			}
+
+			if((not custom_v)
+					and (not custom_d)
+					and (not custom_j)){
+				throw runtime_error("No gene argument was passed after -set_genomic");
+			}
 		}
 
 		else if(string(argv[carg_i]) == "-set_custom_model"){
@@ -177,6 +199,17 @@ int main(int argc , char* argv[]){
 			cl_model_parms.read_model_parms(string(argv[carg_i]));
 			++carg_i;
 			cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+
+			//Check if the model contains a D gene event in order to load the alignments
+			auto events_map = cl_model_parms.get_events_map();
+			if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side))>0){
+				has_D = true;
+			}
+		}
+
+		else if(string(argv[carg_i]) == "-load_last_inferred"){
+			//Cannot read straight here since the working directory have not been defined yet
+			load_last_inferred_parms = true;
 		}
 
 		else if(string(argv[carg_i]) == "-run_demo"){
@@ -193,7 +226,9 @@ int main(int argc , char* argv[]){
 			//Provide a boolean for aligning
 			align = true;
 			//Check for additional parameters specific to each gene
-			while(string(argv[carg_i+1]).substr(0,2) == "--"){
+			while(	(carg_i+1<argc)
+					and (string(argv[carg_i+1]).size()>2)
+					and (string(argv[carg_i+1]).substr(0,2) == "--")){
 				++carg_i;
 				string gene_str_val = string(argv[carg_i]);
 
@@ -219,7 +254,10 @@ int main(int argc , char* argv[]){
 						or (gene_str_val == "--J")
 						or (gene_str_val == "--all")){
 
-					while(string(argv[carg_i+1]).substr(0,3) == "---"){
+					while( (carg_i+1<argc)
+							and (string(argv[carg_i+1]).size()>3)
+							and (string(argv[carg_i+1]).substr(0,3) == string("---"))){
+
 						++carg_i;
 
 						if(string(argv[carg_i]) == "---thresh"){
@@ -296,6 +334,9 @@ int main(int argc , char* argv[]){
 						}
 					}
 				}
+				else{
+					throw invalid_argument("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
+				}
 
 				//Now assign back the values to the correct variables
 				if( (gene_str_val == "--V") or (gene_str_val == "--all")){
@@ -367,9 +408,7 @@ int main(int argc , char* argv[]){
 						j_right_offset_bound = right_offset_bound;
 					}
 				}
-				else{
-					throw invalid_argument("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
-				}
+
 			}
 		}
 
@@ -382,7 +421,9 @@ int main(int argc , char* argv[]){
 				evaluate = true;
 			}
 
-			while(string(argv[carg_i+1]).substr(0,2)=="--"){
+			while( (carg_i+1<argc)
+					and (string(argv[carg_i+1]).size()>2)
+					and string(argv[carg_i+1]).substr(0,2)=="--"){
 				++carg_i;
 				//Some inference parameters are passed
 				if(string(argv[carg_i]) == "--L_thresh"){
@@ -396,9 +437,16 @@ int main(int argc , char* argv[]){
 						cout<<"Terminating and throwing exception now..."<<endl;
 						throw e;
 					}
+
+					if(infer){
+						likelihood_thresh_inference = l_thresh;
+					}
+					else{
+						likelihood_thresh_evaluate = l_thresh;
+					}
 				}
-				else if(string(argv[carg_i]) == "--viterbi"){
-					if(string(argv[carg_i]) == "-infer"){
+				else if(string(argv[carg_i]) == "--MLSO"){
+					if(infer){
 						viterbi_inference = true;
 					}
 					else{
@@ -417,7 +465,7 @@ int main(int argc , char* argv[]){
 						throw e;
 					}
 
-					if(string(argv[carg_i]) == "-infer"){
+					if(infer){
 						proba_threshold_ratio_inference = p_ratio;
 					}
 					else{
@@ -426,15 +474,19 @@ int main(int argc , char* argv[]){
 
 				}
 				else if(string(argv[carg_i]) == "--N_iter"){
-					if(string(argv[carg_i]) == "-infer"){
+					if(infer){
+						++carg_i;
 						try{
-
+							n_iter_inference = stoi(string(argv[carg_i]));
 						}
 						catch(exception& e){
 							cout<<"Expected an integer for the number of iterations to perform for the inference, received: \"" + string(argv[carg_i]) + "\""<<endl;
 							cout<<"Terminating and throwing exception now..."<<endl;
 							throw e;
 						}
+					}
+					else{
+						throw invalid_argument("Invalid argument \"--N_iter\" for -evaluate");
 					}
 				}
 				else{
@@ -493,46 +545,50 @@ int main(int argc , char* argv[]){
 		 * Output arguments parsing
 		 */
 		else if(string(argv[carg_i]) == "-output"){
-			++carg_i;
-			/*
-			 * TODO For now forget about outputing for every sequences / every iterations (more command line parameters to code)
-			 */
-			if(string(argv[carg_i]) == "--Pgen"){
-				shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter (cl_path + "output/"));
-				cl_counters_list.emplace(cl_counters_list.size(),pgen_counter_ptr);
-			}
-			else if(string(argv[carg_i]) == "--scenarios"){
-				int n_record_scenarios;
+			while( (carg_i+1<argc)
+					and (string(argv[carg_i+1]).size()>2)
+					and string(argv[carg_i+1]).substr(0,2)=="--"){
+
 				++carg_i;
-				try{
-					n_record_scenarios = stoi(string(argv[carg_i]));
+				/*
+				 * TODO For now forget about outputing for every sequences / every iterations (more command line parameters to code)
+				 */
+				if(string(argv[carg_i]) == "--Pgen"){
+					shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter (cl_path + "output/"));
+					cl_counters_list.emplace(cl_counters_list.size(),pgen_counter_ptr);
 				}
-				catch(exception& e){
-					cout<<"Expected the number of scenarios to be recorded by the best scenario counter, received: \"" + string(argv[carg_i]) + "\""<<endl;
-					cout<<"Terminating and throwing exception now..."<<endl;
-					throw e;
-				}
+				else if(string(argv[carg_i]) == "--scenarios"){
+					int n_record_scenarios;
+					++carg_i;
+					try{
+						n_record_scenarios = stoi(string(argv[carg_i]));
+					}
+					catch(exception& e){
+						cout<<"Expected the number of scenarios to be recorded by the best scenario counter, received: \"" + string(argv[carg_i]) + "\""<<endl;
+						cout<<"Terminating and throwing exception now..."<<endl;
+						throw e;
+					}
 
-				if(n_record_scenarios<=0){
-					throw invalid_argument("Number of scenarios to be recorded must be greater than zero");
-				}
+					if(n_record_scenarios<=0){
+						throw invalid_argument("Number of scenarios to be recorded must be greater than zero");
+					}
 
-				shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , cl_path + "output/" ,true));
-				cl_counters_list.emplace(cl_counters_list.size(),best_sc_ptr);
+					shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , cl_path + "output/" ,true));
+					cl_counters_list.emplace(cl_counters_list.size(),best_sc_ptr);
+				}
+				else if(string(argv[carg_i]) == "--coverage"){
+					Gene_class chosen_gc;
+					++carg_i;
+					try{
+						chosen_gc = str2GeneClass(string(argv[carg_i]));
+					}
+					catch(exception& e){
+						throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify coverage target!\n Supported arguments are: V_gene, VD_genes, D_gene, DJ_gene, VJ_gene, J_gene, VDJ_genes");
+					}
+					shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter(cl_path + "output/",chosen_gc,1,false,true));
+					cl_counters_list.emplace(cl_counters_list.size(),coverage_counter_ptr);
+				}
 			}
-			else if(string(argv[carg_i]) == "--coverage"){
-				Gene_class chosen_gc;
-				++carg_i;
-				try{
-					chosen_gc = str2GeneClass(string(argv[carg_i]));
-				}
-				catch(exception& e){
-					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify coverage target!\n Supported arguments are: V_gene, VD_genes, D_gene, DJ_gene, VJ_gene, J_gene, VDJ_genes");
-				}
-				shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter(cl_path + "output/",chosen_gc,1,false,true));
-				cl_counters_list.emplace(cl_counters_list.size(),coverage_counter_ptr);
-			}
-
 		}
 
 		/*
@@ -541,51 +597,31 @@ int main(int argc , char* argv[]){
 		else if(string(argv[carg_i]) == "-generate"){
 			generate = true;
 			++carg_i;
-			if(string(argv[carg_i]).substr(0,2) == "--"){
-				while(string(argv[carg_i]).substr(0,2) == "--"){
-					if(string(argv[carg_i]) == "--noerr"){
-						generate_werr = false;
-					}
-					else{
-						throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
-					}
+
+			//Number of sequences to generate must be given before optionnal arguments
+			try{
+				generate_n_seq = stoi(string(argv[carg_i]));
+			}
+			catch(exception& e){
+				cout<<"Expected the number of sequences to generate, received: \"" + string(argv[carg_i]) + "\""<<endl;
+				cout<<"Terminating and throwing exception now..."<<endl;
+				throw e;
+			}
+
+			while( (carg_i+1<argc)
+					and (string(argv[carg_i+1]).size()>2)
+					and string(argv[carg_i+1]).substr(0,2) == "--"){
+
+				++carg_i;
+
+				if(string(argv[carg_i]) == "--noerr"){
+					generate_werr = false;
 				}
-				// The number of sequences to be generated has to be given after the arguments
-				try{
-					generate_n_seq = stoi(string(argv[carg_i]));
-				}
-				catch(exception& e){
-					cout<<"Expected the number of sequences to generate, received: \"" + string(argv[carg_i]) + "\""<<endl;
-					cout<<"Terminating and throwing exception now..."<<endl;
-					throw e;
+				else{
+					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
 				}
 			}
-			else{
-				// or before the other generation arguments
-				try{
-					generate_n_seq = stoi(string(argv[carg_i]));
-				}
-				catch(exception& e){
-					cout<<"Expected the number of sequences to generate, received: \"" + string(argv[carg_i]) + "\""<<endl;
-					cout<<"Terminating and throwing exception now..."<<endl;
-					throw e;
-				}
-				if(string(argv[carg_i]).substr(0,2) == "--"){
-					while(string(argv[carg_i]).substr(0,2) == "--"){
-						if(string(argv[carg_i]) == "--noerr"){
-							generate_werr = false;
-						}
-						else if(string(argv[carg_i]) == "--name"){
-							++carg_i;
-							generated_batchname = argv[carg_i];
-							++carg_i;
-						}
-						else{
-							throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
-						}
-					}
-				}
-			}
+
 		}
 
 		/*
@@ -613,11 +649,15 @@ int main(int argc , char* argv[]){
 
 		//Read the next command line argument
 		++carg_i;
-
-
-
-
 	}
+
+	//Make sure the working directory is set somewhere before performing any action
+	if(not wd){
+		cl_path = "/tmp/";
+	}
+	cout<<"Working directory set to: \""+cl_path+"\""<<endl;
+
+
 	if(chain_provided){
 		if(chain_arg_str == "alpha"){
 			has_D = false;
@@ -661,10 +701,37 @@ int main(int argc , char* argv[]){
 		v_genomic = read_genomic_fasta(custom_v_path);
 	}
 	if(custom_d){
+		has_D = true;
 		d_genomic = read_genomic_fasta(custom_d_path);
 	}
 	if(custom_j){
 		j_genomic = read_genomic_fasta(custom_j_path);
+	}
+
+	//Make sure passed arguments are unambiguous
+	if(custom_cl_parms and load_last_inferred_parms){
+		throw invalid_argument("Setting a custom model and loading the last inferred model in the same command is ambiguous!");
+	}
+
+	//Load last inferred model
+	if(load_last_inferred_parms){
+		cout<<"Loading last inferred model..."<<endl;
+		try{
+			cl_model_parms.read_model_parms(cl_path +  batchname + "inference/final_parms.txt");
+			cl_model_marginals = Model_marginals(cl_model_parms);
+			cl_model_marginals.txt2marginals(cl_path +  batchname + "inference/final_marginals.txt",cl_model_parms);
+
+			//Check if the model contains a D gene event in order to load the alignments
+			auto events_map = cl_model_parms.get_events_map();
+			if(events_map.count(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side))>0){
+				has_D = true;
+			}
+		}
+		catch(exception& e){
+			cout<<"Failed to load last inferred model, please check that the model exists"<<endl;
+			cout<<"Throwing exception now..."<<endl;
+			throw e;
+		}
 	}
 
 	/*
@@ -672,8 +739,9 @@ int main(int argc , char* argv[]){
 	 * If some custom genomic templates were supplied, we replace the genomic templates contained in the model by the supplied ones
 	 * and re-initialize the marginals
 	 */
-	if(not custom_cl_parms
+	if( ((not custom_cl_parms) and (not load_last_inferred_parms))
 			and (infer or evaluate or generate)){
+		cout<<"read some model parms"<<endl;
 		cl_model_parms.read_model_parms("../models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
 
 
@@ -698,6 +766,7 @@ int main(int argc , char* argv[]){
 			j_choice_gc->set_genomic_templates(j_genomic);
 		}
 
+		cl_model_marginals = Model_marginals(cl_model_parms);
 		if(any_custom_gene){
 			/*
 			 * If some custom genomic templates were provided we have replaced the genomic templates contained in the model
@@ -705,20 +774,13 @@ int main(int argc , char* argv[]){
 			 * Marginals are initialized with a uniform distribution
 			 */
 
-			cl_model_marginals = Model_marginals(cl_model_parms);
 			cl_model_marginals.uniform_initialize(cl_model_parms);
 		}
 		else{
 			cl_model_marginals.txt2marginals("../models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
 		}
-
 	}
 
-	if(not wd){
-		cl_path = "/tmp/";
-	}
-
-	cout<<"Working directory set to: \""+cl_path+"\""<<endl;
 
 
 
@@ -955,7 +1017,7 @@ int main(int argc , char* argv[]){
 			//create the directory
 			system(&("mkdir " + cl_path + "aligns")[0]);
 
-			write_indexed_seq_csv(cl_path + "aligns/indexed_sequences.csv",indexed_seqlist);
+			write_indexed_seq_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv",indexed_seqlist);
 		}
 
 		if(align){
@@ -967,7 +1029,7 @@ int main(int argc , char* argv[]){
 				Aligner v_aligner = Aligner(v_subst_matrix , v_gap_penalty , V_gene);
 				v_aligner.set_genomic_sequences(v_genomic);
 
-				v_aligner.align_seqs(cl_path + "aligns/" + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+				v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
 			}
 
 
@@ -977,7 +1039,7 @@ int main(int argc , char* argv[]){
 				Aligner d_aligner = Aligner(d_subst_matrix , d_gap_penalty , D_gene);
 				d_aligner.set_genomic_sequences(d_genomic);
 
-				d_aligner.align_seqs(cl_path + "aligns/" + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
+				d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
 			}
 
 			if(align_j){
@@ -985,7 +1047,7 @@ int main(int argc , char* argv[]){
 				Aligner j_aligner (j_subst_matrix , j_gap_penalty , J_gene);
 				j_aligner.set_genomic_sequences(j_genomic);
 
-				j_aligner.align_seqs(cl_path + "aligns/" + j_align_filename,indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+				j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
 			}
 
 		}
@@ -997,27 +1059,27 @@ int main(int argc , char* argv[]){
 			//Reading alignments
 			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/indexed_sequences.csv");
 
-			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/V_alignments.csv", V_gene , 55 , false , indexed_seqlist  );
+			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
 			if(has_D){
-				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/D_alignments.csv", D_gene , 35 , false , indexed_seqlist , sorted_alignments);
+				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + d_align_filename, D_gene , 35 , false , indexed_seqlist , sorted_alignments);
 			}
-			sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/J_alignments.csv", J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+			sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
 
 			vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
 			//create the output directory
-			system(&("mkdir " + cl_path + "output")[0]);
+			system(&("mkdir " + cl_path +  batchname + "output")[0]);
 
 			if(infer){
 				//create inference directory directory
-				system(&("mkdir " + cl_path + "inference")[0]);
-				genmodel.infer_model(sorted_alignments_vec , n_iter_inference , cl_path + "inference/" , true , likelihood_thresh_inference , viterbi_inference , proba_threshold_ratio_inference);
+				system(&("mkdir " + cl_path +  batchname + "inference")[0]);
+				genmodel.infer_model(sorted_alignments_vec , n_iter_inference , cl_path +  batchname + "inference/" , true , likelihood_thresh_inference , viterbi_inference , proba_threshold_ratio_inference);
 			}
 
 			if(evaluate){
 				//create evaluate directory
-				system(&("mkdir " + cl_path + "evaluate")[0]);
-				genmodel.infer_model(sorted_alignments_vec , 1 , cl_path + "evaluate/" , false , likelihood_thresh_evaluate , viterbi_evaluate , proba_threshold_ratio_evaluate);
+				system(&("mkdir " + cl_path +  batchname + "evaluate")[0]);
+				genmodel.infer_model(sorted_alignments_vec , 1 , cl_path +  batchname + "evaluate/" , false , likelihood_thresh_evaluate , viterbi_evaluate , proba_threshold_ratio_evaluate);
 			}
 		}
 		else if(infer and evaluate){
@@ -1036,7 +1098,7 @@ int main(int argc , char* argv[]){
 				w_err_str = "noerr";
 			}
 
-			genmodel.generate_sequences(generate_n_seq,generate_werr,cl_path + "generated/" +  generated_batchname+"generated_seqs_" + w_err_str + ".csv",cl_path + "generated/" +  generated_batchname+"generated_realizations_" + w_err_str + ".csv");
+			genmodel.generate_sequences(generate_n_seq,generate_werr,cl_path + "generated/" +  batchname +"generated_seqs_" + w_err_str + ".csv",cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv");
 		}
 
 	}

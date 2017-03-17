@@ -330,7 +330,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	}
 
 	chrono::duration<double> elapsed_time = chrono::system_clock::now() - begin_time;
-	align_infos_file<<elapsed_time.count()<<endl;
+	align_infos_file<<elapsed_time.count()<<" seconds"<<endl;
 
 }
 
