@@ -60,6 +60,7 @@ Although the full flexibility of IGoR is reachable through C++ highlevel functio
 | `-species speciesname`| Selects a species from the set of predefined species. Possible values are: `human`.**This needs to be set in order to use provided genomic templates/model** |
 |`-set_genomic --*gene* /path/to/file.fasta`| Set a set of custom genomic templates for gene *gene* (possible values are V,D and J) with a list of genomic templates contained in the file */path/to/file.fasta* in fasta format. ** When using this option you will need to re-infer a model since the genomic templates will no longer correspond to the ones contained in the reference models **|
 | `-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt` | Use a custom model as a baseline for inference or evaluation. **Note that this will override  custom genomic templates for inference and evaluation**|
+|`-load_last_inferred`| Using this command will load the last inferred model (folder **inference/final_xx.txt**) as a basis for a new inference, evaluation or generation of synthetic sequences |
 | `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
 | `-run_custom`  |  Runs the code inside the custom section of the main.cpp file |
 
