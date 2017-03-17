@@ -88,6 +88,8 @@ The inference is reached using the command `-infer`. Logs and models parameters 
 | `--L_thresh X`  | Sets the sequence likelihood threshold to X. |
 | `--P_ratio_thresh X`  | Sets the probability ratio threshold to X. This influences how much the tree of scenarios is pruned. Setting it 0.0 means exploring every possible scenario (exact but very slow), while setting it to 1.0 only explores scenarios that are more likely than the best scenario explored so far (very fast but inaccurate). This sets a trade off between speed and accuracy, the best value is the largest one for which the likelihood of the sequences almost doesn't change when decreasing it further.  |
 | `--MLSO`  | Runs the algorithm in a 'Viterbi like' fashion. Accounts for the Most Likely Scenario Only (as fast as using a probability ratio threshold of 1.0) |
+|`--infer_only eventnickname1 eventnickname2`| During the inference only the the parameters of the events with nicknames listed are updated |
+|`--not_infer eventnickname1 eventnickname2`| Opposite command to the one above, will fix the parameters of the listed events |
 
 ### Troubleshoots
 map base at exception => check genomic templates (explain try catch expensive)
