@@ -90,6 +90,7 @@ The inference is reached using the command `-infer`. Logs and models parameters 
 | `--MLSO`  | Runs the algorithm in a 'Viterbi like' fashion. Accounts for the Most Likely Scenario Only (as fast as using a probability ratio threshold of 1.0) |
 |`--infer_only eventnickname1 eventnickname2`| During the inference only the the parameters of the events with nicknames listed are updated |
 |`--not_infer eventnickname1 eventnickname2`| Opposite command to the one above, will fix the parameters of the listed events |
+|`--fix_err`| In the same vein as the two commands above, this one will fix the parameters related to the error rate. |
 
 ### Troubleshoots
 map base at exception => check genomic templates (explain try catch expensive)
