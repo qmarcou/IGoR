@@ -22,6 +22,7 @@
 #include "Pgencounter.h"
 #include "Utils.h"
 #include <chrono>
+#include<set>
 
 
 using namespace std;
@@ -93,6 +94,10 @@ int main(int argc , char* argv[]){
 	double likelihood_thresh_inference = 1e-60;
 	double proba_threshold_ratio_inference = 1e-5;
 	size_t n_iter_inference = 5;
+	bool infer_only = false;
+	bool no_infer = false;
+	set<string> infer_restrict_nicknames;
+	bool fix_err_rate = false;
 
 	//Sequence evaluation parms
 	bool viterbi_evaluate = false;
@@ -489,6 +494,27 @@ int main(int argc , char* argv[]){
 						throw invalid_argument("Invalid argument \"--N_iter\" for -evaluate");
 					}
 				}
+				else if( (string(argv[carg_i]) == "--infer_only") or (string(argv[carg_i]) == "--not_infer")){
+					if(string(argv[carg_i]) == "--infer_only"){
+						infer_only = true;
+					}
+					else{
+						no_infer = true;
+					}
+
+					//Now read the event nicknames and append to the list
+					//Nicknames are added to the same list for infer_only or not_infer since they are exclusive
+					//An exception will be raised later if both were given
+					while( (carg_i+1<argc)
+							and string(argv[carg_i+1]).size()>=1
+							and string(argv[carg_i+1]).substr(0,1)!="-"){
+						++carg_i;
+						infer_restrict_nicknames.emplace(argv[carg_i]);
+					}
+				}
+				else if(string(argv[carg_i]) == "--fix_err"){
+					fix_err_rate = true;
+				}
 				else{
 					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify inference/evaluate parameters");
 				}
@@ -781,6 +807,43 @@ int main(int argc , char* argv[]){
 		}
 	}
 
+	/*
+	 * Once model parms have been read fix the events requested
+	 */
+	if(infer_only and no_infer){
+		throw invalid_argument("Cannot use both \"--infer_only\" and \"--not_infer\" since they are somewhat redundant");
+	}
+	if((infer_only or no_infer)
+		and (infer or evaluate or generate)){
+		if(infer_only){
+			//Loop over events and fix all but the ones given in the list
+			list<shared_ptr<Rec_Event>> events_list = cl_model_parms.get_event_list();
+			for(list<shared_ptr<Rec_Event>>::iterator iter = events_list.begin() ; iter!=events_list.end() ; ++iter){
+				if(infer_restrict_nicknames.count((*iter)->get_nickname()) >0){
+					(*iter)->fix(false); //Technically not useful since set to false by default, just a safety
+				}
+				else{
+					(*iter)->fix(true);
+				}
+			}
+			//TODO add a check to see whether all nicknames exist
+		}
+		else{
+			//Fix all events provided
+			for(set<string>::const_iterator iter = infer_restrict_nicknames.begin() ; iter!=infer_restrict_nicknames.end() ; ++iter){
+				shared_ptr<Rec_Event>event_ptr = cl_model_parms.get_event_pointer((*iter),true);
+				event_ptr->fix(true);
+			}
+		}
+	}
+
+	/*
+	 * Fix the error rate if requested
+	 */
+	if(fix_err_rate
+		and (infer or evaluate or generate)){
+		cl_model_parms.get_err_rate_p()->update_value(false);
+	}
 
 
 
@@ -1087,6 +1150,9 @@ int main(int argc , char* argv[]){
 		}
 
 		if(generate){
+
+			system(&("mkdir " + cl_path +  batchname + "generated")[0]);
+
 			GenModel genmodel(cl_model_parms,cl_model_marginals,cl_counters_list);
 
 			//TODO create generated folder

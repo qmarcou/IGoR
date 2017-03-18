@@ -236,12 +236,26 @@ queue<shared_ptr<Rec_Event>> Model_Parms::get_model_queue() const{
 
 }
 
-shared_ptr<Rec_Event> Model_Parms::get_event_pointer(const Rec_Event_name& event_name) const{
+shared_ptr<Rec_Event> Model_Parms::get_event_pointer(const string& event_str , bool by_nickname) const{
 	//TODO find something better, might be a bottleneck
 	for (list<shared_ptr<Rec_Event>>::const_iterator iter = this->events.begin() ; iter != this->events.end() ; ++iter){
-		if ((*iter)->get_name() == event_name){return (*iter);}
+		if(by_nickname){
+			if ((*iter)->get_nickname() == event_str){return (*iter);}
+		}
+		else{
+			if ((*iter)->get_name() == event_str){return (*iter);}
+		}
 	}
-	throw runtime_error("Event pointer not found in Model_Parms::get_event_pointer for name:" + event_name);
+	if(by_nickname){
+		throw runtime_error("Event pointer not found in Model_Parms::get_event_pointer for nickname:" + event_str);
+	}
+	else{
+		throw runtime_error("Event pointer not found in Model_Parms::get_event_pointer for name:" + event_str);
+	}
+}
+
+shared_ptr<Rec_Event> Model_Parms::get_event_pointer(const Rec_Event_name& event_name) const{
+	return this->get_event_pointer(event_name,false);
 }
 
 const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> Model_Parms::get_events_map() const{

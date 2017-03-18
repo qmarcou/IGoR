@@ -68,6 +68,8 @@ public:
 	std::queue <std::shared_ptr<Rec_Event>> get_model_queue() const;
 
 	std::shared_ptr<Rec_Event> get_event_pointer(const Rec_Event_name&) const; //const Rec_Event*??
+	std::shared_ptr<Rec_Event> get_event_pointer(const std::string& , bool by_nickname) const; //const Rec_Event*??
+
 
 	void write_model_parms(std::string);
 

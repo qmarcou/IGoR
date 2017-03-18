@@ -74,6 +74,36 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 	general_logs<<"Proba threshold ratio: "<<proba_threshold_factor<<"\t#(ratio between best scenario and current scenario needed to explore/count the scenario)"<<endl;
 	general_logs<<"Mean #errors threshold: "<<mean_number_seq_err_thresh<<"\t#Needs a very good reason to be set to another value than INFINITY"<<endl;
 
+	/*
+	 * Get the list of fixed and inferred events and output them to the log file
+	 * Do it in a scope so the variables will be destroyed
+	 */
+	{
+		list<Rec_Event_name> fixed_events_list;
+		list<Rec_Event_name> inferred_events_list;
+		const list<shared_ptr<Rec_Event>> model_event_list = model_parms.get_event_list();
+		for(list<shared_ptr<Rec_Event>>::const_iterator iter = model_event_list.begin() ; iter!=model_event_list.end() ; ++iter){
+			if(not (*iter)->is_fixed()){
+				inferred_events_list.emplace_back((*iter)->get_name());
+			}
+			else{
+				fixed_events_list.emplace_back((*iter)->get_name());
+			}
+		}
+		general_logs<<endl;
+		general_logs<<"List of updated events: ";
+		for(Rec_Event_name name : inferred_events_list){
+			general_logs<<name<<"\t";
+		}
+		general_logs<<endl;
+		general_logs<<"List of fixed events: ";
+		for(Rec_Event_name name : fixed_events_list){
+			general_logs<<name<<"\t";
+		}
+		general_logs<<endl;
+		general_logs<<"Error model updated: "<<model_parms.get_err_rate_p()->is_updated()<<endl;
+	}
+
 	//Write initial condition to file
 	this->model_marginals.write2txt(path+string("initial_marginals.txt"),this->model_parms);
 	this->model_parms.write_model_parms(path+string("initial_model.txt"));
