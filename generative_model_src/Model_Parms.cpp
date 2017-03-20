@@ -113,47 +113,181 @@ bool Model_Parms::add_event(Rec_Event* event_point){
 	return this->add_event(shared_ptr<Rec_Event>(event_point,null_delete<Rec_Event>()));
 }
 
-//TODO add remove edge method
 
 
 /*
  * Get the list of parents of the given Rec_event
  */
 list<shared_ptr<Rec_Event>> Model_Parms::get_parents(Rec_Event* event) const{
-	return edges.at(event->get_name()).parents;
+	return this->get_parents(shared_ptr<Rec_Event>(event,null_delete<Rec_Event>()));
 }
 list<shared_ptr<Rec_Event>> Model_Parms::get_parents(shared_ptr<Rec_Event> event) const{
-	return edges.at(event->get_name()).parents;
+	return this->get_parents(event->get_name());
 }
-
+list<shared_ptr<Rec_Event>> Model_Parms::get_parents(Rec_Event_name event_name) const{
+	if(edges.count(event_name)<=0){
+		throw runtime_error("Model_Parms::get_parents(): event \"" + event_name + "\" does not exist in \"this\".");
+	}
+	return edges.at(event_name).parents;
+}
 
 /*
  * Get the list of children of the given Rec_event
  */
 list<shared_ptr<Rec_Event>> Model_Parms::get_children(Rec_Event* event) const{
-	return edges.at(event->get_name()).children;
+	return this->get_children(shared_ptr<Rec_Event>(event,null_delete<Rec_Event>()));
 }
 list<shared_ptr<Rec_Event>> Model_Parms::get_children(shared_ptr<Rec_Event> event) const{
-	return edges.at(event->get_name()).children;
+	return this->get_children(event->get_name());
 }
-
+list<shared_ptr<Rec_Event>> Model_Parms::get_children(Rec_Event_name event_name) const{
+	if(edges.count(event_name)<=0){
+		throw runtime_error("Model_Parms::get_children(): event \"" + event_name + "\" does not exist in \"this\".");
+	}
+	return edges.at(event_name).children;
+}
 
 /*
  * Add a directed edge between two events
  */
 bool Model_Parms::add_edge(Rec_Event* parent_point, Rec_Event* child_point){
-	//TODO check whether these events exist
-	this->edges.at( parent_point->get_name() ).children.push_back(shared_ptr<Rec_Event>(child_point,null_delete<Rec_Event>()));
-	this->edges.at( child_point->get_name() ).parents.push_back(shared_ptr<Rec_Event>(parent_point,null_delete<Rec_Event>()));
-	return 1;
+	shared_ptr<Rec_Event> parent_smart_p (parent_point,null_delete<Rec_Event>());
+	shared_ptr<Rec_Event> child_smart_p (child_point,null_delete<Rec_Event>());
+	return this->add_edge(parent_smart_p,child_smart_p);
 }
+
 bool Model_Parms::add_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Event> child_point){
-	//TODO check whether these events exist
+	// check whether these events exist
+	if( edges.count(parent_point->get_name())<=0 ){
+		throw runtime_error("Model_Parms::add_edge(): event \"" + parent_point->get_name() + "\" does not exist in \"this\".");
+	}
+	if( edges.count(child_point->get_name())<=0 ){
+		throw runtime_error("Model_Parms::add_edge(): event \"" + child_point->get_name() + "\" does not exist in \"this\".");
+	}
+
 	this->edges.at( parent_point->get_name() ).children.push_back(child_point);
 	this->edges.at( child_point->get_name() ).parents.push_back(parent_point);
 	return 1;
 }
 
+bool Model_Parms::add_edge(Rec_Event_name parent_name, Rec_Event_name child_name){
+	shared_ptr<Rec_Event> parent_smart_p = this->get_event_pointer(parent_name);
+	shared_ptr<Rec_Event> child_smart_p = this->get_event_pointer(child_name);
+	return this->add_edge(parent_smart_p , child_smart_p);
+}
+
+/*
+ * Remove the corresponding edge if it exists
+ */
+bool Model_Parms::remove_edge(Rec_Event* parent_point, Rec_Event* child_point){
+	shared_ptr<Rec_Event> parent_smart_p (parent_point,null_delete<Rec_Event>());
+	shared_ptr<Rec_Event> child_smart_p (child_point,null_delete<Rec_Event>());
+	return this->remove_edge(parent_smart_p,child_smart_p);
+}
+bool Model_Parms::remove_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Event> child_point){
+	if(this->has_edge(parent_point,child_point)){
+		list<shared_ptr<Rec_Event>>::const_iterator iter;
+
+		//Remove the child from the parent's children list
+		list<shared_ptr<Rec_Event>>& children_list = this->edges.at(parent_point->get_name()).children;
+		for( iter = children_list.begin() ;
+				iter != children_list.end() ;
+				++iter){
+			//Compare the pointers and stop when finding the correct one
+			if((*iter) == child_point){
+				break;
+			}
+		}
+		//Erase the pointer using the iterator
+		children_list.erase(iter);
+
+		//Remove the parent from the child's parent list
+		list<shared_ptr<Rec_Event>>& parents_list = this->edges.at(child_point->get_name()).parents;
+		for( iter = parents_list.begin() ;
+				iter != parents_list.end() ;
+				++iter){
+			//Compare the pointers and stop when finding the correct one
+			if((*iter) == parent_point){
+				break;
+			}
+		}
+		//Erase the pointer using the iterator
+		parents_list.erase(iter);
+		return 1;
+	}
+	else{
+		throw runtime_error("Model_Parms::remove_edge(): edge between \"" + parent_point->get_name() + "\" and \"" + child_point->get_name() + "\" does not exist.");
+	}
+}
+
+bool Model_Parms::remove_edge(Rec_Event_name parent_name, Rec_Event_name child_name){
+	shared_ptr<Rec_Event> parent_smart_p = this->get_event_pointer(parent_name);
+	shared_ptr<Rec_Event> child_smart_p = this->get_event_pointer(child_name);
+	return this->remove_edge(parent_smart_p , child_smart_p);
+}
+
+/*
+ * Inverse the direction of an edge between two events
+ * Detects automatically the edge direction invert it
+ */
+void Model_Parms::invert_edge(Rec_Event* ev1_point, Rec_Event* ev2_point){
+	shared_ptr<Rec_Event> ev1_smart_p (ev1_point,null_delete<Rec_Event>());
+	shared_ptr<Rec_Event> ev2_smart_p (ev2_point,null_delete<Rec_Event>());
+	this->invert_edge(ev1_smart_p,ev2_smart_p);
+}
+
+void Model_Parms::invert_edge(shared_ptr<Rec_Event> ev1_point, shared_ptr<Rec_Event> ev2_point){
+
+	//First check if ev2 is a child of ev1
+	if(this->has_edge(ev1_point,ev2_point)){
+		//Invert the edge
+		this->remove_edge(ev1_point,ev2_point);
+		this->add_edge(ev2_point,ev1_point);
+	}
+	//Otherwise check if ev2 is a parent of ev1
+	else if(this->has_edge(ev2_point,ev1_point)){
+		//Invert the edge
+		this->remove_edge(ev2_point,ev1_point);
+		this->add_edge(ev1_point,ev2_point);
+	}
+	else{
+		//else: the edge do not exist and throw an exception
+		throw runtime_error("In Model_Parms::invert_edge(): no edge exist between \""
+				+ ev1_point->get_name() +"\" and \"" + ev1_point->get_name() + "\" events in any direction");
+	}
+}
+
+void Model_Parms::invert_edge(Rec_Event_name ev1_name, Rec_Event_name ev2_name){
+	shared_ptr<Rec_Event> ev1_smart_p = this->get_event_pointer(ev1_name);
+	shared_ptr<Rec_Event> ev2_smart_p = this->get_event_pointer(ev2_name);
+	return this->invert_edge(ev1_smart_p , ev2_smart_p);
+}
+
+/*
+ * Check if the model parms contain a given directed edge
+ *
+ * Note: assuming the edge has been correctly constructed it will test the existence in only one of the adjacency list
+ */
+bool Model_Parms::has_edge(Rec_Event* parent_point, Rec_Event* child_point) const{
+	shared_ptr<Rec_Event> parent_smart_p (parent_point,null_delete<Rec_Event>());
+	shared_ptr<Rec_Event> child_smart_p (child_point,null_delete<Rec_Event>());
+	return this->has_edge(parent_smart_p,child_smart_p);
+}
+
+bool Model_Parms::has_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Event> child_point) const{
+	this->has_edge(parent_point,child_point);
+}
+
+bool Model_Parms::has_edge(Rec_Event_name parent_name, Rec_Event_name child_name) const{
+	bool other_event_found = false;
+	const Adjacency_list& adjacency_list = this->edges.at(parent_name);
+	for(shared_ptr<Rec_Event> ev_ptr : adjacency_list.children){
+		if(ev_ptr->get_name() == child_name){
+			other_event_found = true;
+		}
+	}
+	return other_event_found;
+}
 
 
 /*

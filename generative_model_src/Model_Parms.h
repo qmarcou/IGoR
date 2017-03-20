@@ -50,15 +50,27 @@ public:
 
 	std::list <std::shared_ptr<Rec_Event>> get_children(Rec_Event* ) const;
 	std::list<std::shared_ptr<Rec_Event>> get_children(std::shared_ptr<Rec_Event>) const;
+	std::list<std::shared_ptr<Rec_Event>> get_children(Rec_Event_name) const;
 
 	std::list <std::shared_ptr<Rec_Event>> get_parents(Rec_Event* ) const;
 	std::list <std::shared_ptr<Rec_Event>> get_parents(std::shared_ptr<Rec_Event> ) const;
+	std::list <std::shared_ptr<Rec_Event>> get_parents(Rec_Event_name ) const;
 
 	bool add_edge(Rec_Event* ,Rec_Event*);
 	bool add_edge(std::shared_ptr<Rec_Event> , std::shared_ptr<Rec_Event>);
+	bool add_edge(Rec_Event_name , Rec_Event_name);
 
 	bool remove_edge(Rec_Event*,Rec_Event*);
 	bool remove_edge(std::shared_ptr<Rec_Event>,std::shared_ptr<Rec_Event>);
+	bool remove_edge(Rec_Event_name,Rec_Event_name);
+
+	void invert_edge(Rec_Event*,Rec_Event*);
+	void invert_edge(std::shared_ptr<Rec_Event>,std::shared_ptr<Rec_Event>);
+	void invert_edge(Rec_Event_name,Rec_Event_name);
+
+	bool has_edge(Rec_Event*,Rec_Event*) const;
+	bool has_edge(std::shared_ptr<Rec_Event>,std::shared_ptr<Rec_Event>) const;
+	bool has_edge(Rec_Event_name,Rec_Event_name) const;
 
 	std::list<std::shared_ptr<Rec_Event>> get_roots() const;
 
