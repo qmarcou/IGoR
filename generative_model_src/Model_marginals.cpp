@@ -42,6 +42,74 @@ Model_marginals Model_marginals::empty_copy(){
 	return null_copy;
 }
 
+Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Event_name ev2_name , Model_Parms& model_parms){
+
+	shared_ptr<Rec_Event> parent_ptr;
+	shared_ptr<Rec_Event> child_ptr;
+
+	/*
+	 * Note here we touch the limit of the design of this code...
+	 * There is no good way of checking that those marginals and those parms are related...
+	 * TODO partially redesign?
+	 */
+	if(model_parms.has_edge(ev1_name,ev2_name)){
+		parent_ptr = model_parms.get_event_pointer(ev1_name);
+		child_ptr = model_parms.get_event_pointer(ev2_name);
+	}
+	else if(model_parms.has_edge(ev2_name,ev1_name)){
+		parent_ptr = model_parms.get_event_pointer(ev2_name);
+		child_ptr = model_parms.get_event_pointer(ev1_name);
+	}
+	else{
+		throw runtime_error("Model_marginals::invert_edge() : the edge between \"" + ev1_name + "\" and \"" + ev2_name + "\" does not exist");
+	}
+
+	const unordered_map<Rec_Event_name,int> orig_marginals_index_map = this->get_index_map(model_parms);
+	const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> orig_marginals_offset_map = this->get_offsets_map(model_parms);
+
+
+
+
+
+	//Compute the new marginals of the former child
+	//For the former child simply need to marginalize over the former parent
+	const size_t child_orig_index = orig_marginals_index_map.at(parent_ptr->get_name());
+	const size_t child_size = child_ptr->size();
+	const size_t parent_size = parent_ptr->size();
+	const size_t child_former_marginal_size = this->get_event_size(child_ptr,model_parms);
+	double child_parent_child_joint_proba_array [child_former_marginal_size];
+	pair<size_t,shared_ptr<double>> parent_marginal_proba = compute_event_marginal_probability(parent_ptr->get_name(),model_parms);
+
+	//Get the parent offset
+	size_t parent_offset;
+	const vector<pair<shared_ptr<const Rec_Event>,int>>& offset_vec = orig_marginals_offset_map.at(parent_ptr->get_name());
+	for(pair<shared_ptr<const Rec_Event>,int> offset_pair : offset_vec){
+		if(offset_pair.first == child_ptr){
+			//Again only comparing pointer addresses instead of the actual events values, should work in principle
+			parent_offset = offset_pair.second;
+		}
+	}
+	//Compute the joint
+	for(size_t i=0 ; i!= parent_size; ++i){
+		for(size_t j=0 ; j!=parent_offset ; ++j){
+			child_parent_child_joint_proba_array[i*parent_offset + j] = this->marginal_array_smart_p.get()[child_orig_index + i*parent_offset + j]*parent_marginal_proba.second.get()[i];
+		}
+	}
+
+	//Compute the new marginals for the former parent
+	//For the former parent need to compute the full joint
+	size_t parent_orig_index = orig_marginals_index_map.at(parent_ptr->get_name());
+
+
+	//Copy all unchanged values of the former marginals
+
+
+	//Note: Would it matter to have unormalized marginals?
+
+
+	return *this;
+}
+
 size_t Model_marginals::compute_size(const Model_Parms& model_parms){
 	list<shared_ptr<Rec_Event>> events = model_parms.get_event_list();
 		unordered_map<Rec_Event_name,Adjacency_list> edges = model_parms.get_edges();
@@ -71,6 +139,89 @@ size_t Model_marginals::get_event_size(shared_ptr<const Rec_Event> event_p , con
 	return event_size;
 }
 
+/*
+ * Compute the event marginal probability distribution (free of dependencies)
+ * /!\ This function assumes the marginals are normalized /!\
+ * FIXME make sure the marginals are normalized? otherwise defined up to a multiplicative constant??
+ *
+ * Compute the event marginal probability by recursion
+ */
+pair<size_t,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const Model_Parms& model_parms ) const{
+	const unordered_map<Rec_Event_name,int> index_map = this->get_index_map(model_parms);
+	const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> offset_map = this->get_offsets_map(model_parms);
+	return this->compute_event_marginal_probability(event_name,model_parms,index_map,offset_map);
+}
+
+pair<size_t,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const Model_Parms& model_parms ,const unordered_map<Rec_Event_name,int>&  index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>&  offset_map) const{
+	shared_ptr<Rec_Event> event_ptr = model_parms.get_event_pointer(event_name);
+	size_t event_size = event_ptr->size();
+	shared_ptr<double> marginal_proba_ptr (new double [event_size]);
+	size_t event_index = index_map.at(event_name);
+	const list<shared_ptr<Rec_Event>> parents_list = model_parms.get_parents(event_name);
+
+	//Now compute the marginal probabilities of the event realizations
+	if(parents_list.empty()){
+		/*
+		 * If the event has no parents then the probabilities contained on the array are already the marginal probabilities
+		 * This condition must be met recursively by reaching a root of the graph (otherwise cyclic graph)
+		 */
+		//Simply copy the values in the array
+		for(size_t i = 0 ; i!=event_size ; ++i){
+			marginal_proba_ptr.get()[i] = this->marginal_array_smart_p.get()[event_index+i];
+		}
+	}
+	else{
+		//Compute event marginal array size and create an array on which we compute the joint probabilities
+		size_t marginal_event_size = this->get_event_size(event_ptr,model_parms);
+		double joint_proba_array [marginal_arr_size];
+
+		//Compute the joint probabilities
+		//First copy the conditionals from the marginals
+		for(size_t i=0 ; i!=marginal_event_size ; ++i){
+			joint_proba_array[i] = this->marginal_array_smart_p[event_index+i];
+		}
+		//For each parent multiply by the marginal probability to obtain the joint
+		for(shared_ptr<Rec_Event> parent_event : parents_list){
+			pair<size_t,shared_ptr<double>> parent_marginal_proba = compute_event_marginal_probability(parent_event->get_name(),model_parms,index_map,offset_map);
+			size_t parent_size = parent_event->size();
+			size_t parent_offset;
+			bool event_found = false; //Should always be found, just a sanity check
+			const vector<pair<shared_ptr<const Rec_Event>,int>>& offsets_vector = offset_map.at(parent_event->get_name());
+			for(pair<shared_ptr<const Rec_Event>,int> offset_pair : offsets_vector){
+				if(offset_pair.first == event_ptr){
+					parent_offset = offset_pair.second;
+					event_found = true;
+					/*
+					 * Note: comparison is made on the pointer address and not the event itself
+					 * This should not be a problem a priori, otherwise the following exception will probably be raised
+					 */
+				}
+				if(event_found){
+					for(size_t i=0 ; i!=parent_size ; ++i){
+						for(size_t j=0 ; j!=parent_offset ; ++j){
+							joint_proba_array[i*parent_offset + j]*=parent_marginal_proba.second.get()[i];
+						}
+					}
+				}
+				else{
+					throw logic_error("If this exception is thrown there is a problem in the Model_marginals::compute_event_marginal_probability code");
+				}
+			}
+		}
+
+		//Marginalize
+		//Initialize the array
+		for(size_t i =0 ; i!= event_size ; ++i){
+			marginal_proba_ptr.get()[i] = 0.0;
+		}
+		//Now from the joint compute the marginal probability
+		for(size_t i =0 ; i!= marginal_event_size ; ++i){
+			marginal_proba_ptr.get()[i%event_size]+=joint_proba_array[i];
+		}
+	}
+
+	return make_pair(event_size,marginal_proba_ptr);
+}
 
 Model_marginals::~Model_marginals() {
 	//cout<<debug_marg_name<<endl;
@@ -123,13 +274,13 @@ Model_marginals Model_marginals::operator -(Model_marginals marginals){
 }
 
 
-unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms){
+unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms) const{
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	return get_inverse_offset_map(model_parms,model_queue);
 }
 
 
-unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms, queue<shared_ptr<Rec_Event>> model_queue){
+unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_inverse_offset_map(const Model_Parms& model_parms, queue<shared_ptr<Rec_Event>> model_queue) const{
 	//Stack to keep track of the events processed and their order
 	stack<shared_ptr<Rec_Event>>* model_stack_p = new stack<shared_ptr<Rec_Event>>;
 	stack<shared_ptr<Rec_Event>> model_stack = *model_stack_p;
@@ -184,12 +335,12 @@ unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> Model_
  * E.g: the choice of a V (say V3) gene will influence the position on the array where p(ins|V) must be written
  * regardless of the number of insertions.
  */
-unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms){
+unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms) const{
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	return get_offsets_map(model_parms,model_queue);
 }
 
-unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms,queue<shared_ptr<Rec_Event>> model_queue){
+unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> Model_marginals::get_offsets_map(const Model_Parms& model_parms,queue<shared_ptr<Rec_Event>> model_queue) const{
 
 	unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> invert_offset_map = get_inverse_offset_map(model_parms,model_queue);
 
@@ -211,12 +362,12 @@ unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> Mode
 
 
 
-unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Parms& model_parms){
+unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Parms& model_parms) const{
 	queue<shared_ptr<Rec_Event>> model_queue = model_parms.get_model_queue();
 	return get_index_map( model_parms , model_queue);
 }
 
-unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Parms& model_parms , queue<shared_ptr<Rec_Event>> model_queue){
+unordered_map<Rec_Event_name,int> Model_marginals::get_index_map(const Model_Parms& model_parms , queue<shared_ptr<Rec_Event>> model_queue) const{
 
 
 	int index = 0;
