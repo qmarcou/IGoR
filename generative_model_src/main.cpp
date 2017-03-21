@@ -203,6 +203,7 @@ int main(int argc , char* argv[]){
 			++carg_i;
 			cl_model_parms.read_model_parms(string(argv[carg_i]));
 			++carg_i;
+			cl_model_marginals = Model_marginals(cl_model_parms);
 			cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
 
 			//Check if the model contains a D gene event in order to load the alignments
