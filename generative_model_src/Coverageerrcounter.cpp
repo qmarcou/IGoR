@@ -282,25 +282,28 @@ void Coverage_err_counter::count_scenario(double scenario_seq_joint_proba , doub
 
 		//Get the coverage
 		//Get the length of the gene and a pointer to the right array to write on
-		tmp_corr_len = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].first;
-		tmp_cov_p = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].second;
-		tmp_err_p = j_gene_per_nucleotide_error_seq_p[**jgene_real_index_p].second;
+		tmp_corr_len = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].first; //Length of the J gene
+		tmp_cov_p = j_gene_nucleotide_coverage_seq_p[**jgene_real_index_p].second; //Coverage array
+		tmp_err_p = j_gene_per_nucleotide_error_seq_p[**jgene_real_index_p].second; //Errors array
 
 		/*
 		 * Start at position 0
-		 * Assume V is on the left of the read and compute left bound: max(0,-(**vgene_offset_p))
-		 * Disregard P nucleotides, and set end bound as: tmp_corr_len - max(0,*v_3_del_value_p)
+		 *
+		 * Disregard P nucleotides, and set begin bound as: max(0,(*j_5_del_value_p))
+		 * Assume J is on the right of the read and compute end bound: max(0,(*j_5_del_value_p))+(seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1)
+		 * 																i.e : begin bound + number of visible nucleotides
 		 */
 
 		this->recurs_coverage_count(scenario_seq_joint_proba,0,max(0,(*j_5_del_value_p)),max(0,(*j_5_del_value_p))+(seq_offsets.at(J_gene_seq,Three_prime) - seq_offsets.at(J_gene_seq,Five_prime) +1),tmp_corr_len);
 
 		/*
-		 * compute the position on the mismatch vector of the first Pnuc error and set it as the end bound
+		 * compute the position on the mismatch vector of the first Pnuc error and set it as the begin bound
 		 */
 		size_t tmp_len_util = j_mismatch_list.size();
 		for( i = 0 ; i != tmp_len_util ; ++i){
 			//Disregard mismatches due to P nucleotides
-			if(	 (j_mismatch_list[i] >= (**jgene_offset_p) + tmp_corr_len) ){
+			if(	 (j_mismatch_list[i] >= (**jgene_offset_p) ) ){
+				//Since the alignment offset does not take into account Pnuc, any error due to Pnucs will have an index smaller than the gene offset
 				tmp_len_util = i;
 				break;
 			}
@@ -535,6 +538,21 @@ void Coverage_err_counter::normalize_and_add_cov_and_err(double& normalizing_cst
 	}
 }
 
+/**
+ * \brief Computes recursively the N point coverage
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * This function computes recursively the N point coverage. The N point coverage is an N dimensional array for which we fill only half and symmetrize later.
+ * The recursion is called to explore each dimension, setting the begin bounds and end bounds delimit the positions for which coverage should be recorded (nucleotides inside the read and not deleted).
+ * The begin bound is used internally to explore only half of the array.
+ *
+ * \param scenario_seq_joint_proba
+ * \param N : dimension
+ * \param begin_bound : begin address on the coverage array
+ * \param end_bound :	end address on the coverage array
+ * \param gene_len : Considered gene length
+ */
 void Coverage_err_counter::recurs_coverage_count(double scenario_seq_joint_proba , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len){
 	for(size_t j = begin_bound ; j!=end_bound ; ++j){
 		this->positions[N] = j;
@@ -551,6 +569,21 @@ void Coverage_err_counter::recurs_coverage_count(double scenario_seq_joint_proba
 	}
 }
 
+/**
+ * \brief Computes recursively the N point errors
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * This function computes recursively the N point errors.
+ *
+ * \param scenario_seq_joint_proba
+ * \param mismatch list
+ * \param gene_offset_p
+ * \param N : dimension
+ * \param begin_bound : begin address on the mismatch list
+ * \param end_bound :	end address on the mismatch list
+ * \param gene_len : Considered gene length
+ */
 void Coverage_err_counter::recurs_errors_count(double scenario_seq_joint_proba , vector<int>& mismatch_list , const int** gene_offset_p , size_t N , size_t begin_bound , size_t end_bound , size_t gene_len){
 	for(size_t j = begin_bound ; j!=end_bound ; ++j){
 		this->positions[N] = mismatch_list.at(j)-(**gene_offset_p);
