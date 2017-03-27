@@ -15,7 +15,10 @@ Pgen_counter::Pgen_counter(): Pgen_counter("/tmp/" , false) {
 Pgen_counter::Pgen_counter(std::string path): Pgen_counter(path , false) {
 }
 
-Pgen_counter::Pgen_counter(std::string path , bool do_output_sequences): Counter(path) , output_sequences(do_output_sequences) , sequence_Pgens_map(unordered_map<Int_Str,pair<double,double>>()) , scenario_resulting_sequence(Int_Str()) , read_likelihood(-1)  , v_gene(false) , d_gene(false) , j_gene(false) , vd_ins(false) , dj_ins(false) , vj_ins(false){
+Pgen_counter::Pgen_counter(std::string path , bool output_Pgen_estimator_only , bool do_output_sequences): Counter(path) , output_sequences(do_output_sequences) , output_Pgen_estimator(output_Pgen_estimator_only) , sequence_Pgens_map(unordered_map<Int_Str,pair<double,long double>>()) , scenario_resulting_sequence(Int_Str()) , read_likelihood(0)  , v_gene(false) , d_gene(false) , j_gene(false) , vd_ins(false) , dj_ins(false) , vj_ins(false){
+	if(output_Pgen_estimator and output_sequences){
+		throw invalid_argument("Cannot set both \"output_Pgen_estimator_only\" and \"do_output_sequences\" to true. Pgen estimator is one line per read, otherwise every scenario sequence per read");
+	}
 	this->last_iter_only = true;
 }
 
@@ -29,12 +32,18 @@ void Pgen_counter::initialize_counter(const Model_Parms& parms , const Model_mar
 		output_pgen_file_ptr = shared_ptr<ofstream>(new ofstream);
 		output_pgen_file_ptr->open(path_to_file + "Pgen_counts.csv");
 		//Create the header
-		if(output_sequences){
-			(*output_pgen_file_ptr.get())<<"seq_index;scen_sequence;Pgen;P_joint_read_seq"<<endl;
+		if(output_Pgen_estimator){
+			(*output_pgen_file_ptr.get())<<"seq_index;Pgen_estimate"<<endl;
 		}
 		else{
-			(*output_pgen_file_ptr.get())<<"seq_index;Pgen;P_seq_given_read"<<endl;
+			if(output_sequences){
+				(*output_pgen_file_ptr.get())<<"seq_index;scen_sequence;Pgen;P_joint_read_seq"<<endl;
+			}
+			else{
+				(*output_pgen_file_ptr.get())<<"seq_index;Pgen;P_seq_given_read"<<endl;
+			}
 		}
+
 		fstreams_created = true;
 	}
 
@@ -66,7 +75,7 @@ void Pgen_counter::initialize_counter(const Model_Parms& parms , const Model_mar
 	else{dj_ins=false;}
 }
 
-void Pgen_counter::count_scenario(double scenario_seq_joint_proba , double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Mismatch_vectors_map& mismatches_lists ){
+void Pgen_counter::count_scenario(long double scenario_seq_joint_proba , double scenario_probability , const string& original_sequence ,  Seq_type_str_p_map& constructed_sequences , const Seq_offsets_map& seq_offsets , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Mismatch_vectors_map& mismatches_lists ){
 	scenario_resulting_sequence.clear();
 	if(v_gene){
 		scenario_resulting_sequence += (*constructed_sequences[V_gene_seq]);
@@ -91,33 +100,42 @@ void Pgen_counter::count_scenario(double scenario_seq_joint_proba , double scena
 
 
 	if (sequence_Pgens_map.count(scenario_resulting_sequence)>0){
-		pair<double,double>& Pgen_Pjoint_pair = sequence_Pgens_map[scenario_resulting_sequence];
+		pair<double,long double>& Pgen_Pjoint_pair = sequence_Pgens_map[scenario_resulting_sequence];
 		Pgen_Pjoint_pair.first+=scenario_probability;
 		Pgen_Pjoint_pair.second+=scenario_seq_joint_proba;
 	}
 	else{
-		pair<double,double>& Pgen_Pjoint_pair = sequence_Pgens_map[scenario_resulting_sequence];
+		pair<double,long double>& Pgen_Pjoint_pair = sequence_Pgens_map[scenario_resulting_sequence];
 		//make proper initialization
 		Pgen_Pjoint_pair.first=scenario_probability;
 		Pgen_Pjoint_pair.second=scenario_seq_joint_proba;
 	}
-
 
 	read_likelihood+=scenario_seq_joint_proba;
 
 }
 
 void Pgen_counter::dump_sequence_data(int seq_index , int iteration_n ){
-	for(unordered_map<Int_Str,pair<double,double>>::const_iterator iter = sequence_Pgens_map.begin() ; iter != sequence_Pgens_map.end() ; ++iter){
-		if(output_sequences){
-			//(*output_pgen_file_ptr)<<seq_index<<";"<<(*iter).first<<";"<<(*iter).second.first<<";"<<(*iter).second.second/read_likelihood<<endl;
+
+	double log_P_gen_estimate = 0;
+	for(unordered_map<Int_Str,pair<double,long double>>::const_iterator iter = sequence_Pgens_map.begin() ; iter != sequence_Pgens_map.end() ; ++iter){
+		if(output_Pgen_estimator){
+			log_P_gen_estimate += (*iter).second.second/read_likelihood*log((*iter).second.first);
 		}
 		else{
-			(*output_pgen_file_ptr.get())<<seq_index<<";"<<(*iter).second.first<<";"<<(*iter).second.second/read_likelihood<<endl;
+			if(output_sequences){
+				//(*output_pgen_file_ptr)<<seq_index<<";"<<(*iter).first<<";"<<(*iter).second.first<<";"<<(*iter).second.second/read_likelihood<<endl;
+			}
+			else{
+				(*output_pgen_file_ptr.get())<<seq_index<<";"<<(*iter).second.first<<";"<<(*iter).second.second/read_likelihood<<endl;
+			}
 		}
 	}
+	if(output_Pgen_estimator){
+		(*output_pgen_file_ptr.get())<<seq_index<<";"<<exp(log_P_gen_estimate)<<endl;
+	}
 	//Reset counters
-	read_likelihood=0;
+	read_likelihood = 0.0;
 	sequence_Pgens_map.clear();
 }
 
@@ -128,6 +146,8 @@ void Pgen_counter::add_checked(shared_ptr<Counter> counter){
 shared_ptr<Counter> Pgen_counter::copy() const{
 	shared_ptr<Pgen_counter> counter_copy_ptr (new Pgen_counter());
 	counter_copy_ptr->fstreams_created = this->fstreams_created;
+	counter_copy_ptr->output_Pgen_estimator = this->output_Pgen_estimator;
+	counter_copy_ptr->output_sequences = this->output_sequences;
 	if(this->fstreams_created){
 		counter_copy_ptr->output_pgen_file_ptr = this->output_pgen_file_ptr;
 	}
