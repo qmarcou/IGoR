@@ -658,7 +658,7 @@ int main(int argc , char* argv[]){
 			read_seqs = true;
 			++carg_i;
 			input_seqs_file = string(argv[carg_i]);
-			string tmp_str = input_seqs_file.substr(tmp_str.size() -6 , string::npos );
+			string tmp_str = input_seqs_file.substr(input_seqs_file.size() -6 , string::npos );
 			transform(tmp_str.begin(),tmp_str.end(),tmp_str.begin(),::tolower);
 			if( tmp_str == ".fasta" ){
 				fasta_seqs = true;
