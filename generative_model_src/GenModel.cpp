@@ -428,7 +428,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	//Create a header for the files
 	outfile_ind_seq<<"seq_index;nt_sequence"<<endl;
 	queue<shared_ptr<Rec_Event>> model_queue = this->model_parms.get_model_queue();
-	outfile_ind_real<<"Index";
+	outfile_ind_real<<"seq_index";
 	while(!model_queue.empty()){
 		outfile_ind_real<<";"<<model_queue.front()->get_name();
 		model_queue.pop();
