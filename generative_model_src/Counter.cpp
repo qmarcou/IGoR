@@ -62,3 +62,12 @@ void Counter::dump_sequence_data(int seq_index , int iteration_n){
 void Counter::dump_data_summary(int iteration_n){
 	//Do nothing
 }
+
+void Counter::set_path_to_files(const string& new_path){
+	if(fstreams_created){
+		throw runtime_error("Cannot change file path when file streams have already been created (in Counter::set_path_to_files)");
+	}
+	else{
+		this->path_to_file = new_path;
+	}
+}

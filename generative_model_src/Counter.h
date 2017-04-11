@@ -31,9 +31,7 @@ public:
 	virtual void initialize_counter(const Model_Parms& , const Model_marginals&) = 0;
 
 	virtual void count_scenario(long double , double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Mismatch_vectors_map& );
-
 	virtual void count_sequence(double , const Model_marginals& ,const Model_Parms&);
-
 
 	virtual void add_to_counter(std::shared_ptr<Counter>);
 	virtual void add_checked(std::shared_ptr<Counter>) =0;
@@ -42,6 +40,8 @@ public:
 	virtual void dump_data_summary(int);
 
 	bool is_last_iter_only() const {return last_iter_only;}
+	std::string get_path_to_files() const {return path_to_file;}
+	void set_path_to_files(const std::string& new_path );
 
 	virtual std::shared_ptr<Counter> copy() const = 0;
 

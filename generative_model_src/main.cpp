@@ -846,6 +846,15 @@ int main(int argc , char* argv[]){
 		cl_model_parms.get_err_rate_p()->update_value(false);
 	}
 
+	//If a batchname is defined edit the output dir name
+	//This might be overcomplicated for no reason but should be easy to maintain
+	for(pair<size_t,shared_ptr<Counter>> counter_int_pair_ptr : cl_counters_list){
+		string former_path = counter_int_pair_ptr.second->get_path_to_files();
+		size_t output_str_index = former_path.rfind("/output/");
+		string new_path = former_path.substr(0,output_str_index+1) + batchname + "output" + former_path.substr(output_str_index+7,string::npos); //7 is the length of /output
+		counter_int_pair_ptr.second->set_path_to_files(new_path);
+	}
+
 
 
 
@@ -1085,7 +1094,7 @@ int main(int argc , char* argv[]){
 		}
 
 		if(align){
-			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/indexed_sequences.csv");
+			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
 
 			if(align_v){
 				//Performs V alignments
@@ -1121,7 +1130,7 @@ int main(int argc , char* argv[]){
 			GenModel genmodel(cl_model_parms,cl_model_marginals,cl_counters_list);
 
 			//Reading alignments
-			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/indexed_sequences.csv");
+			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
 
 			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
 			if(has_D){
