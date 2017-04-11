@@ -684,6 +684,11 @@ int main(int argc , char* argv[]){
 	}
 	cout<<"Working directory set to: \""+cl_path+"\""<<endl;
 
+	//Check that both species and chain have been provided
+	if(chain_provided xor species_provided){
+		throw ("Both species and chain must be provided when using a predefined model!");
+	}
+
 
 	if(chain_provided){
 		if(chain_arg_str == "alpha"){
