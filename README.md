@@ -76,7 +76,7 @@ If you are working on datasets not present in this list and would kindly agree t
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `-set_wd /path/to/dir/`      | Sets the working directory to */path/to/dir/*, default is */tmp*. ** This should be an already existing directory and will not be created by IGoR **   |
-| `-threads N`   | Sets the number of OpenMP threads to *N* for alignments and inference     |
+| `-threads N`   | Sets the number of OpenMP threads to *N* for alignments and inference/evaluation. By default IGoR will use the maximum number of threads.     |
 | `-stdout_f /path/to/file`  | Redirects the standard output to the file */path/to/file*  |
 | `-read_seqs /path/to/file`  | Reads the input sequences file */path/to/file* and reformat it in the working directory. **This step is necessary for running any action on sequences using the command line**. Can be a fasta file or a text file with one sequence per line (format recognition is based on the file extension). Providing this file will create a semicolon separated file with indexed sequences in the *align* folder.|
 |`-batch batchname`| Sets the batch name. This name will be used as a prefix to alignment/indexed sequences files, output, infer, evaluate and generate folders.|
@@ -174,7 +174,10 @@ Although the inference/evaluation generally run smoothly we try to list out some
 
 
 ## Outputs 
-Outputs are scenario/sequence statistics each presented below. They are all written in the *output* folder.
+Outputs are scenario/sequence statistics, each individually presented below. They are all written in the *output* folder (or *batchname_output* if a batchname was supplied).
+
+In order to specify outputs use the `-output` argument, and detail the desired list of outputs. Outputs are tied to the exploration of scenarios and thus require to have `-infer` or `-evaluate` in the same command. Note that although it might be interesting to track some outputs during the inference for debugging purposes, best practice would be to use it along with evaluation. 
+
 The different outputs are detailed in the next sections.
 
 ### Best scenarios
@@ -184,6 +187,7 @@ Use command `--scenarios N`
 
 ### Generation probability
 *Estimates the probability of generation of the error free/unmutated ancestor sequence*
+By default only outputs an estimator of the probability of generation of the ancestor sequence underlying each sequencing read. See *Igor paper Pgen section* for details. 
 
 Use command `--Pgen`
 
@@ -191,6 +195,7 @@ Use command `--Pgen`
 *Counts for each genomic nucleotide how many times it has been seen and how many times it was mutated/erroneous*
 
 Use command `--coverage`
+
 ## Sequence generation
 Reached using the command `-generate N` where *N* is the number of sequences to be generated. The number of sequences to generate must be passed before optional arguments. Optional parameters are the following:
 
@@ -201,7 +206,36 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. |
 
 ## Command examples
-Here we give a few command examples for a typical workflow.
+Here we give an example with a few commands illustrating a typical workflow. In this example we assume to be executing IGoR from the directory containing the executable.
+
+```
+#!bash
+WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working directory
+
+#We first read the sequences contained in a text file inside the demo folder
+#This will create the align folder in the working directory and the mydemo_indexed_seqs.csv file.
+./igor -set_wd $WDPATH -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt 
+
+#Now let's align the sequences against the provided human beta chain genomic templates with default parameters
+#This will create foo_V_alignments.csv, foo_D_alignments.csv and foo_J_alignments.csv files inside the align folder.
+./igor -set_wd $WDPATH -batch foo -species human -chain beta -align --all
+
+#Now use the provided beta chain model to get the 10 best scenarios per sequence
+#This will create the foo_output and foo_evaluate and the corresponding files inside
+./igor -set_wd $WDPATH -batch foo -species human -chain beta -evaluate -output --scenarios 10
+
+#Now generate 100 synthetic sequences from the provided human beta chain model
+#This will create the directory bar_generate with the corresponding files containing the generated sequences and their realizations
+./igor -set_wd $WDPATH -batch bar -species human -chain beta -generate 100
+
+```
+
+### Alignments
+
+### Inference and Evaluation
+
+### Generation
+
 
 
 # C++
