@@ -43,19 +43,23 @@ Once done, as for Linux simply go to IGoR's root folder and type `./configure;ma
 The configure script relies on bash to work. A first step is to download a bash interpreter (such as Cygwin or MinGW). Open the command line of the one of your choice and use `./configure;make`
 
 # Workflow
-As a preprocessing step IGoR first needs some alignments of the genomic templates to the read before exploring all putative recombination scenarios for this read.
+As a preprocessing step IGoR first needs to align the genomic templates to the read (`-align`) before exploring all putative recombination scenarios for this read. 
+After aligning IGoR can be used to infer a recombination model (`-infer`), evaluate sequences statistics (`-evaluate`) using an already inferred model.
+Synthetic sequences can be generated from a learned model (as one supplied by IGoR, or one inferred de novo through the `-infer` command) with the `-generate` command. 
 
 # Command line tools
 Although the full flexibility of IGoR is reachable through C++ highlevel functions (*see next section*) we provide some command line options to perform most frequent tasks on immune receptor sequences.
 
+Command options are nested arguments, the general organization of the commands follows `-arg1 --subarg1 ---subsubarg1` to reach the different levels.
+
 ## General
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
-| `-set_wd /path/to/dir/`      | Sets the working directory to */path/to/dir/*, default is /tmp   |
+| `-set_wd /path/to/dir/`      | Sets the working directory to */path/to/dir/*, default is */tmp*   |
 | `-threads N`   | Sets the number of OpenMP threads to *N* for alignments and inference     |
 | `-stdout_f /path/to/file`  | Redirects the standard output to the file */path/to/file*  |
-| `-read_seqs /path/to/file`  | Reads the input sequences file */path/to/file* and reformat it in the working directory. **This step is necessary for running any action on sequences using the command line**. Can be a fasta file or a text file with one sequence per line (format recognition is based on the file extension). |
-|`-batch batchname`| Sets the batch name. This name will be used as a prefix to every file.|
+| `-read_seqs /path/to/file`  | Reads the input sequences file */path/to/file* and reformat it in the working directory. **This step is necessary for running any action on sequences using the command line**. Can be a fasta file or a text file with one sequence per line (format recognition is based on the file extension). Providing this file will create a semicolon separated file with indexed sequences in the *align* folder.|
+|`-batch batchname`| Sets the batch name. This name will be used as a prefix to alignment/indexed sequences files, output, infer, evaluate and generate folders.|
 | `-chain chainname` | Selects a model and a set of genomic template according to the value. Possible values for `chainname` are: `alpha`, `beta`, `light`, `heavy_naive`, and `heavy_memory`. **This needs to be set in order to use provided genomic templates/model**|
 | `-species speciesname`| Selects a species from the set of predefined species. Possible values are: `human`.**This needs to be set in order to use provided genomic templates/model** |
 |`-set_genomic --*gene* /path/to/file.fasta`| Set a set of custom genomic templates for gene *gene* (possible values are V,D and J) with a list of genomic templates contained in the file */path/to/file.fasta* in fasta format. ** When using this option you will need to re-infer a model since the genomic templates will no longer correspond to the ones contained in the reference models **|
@@ -65,19 +69,44 @@ Although the full flexibility of IGoR is reachable through C++ highlevel functio
 | `-run_custom`  |  Runs the code inside the custom section of the main.cpp file |
 
 ### Working directory
-This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference , evaluation and outputs.
+This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference, evaluation and outputs.
 
 ## Alignments
+
+### Algorithm
+
 Performs Smith-Waterman alignments of the genomic templates. Using a slight alteration of the Smith-Waterman score matrix, we enforce that V can only be deleted on the 3' side and J on the 5' side (thus enforcing the alignment on the other side until the end of the read or of the genomic template). D is aligned using a classical Smith-Waterman local alignment approach allowing gene deletions on both sides.
+
+### Alignment commands summary
+ 
 Alignment of the sequences is performed upon detection of the `-align` switch in the command line. For each gene, alignment parameters can be set using `--V`,`--D` or `--J`. **Specifying any of those three argument will cause to align only the specified genes**. In order to specify a set of parameters for all genes or force to align all genes the argument `--all` should be passed. The arguments for setting the different parameters are given in the table below.
 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
-| `---thresh X`  | Sets the score threshold for the considered gene alignments to *X*. Default is ZZ for V, ZZ for D and ZZ for J |
-| `---matrix path/to/file` | Sets the substitution matrix to the one given in the file. Must be ZZZ delimited. Default is a NUC44 matrix with stronger penalty on errors (5,-14) |
-| `---gap_penalty X` | Sets the gap penalty to X |
-| `---best_only` | |
+| `---thresh X`  | Sets the score threshold for the considered gene alignments to *X*. Default is 50.0 for V, 15.0 for D and 15.0 for J |
+| `---matrix path/to/file` | Sets the substitution matrix to the one given in the file. Must be ZZZ delimited. Default is a NUC44 matrix with stronger penalty on errors (5,-14) ** Not fully supported yet **|
+| `---gap_penalty X` | Sets the alignment gap penalty to X. Default is 50.0 |
+| `---best_only` | If *true* only keep the best alignment per gene/allele. If *false* outputs all alignments above the score threshold. Default is *true* for V and J, and *false* for D. |
 | `---offset_bounds M N` | Constrains the possible positions of the alignments. The offset is defined as the position on the read to which the first nucleotide of the genomic template aligns (can be negative, e.g for V for which most of the V is on the 5' of the read and cannot be seen)  |
+
+### Alignment output files summary
+Upon alignment the alignment parameters/dates/filenames will appended to the *aligns/aligns_info.out* file for easy traceability.
+
+Alignment files are semicolon separated files. For each alignment of a genomic template to a sequence the following fields are given:
+
+| Field | Description |
+| :------------- | :------------------------------ |
+| seq_index | The sequence index the alignment corresponds to in the *indexed_sequences.csv* file. |
+| gene_name | The gene name as provided in the genomic template file |
+| score | SW alignment score |
+| offset | The index of the first letter of the (undeleted) genomic template on the read as described in the previous section. |
+| insertions | Indices of the alignment inserted nucleotides (relative to the read) |
+| deletions | Indices of the alignment deleted nucleotides (relative to the genomic template) |
+| mismatches | Indices of the alignment mismatches (relative to the read) |
+| length | Length of the SW alignment (including insertions and deletions) |
+| 5_p_align_offset | Offset of the first nucleotide of the SW alignment (relative to the read) |
+| 3_p_align_offset | Offset of the last nucleotide of the SW alignemnt (relative to the read) |
+
 
 ## Inference
 The inference is reached using the command `-infer`. Logs and models parameters values for each iteration will be created in the folder *inference* of the working directory. Optional parameters are the following:
@@ -92,7 +121,7 @@ The inference is reached using the command `-infer`. Logs and models parameters 
 |`--not_infer eventnickname1 eventnickname2`| Opposite command to the one above, will fix the parameters of the listed events |
 |`--fix_err`| In the same vein as the two commands above, this one will fix the parameters related to the error rate. |
 
-### Troubleshoots
+### Inference Troubleshoots
 map base at exception => check genomic templates (explain try catch expensive)
 run smoothly but all 0: alignments!!
 
@@ -123,9 +152,12 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `--noerr`  | Generate sequences without sequencing error (the rate and the way those errors are generated is controlled by the model error rate)|
+| `--name myname`  | Prefix for the generated sequences filenames. ** Note that setting the *batchname* will change the generated sequences folder name, while setting *--name* will change the file names. ** |
+| `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. |
 
 ## Command examples
 Here we give a few command examples for a typical workflow.
+
 
 # C++
 Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions on which all previous command lines are built. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-run_custom` command line when launching IGoR from the shell. An example of the workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
