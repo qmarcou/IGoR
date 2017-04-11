@@ -148,7 +148,7 @@ Optional parameters are the following:
 |`--infer_only eventnickname1 eventnickname2`| During the inference only the the parameters of the events with nicknames listed are updated | inference |
 |`--not_infer eventnickname1 eventnickname2`| Opposite command to the one above, will fix the parameters of the listed events | inference |
 |`--fix_err`| In the same vein as the two commands above, this one will fix the parameters related to the error rate. | inference |
-| `--subsample N` | Perform the action on a random subsample of *N* sequences. ** Obviously N should be < to the total number of sequences available ** | inference & evaluation |
+| `--subsample N` | Perform the action on a random subsample of *N* sequences. ** Obviously N should be < to the total number of sequences available ** NOT FUNCTIONAL YET | inference & evaluation |
 
 ### Inference and evaluation output
 Upon inferring or evaluating several files will be created in the corresponding folder.
@@ -202,8 +202,8 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `--noerr`  | Generate sequences without sequencing error (the rate and the way those errors are generated is controlled by the model error rate)|
-| `--name myname`  | Prefix for the generated sequences filenames. ** Note that setting the *batchname* will change the generated sequences folder name, while setting *--name* will change the file names. ** |
-| `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. |
+| `--name myname`  | Prefix for the generated sequences filenames. ** Note that setting the *batchname* will change the generated sequences folder name, while setting *--name* will change the file names. ** NOT FUNCTIONAL YET |
+| `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. NOT FUNCTIONAL YET |
 
 ## Command examples
 Here we give an example with a few commands illustrating a typical workflow. In this example we assume to be executing IGoR from the directory containing the executable.
