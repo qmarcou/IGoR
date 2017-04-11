@@ -19,6 +19,10 @@ Its heavily object oriented and modular style was designed to ensure long term s
 ### Version ###
 1.0
 
+### Table of Content ###
+
+[TOC]
+
 # Dependencies
 
 + a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread)
@@ -53,6 +57,9 @@ Although the full flexibility of IGoR is reachable through C++ highlevel functio
 Command options are nested arguments, the general organization of the commands follows `-arg1 --subarg1 ---subsubarg1` to reach the different levels.
 
 ## General
+
+### General commands summary
+
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `-set_wd /path/to/dir/`      | Sets the working directory to */path/to/dir/*, default is */tmp*   |
