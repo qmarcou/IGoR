@@ -153,11 +153,15 @@ Optional parameters are the following:
 ### Inference and evaluation output
 Upon inferring or evaluating several files will be created in the corresponding folder.
 
-1.*\*_parms.txt* files contain information to create Model_Parms C++ objects. It encapsulates information on the model events, realizations and topology. 
-2.*\*_marginals.txt* files contain information to create Model_Marginals C++ objects. It encapsulate parameters of the probability distribution underlying the recombination model.
-3.*inference_info.out* contains the inference parameters for traceability
-4.*inference_logs.txt* contains some information on each sequence for each iteration. This is a useful tool to debug inference troubleshoots. 
-5.*likelihoods.out* contains the likelihood information for a given dataset.
+1. *\*_parms.txt* files contain information to create Model_Parms C++ objects. It encapsulates information on the model events, realizations and topology. 
+
+2. *\*_marginals.txt* files contain information to create Model_Marginals C++ objects. It encapsulate parameters of the probability distribution underlying the recombination model.
+
+3. *inference_info.out* contains the inference parameters for traceability
+
+4. *inference_logs.txt* contains some information on each sequence for each iteration. This is a useful tool to debug inference troubleshoots. 
+
+5. *likelihoods.out* contains the likelihood information for a given dataset.
 
 ### Inference and evaluation Troubleshoots
 Although the inference/evaluation generally run smoothly we try to list out some possible troubleshoots and corresponding solutions.
