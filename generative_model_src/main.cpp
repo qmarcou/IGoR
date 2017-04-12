@@ -98,6 +98,8 @@ int main(int argc , char* argv[]){
 	bool no_infer = false;
 	set<string> infer_restrict_nicknames;
 	bool fix_err_rate = false;
+	bool subsample_seqs = false;
+	size_t n_subsample_seqs;
 
 	//Sequence evaluation parms
 	bool viterbi_evaluate = false;
@@ -515,6 +517,18 @@ int main(int argc , char* argv[]){
 				}
 				else if(string(argv[carg_i]) == "--fix_err"){
 					fix_err_rate = true;
+				}
+				else if(string(argv[carg_i]) == "--subsample"){
+					subsample_seqs = true;
+					++carg_i;
+					try{
+						n_subsample_seqs = stoi(argv[carg_i]);
+					}
+					catch(exception& e){
+						cout<<"Expected an integer for the number of sequences to subsample, received: \"" + string(argv[carg_i]) + "\""<<endl;
+						cout<<"Terminating and throwing exception now..."<<endl;
+						throw e;
+					}
 				}
 				else{
 					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify inference/evaluate parameters");
@@ -1137,6 +1151,10 @@ int main(int argc , char* argv[]){
 			//Reading alignments
 			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
 
+			if(subsample_seqs){
+				indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+			}
+
 			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
 			if(has_D){
 				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + d_align_filename, D_gene , 35 , false , indexed_seqlist , sorted_alignments);
@@ -1179,7 +1197,7 @@ int main(int argc , char* argv[]){
 				w_err_str = "noerr";
 			}
 
-			genmodel.generate_sequences(generate_n_seq,generate_werr,cl_path + "generated/" +  batchname +"generated_seqs_" + w_err_str + ".csv",cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv");
+			genmodel.generate_sequences(generate_n_seq,generate_werr,cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + ".csv",cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv");
 		}
 
 	}
