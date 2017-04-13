@@ -204,7 +204,9 @@ bool Model_Parms::add_edge(Rec_Event* parent_point, Rec_Event* child_point){
 	shared_ptr<Rec_Event> child_smart_p (child_point,null_delete<Rec_Event>());
 	return this->add_edge(parent_smart_p,child_smart_p);
 }
-
+/**
+ * \bug this is not checking whether the exact same edge already exists
+ */
 bool Model_Parms::add_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Event> child_point){
 	// check whether these events exist
 	if( edges.count(parent_point->get_name())<=0 ){
@@ -213,6 +215,21 @@ bool Model_Parms::add_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Ev
 	if( edges.count(child_point->get_name())<=0 ){
 		throw runtime_error("Model_Parms::add_edge(): event \"" + child_point->get_name() + "\" does not exist in \"this\".");
 	}
+	//Check whether it is creating a cycle
+		//First check the silly self-loop cycle
+		if(parent_point->get_name() == child_point->get_name()){
+			throw runtime_error("Trying to create an edge between " + parent_point->get_name() + "and itself");
+		}
+
+		//Else check if the new children is an ancestor of the new parent (this would close a cycle)
+		list<shared_ptr<Rec_Event>> parent_ancestors = this->get_ancestors(parent_point);
+		for(const shared_ptr<Rec_Event> event_ptr : parent_ancestors){
+			if(child_point->get_name() == event_ptr->get_name()){
+				throw runtime_error(child_point->get_name() + " is an ancestor of " + parent_point->get_name() +
+						" adding an edge would create a cycle in the graph, in Model_Parms::add_edge");
+			}
+		}
+
 
 	this->edges.at( parent_point->get_name() ).children.push_back(child_point);
 	this->edges.at( child_point->get_name() ).parents.push_back(parent_point);
@@ -291,13 +308,26 @@ void Model_Parms::invert_edge(shared_ptr<Rec_Event> ev1_point, shared_ptr<Rec_Ev
 	if(this->has_edge(ev1_point,ev2_point)){
 		//Invert the edge
 		this->remove_edge(ev1_point,ev2_point);
-		this->add_edge(ev2_point,ev1_point);
+		try{
+			this->add_edge(ev2_point,ev1_point);
+		}
+		catch(runtime_error& e){
+			//add_edge checks for cycle creation since 13/04/2017
+			cerr<<"Exception caught trying to invert an edge between" + ev1_point->get_name() +" and " + ev2_point->get_name() +" , this is most likely creating a cycle, throwing exception now!"<<endl;
+		}
+
 	}
 	//Otherwise check if ev2 is a parent of ev1
 	else if(this->has_edge(ev2_point,ev1_point)){
 		//Invert the edge
 		this->remove_edge(ev2_point,ev1_point);
-		this->add_edge(ev1_point,ev2_point);
+		try{
+			this->add_edge(ev1_point,ev2_point);
+		}
+		catch(runtime_error& e){
+			//add_edge checks for cycle creation since 13/04/2017
+			cerr<<"Exception caught trying to invert an edge between" + ev1_point->get_name() +" and " + ev2_point->get_name() +" , this is most likely creating a cycle, throwing exception now!"<<endl;
+		}
 	}
 	else{
 		//else: the edge do not exist and throw an exception
