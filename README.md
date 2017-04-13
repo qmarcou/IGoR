@@ -229,7 +229,20 @@ WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working
 ./igor -set_wd $WDPATH -batch bar -species human -chain beta -generate 100
 
 ```
+Since all these commands use several time the same arguments here is some syntactic sugar using more Bash syntax for the exact same workflow with a lighter syntax:
+ 
+```
+#!bash
+WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working directory
+MYCOMMANDS=./igor -set_wd $WDPATH 
 
+$MYCOMMANDS -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt #Read seqs
+MYCOMMANDS=$MYCOMMANDS -species human -chain beta #Add chain and species commands
+$MYCOMMANDS -batch foo -align --all #Align
+$MYCOMMANDS -batch foo -evaluate -output --scenarios 10 #Evaluate
+$MYCOMMANDS -batch bar -generate 100 #Generate
+
+```
 ### Alignments
 
 ### Inference and Evaluation
