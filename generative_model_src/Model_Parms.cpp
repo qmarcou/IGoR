@@ -147,6 +147,55 @@ list<shared_ptr<Rec_Event>> Model_Parms::get_children(Rec_Event_name event_name)
 	return edges.at(event_name).children;
 }
 
+/**
+ * \overload list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(Rec_Event_name event_name) const
+ */
+list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(Rec_Event* event) const{
+	return this->get_ancestors(shared_ptr<Rec_Event>(event,null_delete<Rec_Event>()));
+}
+/**
+ * \overload list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(Rec_Event_name event_name) const
+ */
+list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(shared_ptr<Rec_Event> event) const{
+	return this->get_ancestors(event->get_name());
+}
+/**
+ * \brief Get all ancestors of the supplied event
+ *
+ * Get all ancestors of the supplied event. Ancestors are all events higher than the considered event
+ *  in the genealogy and with link of any degree to it
+ *
+ * \author Q.Marcou
+ * \version 1.0
+ * \param[in] event_name The event whom we seek the ancestors
+ * \return The list of the event ancestors
+ */
+list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(Rec_Event_name event_name) const{
+	set<shared_ptr<Rec_Event>> ancestor_set;
+	list<shared_ptr<Rec_Event>> exploratory_list;
+	list<shared_ptr<Rec_Event>> final_list;
+
+	//Get the considered event parent
+	if(edges.count(event_name)<=0){
+		throw runtime_error("Model_Parms::get_parents(): event \"" + event_name + "\" does not exist in \"this\".");
+	}
+	exploratory_list = edges.at(event_name).parents;
+
+	//Now explore all ancestors
+	while(not exploratory_list.empty()){
+		//If the ancestor is not already in the list
+		if(ancestor_set.count(exploratory_list.front())<=0){
+			final_list.emplace_back(exploratory_list.front());
+			ancestor_set.emplace(exploratory_list.front());
+			const list<shared_ptr<Rec_Event>>& parents = edges.at(exploratory_list.front()->get_name()).parents;;
+			exploratory_list.insert(exploratory_list.end(),parents.begin(),parents.end());
+		}
+		exploratory_list.pop_front();
+	}
+
+	return final_list;
+}
+
 /*
  * Add a directed edge between two events
  */

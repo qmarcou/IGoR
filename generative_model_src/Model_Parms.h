@@ -56,6 +56,10 @@ public:
 	std::list <std::shared_ptr<Rec_Event>> get_parents(std::shared_ptr<Rec_Event> ) const;
 	std::list <std::shared_ptr<Rec_Event>> get_parents(Rec_Event_name ) const;
 
+	std::list <std::shared_ptr<Rec_Event>> get_ancestors(Rec_Event* ) const;
+	std::list <std::shared_ptr<Rec_Event>> get_ancestors(std::shared_ptr<Rec_Event> ) const;
+	std::list <std::shared_ptr<Rec_Event>> get_ancestors(Rec_Event_name ) const;
+
 	bool add_edge(Rec_Event* ,Rec_Event*);
 	bool add_edge(std::shared_ptr<Rec_Event> , std::shared_ptr<Rec_Event>);
 	bool add_edge(Rec_Event_name , Rec_Event_name);
