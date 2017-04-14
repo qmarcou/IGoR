@@ -12,6 +12,7 @@ using namespace std;
 
 Model_marginals::Model_marginals() {
 	marginal_array_smart_p = NULL;
+	marginal_arr_size = -1;
 }
 
 Model_marginals::Model_marginals(const Model_Parms& model_parms) {
@@ -141,21 +142,33 @@ size_t Model_marginals::get_event_size(shared_ptr<const Rec_Event> event_p , con
 
 /*
  * Compute the event marginal probability distribution (free of dependencies)
- * /!\ This function assumes the marginals are normalized /!\
+ * \bug /!\ This function assumes the marginals are normalized /!\
  * FIXME make sure the marginals are normalized? otherwise defined up to a multiplicative constant??
  *
  * Compute the event marginal probability by recursion
+ *
+ * should return a list of offsets (maybe it would be better to return the event sizes) and corresponding events
  */
-pair<size_t,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const Model_Parms& model_parms ) const{
-	const unordered_map<Rec_Event_name,int> index_map = this->get_index_map(model_parms);
-	const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> offset_map = this->get_offsets_map(model_parms);
-	return this->compute_event_marginal_probability(event_name,model_parms,index_map,offset_map);
+pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const Model_Parms& model_parms ) const{
+	return this->compute_event_marginal_probability(event_name , list<shared_ptr<Rec_Event>>() ,model_parms);
 }
 
-pair<size_t,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const Model_Parms& model_parms ,const unordered_map<Rec_Event_name,int>&  index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>&  offset_map) const{
+pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const list<shared_ptr<Rec_Event>>& kept_dependencies_list , const Model_Parms& model_parms ) const{
+	const unordered_map<Rec_Event_name,int> index_map = this->get_index_map(model_parms);
+	const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> offset_map = this->get_offsets_map(model_parms);
+	return this->compute_event_marginal_probability(event_name,kept_dependencies_list,model_parms,index_map,offset_map);
+}
+
+pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const list<shared_ptr<Rec_Event>>& kept_dependencies_list , const Model_Parms& model_parms ,const unordered_map<Rec_Event_name,int>&  index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>&  offset_map) const{
 	shared_ptr<Rec_Event> event_ptr = model_parms.get_event_pointer(event_name);
 	size_t event_size = event_ptr->size();
-	shared_ptr<double> marginal_proba_ptr (new double [event_size]);
+	//Compute the total new array size
+	size_t new_array_size = event_size;
+	for(shared_ptr<Rec_Event> event_ptr : kept_dependencies_list){
+		new_array_size*=event_ptr->size();
+	}
+	shared_ptr<double> marginal_proba_ptr (new double [new_array_size]);
+	list<pair<Rec_Event_name,size_t>> dependencies_order_list;
 	size_t event_index = index_map.at(event_name);
 	const list<shared_ptr<Rec_Event>> parents_list = model_parms.get_parents(event_name);
 
@@ -163,16 +176,31 @@ pair<size_t,shared_ptr<double>> Model_marginals::compute_event_marginal_probabil
 	if(parents_list.empty()){
 		/*
 		 * If the event has no parents then the probabilities contained on the array are already the marginal probabilities
-		 * This condition must be met recursively by reaching a root of the graph (otherwise cyclic graph)
+		 * This condition must be met recursively by reaching a root of the graph (this is ensured by the acyclicity of the graph)
+		 * However the array still needs to be copied several times to match the kept dependencies format
 		 */
-		//Simply copy the values in the array
+
+		//Simply copy the values in the array (the number of times required by the kept dependencies)
 		for(size_t i = 0 ; i!=event_size ; ++i){
-			marginal_proba_ptr.get()[i] = this->marginal_array_smart_p.get()[event_index+i];
+			marginal_proba_ptr.get()[i] = this->marginal_array_smart_p.get()[event_index+(i%event_size)];
+		}
+		//Emplace Event order
+		dependencies_order_list.emplace_back(event_name,event_size);
+		for(shared_ptr<Rec_Event> event_ptr : kept_dependencies_list){
+			dependencies_order_list.emplace_back(event_ptr->get_name() , event_ptr->size());
 		}
 	}
 	else{
 		//Compute event marginal array size and create an array on which we compute the joint probabilities
 		size_t marginal_event_size = this->get_event_size(event_ptr,model_parms);
+
+		//Create a utility list
+		joint_proba_array
+		//Preprocess parents and see the overlap with kept dependencies
+		for(shared_ptr<Rec_Event> event_ptr : dependencies_order_list){
+
+		}
+
 		double joint_proba_array [marginal_arr_size];
 
 		//Compute the joint probabilities
@@ -182,7 +210,7 @@ pair<size_t,shared_ptr<double>> Model_marginals::compute_event_marginal_probabil
 		}
 		//For each parent multiply by the marginal probability to obtain the joint
 		for(shared_ptr<Rec_Event> parent_event : parents_list){
-			pair<size_t,shared_ptr<double>> parent_marginal_proba = compute_event_marginal_probability(parent_event->get_name(),model_parms,index_map,offset_map);
+			pair<size_t,shared_ptr<double>> parent_marginal_proba = compute_event_marginal_probability(parent_event->get_name(),kept_dependencies_list,model_parms,index_map,offset_map);
 			size_t parent_size = parent_event->size();
 			size_t parent_offset;
 			bool event_found = false; //Should always be found, just a sanity check
@@ -220,8 +248,12 @@ pair<size_t,shared_ptr<double>> Model_marginals::compute_event_marginal_probabil
 		}
 	}
 
-	return make_pair(event_size,marginal_proba_ptr);
+	return make_pair(dependencies_order_list,marginal_proba_ptr);
 }
+
+/*
+ * Just a utility function to recursively
+ */
 
 Model_marginals::~Model_marginals() {
 	//cout<<debug_marg_name<<endl;
@@ -720,3 +752,194 @@ void Model_marginals::txt2marginals(string filename, const Model_Parms& parms){
 
 	this->normalize(inverse_offset_map , index_map , model_queue);
 }
+
+/**
+ * A utility function to swap the order of the events on a marginal array (used to marginalize and invert edges)
+ * This is used to further align the marginals and combine them
+ */
+void swap_events_order(const Rec_Event_name& event_1 ,const Rec_Event_name& event_2 , pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>>& swapped_marginals){
+	//First get the positions of the events
+	size_t event_1_position = 0;
+	bool event_1_found = false;
+	list<pair<Rec_Event_name,size_t>>::iterator event_1_iterator;
+
+	size_t event_2_position = 0;
+	bool event_2_found = false;
+	list<pair<Rec_Event_name,size_t>>::iterator event_2_iterator;
+
+
+	for(list<pair<Rec_Event_name,size_t>>::iterator iter = swapped_marginals.first.begin() ; iter!=swapped_marginals.first.end() ; ++iter){
+		if(iter->first == event_1){
+			event_1_found = true;
+		}
+		if(iter->first == event_2){
+			event_2_found = true;
+		}
+
+		if(not event_1_found){
+			++event_1_position;
+		}
+		if(not event_1_found){
+			++event_2_position;
+		}
+	}
+
+	if(not (event_1_found and event_2_found)){
+		throw runtime_error(event_1 + " and " + event_2 + " not found on the array, in swap_events_order()");
+	}
+	if(event_1_position == event_2_position){return;} //In case event 1 and 2 were the same events, no change
+
+	//Then swap neighbors with the first event until it reaches the correct position
+	int increment_factor = (event_1_position < event_2_position)*2 -1;
+	size_t initial_event_1_position = event_1_position;
+	while(event_1_position != event_2_position){
+		for(list<pair<Rec_Event_name,size_t>>::iterator iter = swapped_marginals.first.begin() ; iter!=swapped_marginals.first.end() ; ++iter){
+			if(iter->first == event_1){
+				event_1_iterator = iter;
+				break;
+			}
+		}
+		swap_neighboring_events_order(event_1 , (event_1_iterator+increment_factor)->first , swapped_marginals);
+		event_1_position+=increment_factor;
+	}
+
+	//Then swap down the second one
+	increment_factor*=(-1); //Now change the swapping direction
+	while(event_2_position != initial_event_1_position){
+		for(list<pair<Rec_Event_name,size_t>>::iterator iter = swapped_marginals.first.begin() ; iter!=swapped_marginals.first.end() ; ++iter){
+			if(iter->first == event_2){
+				event_2_iterator = iter;
+				break;
+			}
+		}
+		swap_neighboring_events_order(event_1 , (event_2_iterator+increment_factor)->first , swapped_marginals);
+		event_2_position+=increment_factor;
+	}
+}
+/**
+ * \bug Will invalidate iterators to the swapped marginals
+ */
+void swap_neighboring_events_order(const Rec_Event_name& event_1 ,const Rec_Event_name& event_2 , pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>>& swapped_marginals){
+	size_t event_1_offset;
+	size_t event_1_new_offset;
+	bool event_1_found = false;
+	list<pair<Rec_Event_name,size_t>>::iterator event_1_iterator;
+
+	size_t event_2_offset;
+	size_t event_2_new_offset;
+	bool event_2_found = false;
+	list<pair<Rec_Event_name,size_t>>::iterator event_2_iterator;
+
+	size_t current_offset = 1;
+
+	for(list<pair<Rec_Event_name,size_t>>::iterator iter = swapped_marginals.first.begin() ; iter!=swapped_marginals.first.end() ; ++iter){
+		if( iter->first == event_1 and not event_2_found){
+			event_1_offset = current_offset;
+			event_1_iterator = iter;
+			event_1_found = true;
+			//Update the current offset accordingly
+			current_offset*=iter->second;
+
+		}
+		else if( iter->first == event_2 and not event_1_found){
+
+
+			event_2_offset = current_offset;
+			event_2_iterator = iter;
+			event_2_found = true;
+			//Update the current offset accordingly
+			current_offset*=iter->second;
+
+		}
+
+		current_offset*=iter->second;//Need to get the total array size, thus loop over all realizations
+
+	}
+
+	if(event_1_found){
+		//Event 1 is first on the array
+
+		event_2_iterator = event_1_iterator+1;
+		if(event_2_iterator->first != event_2){
+			throw runtime_error(event_1 + " and " + event_2 + " are not neighbors, in swap_neighboring_events_order()");
+		}
+		event_1_new_offset =event_1_offset*event_2_iterator->second;
+		event_2_offset = event_1_offset*event_1_iterator->second;
+		event_2_new_offset = event_1_offset;
+	}
+	else if(event_2_found){
+		//Event 2 is first on the array
+
+		event_1_iterator = event_2_iterator+1;
+		if(event_1_iterator->first != event_1){
+			throw runtime_error(event_1 + " and " + event_2 + " are not neighbors, in swap_neighboring_events_order()");
+		}
+		event_2_new_offset =event_2_offset*event_1_iterator->second;
+		event_1_offset = event_2_offset*event_2_iterator->second;
+		event_1_new_offset = event_2_offset;
+	}
+	else{
+		//Throw exception if none of the two events were found
+		throw runtime_error(event_1 + " and " + event_2 + " not found on the array, in swap_neighboring_events_order()");
+	}
+
+	shared_ptr<double> new_array_ptr(new double [current_offset]); //Current offset is the total size of the array after looping over all events
+
+	for(size_t i=0 ; i!=current_offset ; ++i){ //Current offset has been used to compute the total size of the array
+		if(event_1_found){
+			//event 1 used to have
+		}
+		size_t small_offset = min(event_1_new_offset,event_2_new_offset);
+		size_t big_offset = max(event_1_new_offset*event_1_iterator->second,event_2_new_offset*event_2_iterator->second);
+		/*
+		 * Now invert the marginals
+		 * (i/former_offset)%size corresponds to the realization index
+		 * i%small offset are all lower dependencies that need to be copied in the same order (lower dimensions)
+		 * big offset denotes the offset of stuff depending on the two events (higher dimensions)
+		 *
+		 */
+		new_array_ptr[ (i/big_offset)*big_offset +
+					   ((i/event_1_offset)%event_1_iterator->second)*event_1_new_offset +
+					   ((i/event_2_offset)%event_2_iterator->second)*event_2_new_offset +
+					   i%small_offset ] = swapped_marginals.second[i];
+	}
+
+	//Now swap the neighboring events in the list
+	//The STL does not provide a function to swap to elements positions
+	//Instead i'll insert the two elements in the swapped order after the 2 elements in the right order
+	//I will then delete the two unswapped elements
+	if(event_1_found){
+		swapped_marginals.first.insert(event_2_iterator+1,event_1_iterator,event_2_iterator+1);
+		swapped_marginals.first.erase(event_1_iterator,event_2_iterator+1);
+	}
+	else if(event_2_found){
+		swapped_marginals.first.insert(event_1_iterator+1,event_2_iterator,event_1_iterator+1);
+		swapped_marginals.first.erase(event_2_iterator,event_1_iterator+1);
+	}
+
+	//Reassign the swapped array
+	swapped_marginals.second = new_array_ptr;
+
+}
+
+/**
+ * Utility to align marginals with events in the same order
+ * Note that the implementation is probably not efficient but at least remains simple
+ * Can align marginals with higher number of dimensions than the reference
+ */
+void align_marginal_array(const pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>>& reference_marginals , pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>>& aligned_marginals){
+	if(reference_marginals.first.size()>aligned_marginals.first.size()){
+		throw runtime_error("Aligned marginals have less dimension than the reference marginals");
+	}
+	list<pair<Rec_Event_name,size_t>>::const_iterator reference_iterator = reference_marginals.first.begin();
+	size_t counter = 0;
+	while(reference_iterator != reference_marginals.first.end()){
+		//Swap the reference event directly at the right position
+		swap_events_order(reference_iterator->first , (aligned_marginals.first.begin()+counter)->first , aligned_marginals);
+		++counter;
+		++reference_iterator;
+	}
+}
+
+
+
