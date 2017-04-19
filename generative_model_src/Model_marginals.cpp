@@ -66,47 +66,185 @@ Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Even
 	}
 
 	const unordered_map<Rec_Event_name,int> orig_marginals_index_map = this->get_index_map(model_parms);
-	const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> orig_marginals_offset_map = this->get_offsets_map(model_parms);
+	const unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> orig_marginals_inverse_offset_map = this->get_inverse_offset_map(model_parms);
 
 
+	/*
+	 * Make sure inverting the edge will not create a cycle by testing on a copy
+	 */
+		Model_Parms model_parms_test_copy( model_parms);
+		try{
+			model_parms_test_copy.invert_edge(ev1_name,ev2_name);
+		}
+		catch(exception& e){
+			cerr<<"Exception caught trying to invert an edge on a test model parms in Model_marginals::invert_edge, the operation is most likely creating a cycle, throwing exception now..."<<endl;
+			throw(e);
+		}
+
+	/*
+	 * First recompute the marginals for the event losing a parent
+	 * To do so we marginalize the joint probability of this event and the former parent over the former parent realizations
+	 * This simply requires to marginalize the probability of the former parent over all events that are not parents of the former child
+	 */
+	list<shared_ptr<Rec_Event>>& child_parents =  model_parms.get_parents(child_ptr);
+	set<Rec_Event_name> child_kept_dependencies;
+	for(const shared_ptr<Rec_Event> event_ptr : child_parents){
+		child_kept_dependencies.emplace(event_ptr->get_name());
+	}
+	child_kept_dependencies.emplace(child_ptr->get_name()); //Add the child in order to get an array of the correct size directly
+
+	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> marginalized_parent_probabilities = compute_event_marginal_probability(parent_ptr->get_name(),child_kept_dependencies,model_parms);
+
+	size_t joint_array_size = this->get_event_size(child_ptr,model_parms);
+	size_t new_array_size = joint_array_size/parent_ptr->size();
+	shared_ptr<double> joint_child_array(new double [joint_array_size]);
+	shared_ptr<double> new_child_array(new double [new_array_size]);
+	int child_index = orig_marginals_index_map.at(child_ptr->get_name());
+
+	//Init the joint proba array
+	for(size_t i=0 ; i!= joint_array_size ; ++i){
+		joint_child_array[i] = this->marginal_array_smart_p[child_index+i];
+	}
+
+	//Get the array ordering
+	//First copy a list containing the inverse offsets and sort it
+	list<pair<shared_ptr<const Rec_Event>,int>> sorted_inv_offset_list = orig_marginals_inverse_offset_map.at(child_ptr->get_name());
+	sorted_inv_offset_list.sort(inverse_offset_comparator());
+
+	//Create the ordering list
+	list<pair<Rec_Event_name,size_t>> child_dependencies_order_list;
+	child_dependencies_order_list.emplace_back(child_ptr->get_name() , child_ptr->size());
+	//Now add dimensions in the correct order
+	for(const pair<shared_ptr<const Rec_Event>,int>& inv_offset : sorted_inv_offset_list){
+		child_dependencies_order_list.emplace_back(inv_offset.first->get_name(),inv_offset.first->size());
+	}
 
 
+	//Align the arrays
+	align_marginal_array(child_dependencies_order_list,marginalized_parent_probabilities);
 
-	//Compute the new marginals of the former child
-	//For the former child simply need to marginalize over the former parent
-	const size_t child_orig_index = orig_marginals_index_map.at(parent_ptr->get_name());
-	const size_t child_size = child_ptr->size();
-	const size_t parent_size = parent_ptr->size();
-	const size_t child_former_marginal_size = this->get_event_size(child_ptr,model_parms);
-	double child_parent_child_joint_proba_array [child_former_marginal_size];
-	pair<size_t,shared_ptr<double>> parent_marginal_proba = compute_event_marginal_probability(parent_ptr->get_name(),model_parms);
+	//Multiply to get the joint
+	for(size_t i=0 ; i!= joint_array_size ; ++i){
+		joint_child_array[i] *= marginalized_parent_probabilities.second[i];
+	}
 
-	//Get the parent offset
-	size_t parent_offset;
-	const vector<pair<shared_ptr<const Rec_Event>,int>>& offset_vec = orig_marginals_offset_map.at(parent_ptr->get_name());
-	for(pair<shared_ptr<const Rec_Event>,int> offset_pair : offset_vec){
-		if(offset_pair.first == child_ptr){
-			//Again only comparing pointer addresses instead of the actual events values, should work in principle
-			parent_offset = offset_pair.second;
+	//Now move the former parent as the last dimension and marginalize over it
+	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> tmp_pair = make_pair(child_dependencies_order_list,joint_child_array);
+	swap_events_order(parent_ptr->get_name() , child_dependencies_order_list.back().first , tmp_pair);
+
+	for(size_t i=0 ; i!=new_array_size ; ++i){
+		new_child_array = 0.0;
+	}
+
+	for(size_t j=0 ; j!=joint_array_size ; ++j){
+		new_child_array[j%new_array_size] += joint_child_array[j];
+	}
+
+	/*
+	 * Now we recompute the marginals of the event gaining a parent
+	 * To do so we need to marginalize the former child distribution over all unshared parents except the former parent
+	 * Multiply by the the former parent proba to get the joint
+	 * Divide by the former child distribution marginalized over all unshared parents (including the former parent) for the bayesian inversion
+	 */
+
+	list<shared_ptr<Rec_Event>>& parent_parents =  model_parms.get_parents(parent_ptr);
+	set<Rec_Event_name> parent_kept_dependencies;
+	for(const shared_ptr<Rec_Event> event_ptr : parent_parents){
+		parent_kept_dependencies.emplace(event_ptr->get_name());
+	}
+	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> marginalized_child_probabilities = compute_event_marginal_probability(child_ptr->get_name(),parent_kept_dependencies,model_parms);
+	//By removing the dependence on the former parent we lose one dimension and we thus add it by hand
+	//Compute the total size
+	size_t new_child_array_size = parent_ptr->size();
+	for(pair<Rec_Event_name,size_t> ev_name_size : marginalized_child_probabilities.first){
+		new_child_array_size*= ev_name_size.second;
+	}
+	shared_ptr<double> marginalized_child_proba_expanded_arr(new double [new_child_array_size]);
+	for(size_t i=0 ; i!=new_child_array_size ; ++i){
+		marginalized_child_proba_expanded_arr[i] = marginalized_child_probabilities.second[i%(new_child_array_size/parent_ptr->size())];
+	}
+	marginalized_child_probabilities.first.emplace_back(parent_ptr->get_name() , parent_ptr->size());
+	marginalized_child_probabilities.second = marginalized_child_proba_expanded_arr;
+
+
+	//Now compute the marginal distribution keeping the parent dependence
+	parent_kept_dependencies.emplace(parent_ptr->get_name());
+	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> marginalized_child_g_parent_probabilities = compute_event_marginal_probability(child_ptr->get_name(),parent_kept_dependencies,model_parms);
+
+	//Now extract the former marginal values and expand the dimension with the former child
+	shared_ptr<double> new_parent_array (new double [new_child_array_size]);
+	int parent_index = orig_marginals_index_map.at(parent_ptr->get_name());
+
+	for(size_t i=0 ; new_child_array_size ; ++i){
+		new_parent_array[i] = this->marginal_array_smart_p[parent_index + i%(new_child_array_size/child_ptr->size())];
+	}
+	//Get the corresponding order list
+	//First copy a list containing the inverse offsets and sort it
+	sorted_inv_offset_list = orig_marginals_inverse_offset_map.at(parent_ptr->get_name());
+	sorted_inv_offset_list.sort(inverse_offset_comparator());
+
+	//Create the ordering list
+	list<pair<Rec_Event_name,size_t>> parents_dependencies_order_list;
+	parents_dependencies_order_list.emplace_back(parent_ptr->get_name() , parent_ptr->size());
+	//Now add dimensions in the correct order
+	for(const pair<shared_ptr<const Rec_Event>,int>& inv_offset : sorted_inv_offset_list){
+		parents_dependencies_order_list.emplace_back(inv_offset.first->get_name(),inv_offset.first->size());
+	}
+	//And add the extra dimension
+	parents_dependencies_order_list.emplace_back(child_ptr->get_name() , child_ptr->size());
+
+
+	//Order everything (according to the new ordering in model parms)
+	model_parms.invert_edge(ev1_name,ev2_name);
+	const unordered_map<Rec_Event_name,int> new_marginals_index_map = this->get_index_map(model_parms);
+	const unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> new_marginals_inverse_offset_map = this->get_inverse_offset_map(model_parms);
+
+	//Create the ordering list to do so
+	list<pair<Rec_Event_name,size_t>> final_new_child_ordering_list;
+	final_new_child_ordering_list.emplace_back(parent_ptr->get_name() , parent_ptr->size());
+	//Now add dimensions in the correct order
+	for(const pair<shared_ptr<const Rec_Event>,int>& inv_offset : sorted_inv_offset_list){
+		final_new_child_ordering_list.emplace_back(inv_offset.first->get_name(),inv_offset.first->size());
+	}
+
+	//Align everything
+	align_marginal_array(final_new_child_ordering_list,marginalized_child_g_parent_probabilities);
+	align_marginal_array(final_new_child_ordering_list,marginalized_child_probabilities);
+	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> tmp_pair_parent = make_pair(parents_dependencies_order_list,new_parent_array);
+	align_marginal_array(final_new_child_ordering_list,tmp_pair_parent);
+
+	//Finally compute the new marginal values
+	for(size_t i=0 ; new_child_array_size ; ++i){
+		new_parent_array[i] *= marginalized_child_g_parent_probabilities.second[i]/marginalized_child_probabilities.second[i];
+	}
+
+	//Create a full new marginal array and copy the values in the right place
+	shared_ptr<double> new_marginal_array (new double[ this->compute_size(model_parms)]);
+	for(const shared_ptr<Rec_Event> event_ptr : model_parms.get_event_list()){
+		if( (event_ptr->get_name() != ev1_name) and (event_ptr->get_name() != ev2_name)){
+			size_t tmp_event_size = this->get_event_size(event_ptr,model_parms);
+			int former_event_index = orig_marginals_index_map.at(event_ptr->get_name());
+			int new_event_index = new_marginals_index_map.at(event_ptr->get_name());
+			for(size_t i=0 ; tmp_event_size ; ++i){
+				new_marginal_array[new_event_index+i] = this->marginal_array_smart_p[former_event_index+i];
+			}
 		}
 	}
-	//Compute the joint
-	for(size_t i=0 ; i!= parent_size; ++i){
-		for(size_t j=0 ; j!=parent_offset ; ++j){
-			child_parent_child_joint_proba_array[i*parent_offset + j] = this->marginal_array_smart_p.get()[child_orig_index + i*parent_offset + j]*parent_marginal_proba.second.get()[i];
-		}
+	//Now copy the new parent values
+	int new_parent_index = new_marginals_index_map.at(child_ptr->get_name());
+	for(size_t i=0 ; new_array_size ; ++i){
+		new_marginal_array[new_parent_index+i] = new_child_array[i];
 	}
 
-	//Compute the new marginals for the former parent
-	//For the former parent need to compute the full joint
-	size_t parent_orig_index = orig_marginals_index_map.at(parent_ptr->get_name());
+	//And finally copy the new child values
+	int new_child_index = new_marginals_index_map.at(parent_ptr->get_name());
+	for(size_t i=0 ; new_child_array_size ; ++i){
+		new_marginal_array[new_child_index+i] = new_parent_array[i];
+	}
 
-
-	//Copy all unchanged values of the former marginals
-
-
-	//Note: Would it matter to have unormalized marginals?
-
+	//Set the array and update the array size
+	this->marginal_arr_size = this->compute_size(model_parms);
+	this->marginal_array_smart_p = new_marginal_array;
 
 	return *this;
 }
@@ -150,26 +288,44 @@ size_t Model_marginals::get_event_size(shared_ptr<const Rec_Event> event_p , con
  * should return a list of offsets (maybe it would be better to return the event sizes) and corresponding events
  */
 pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const Model_Parms& model_parms ) const{
-	return this->compute_event_marginal_probability(event_name , list<shared_ptr<Rec_Event>>() ,model_parms);
+	return this->compute_event_marginal_probability(event_name , set<Rec_Event_name>() ,model_parms);
 }
 
-pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const list<shared_ptr<Rec_Event>>& kept_dependencies_list , const Model_Parms& model_parms ) const{
+pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const set<Rec_Event_name>& kept_dependencies_list , const Model_Parms& model_parms ) const{
 	const unordered_map<Rec_Event_name,int> index_map = this->get_index_map(model_parms);
 	const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>> offset_map = this->get_offsets_map(model_parms);
-	return this->compute_event_marginal_probability(event_name,kept_dependencies_list,model_parms,index_map,offset_map);
+	const unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>> inverse_offset_map = this->get_inverse_offset_map(model_parms);
+	return this->compute_event_marginal_probability(event_name,kept_dependencies_list,model_parms,index_map,offset_map,inverse_offset_map);
 }
 
-pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(Rec_Event_name event_name , const list<shared_ptr<Rec_Event>>& kept_dependencies_list , const Model_Parms& model_parms ,const unordered_map<Rec_Event_name,int>&  index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>&  offset_map) const{
+/**
+ * This piece of code is quite dirty, i strongly apologize for it
+ */
+pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::compute_event_marginal_probability(
+		Rec_Event_name event_name ,
+		const set<Rec_Event_name>& kept_dependencies_list ,
+		const Model_Parms& model_parms ,const unordered_map<Rec_Event_name,int>&  index_map ,
+		const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>&  offset_map ,
+		const unordered_map<Rec_Event_name,list<pair<shared_ptr<const Rec_Event>,int>>>& inverse_offset_map) const{
+
+
+	//First get the event pointer, size and index
 	shared_ptr<Rec_Event> event_ptr = model_parms.get_event_pointer(event_name);
 	size_t event_size = event_ptr->size();
-	//Compute the total new array size
+	size_t event_index = index_map.at(event_name);
+
+
+	//Compute the total new array size and instantiate the corresponding array
 	size_t new_array_size = event_size;
-	for(shared_ptr<Rec_Event> event_ptr : kept_dependencies_list){
-		new_array_size*=event_ptr->size();
+	for(Rec_Event_name ev_name : kept_dependencies_list){
+		new_array_size*= model_parms.get_event_pointer(ev_name)->size();
 	}
 	shared_ptr<double> marginal_proba_ptr (new double [new_array_size]);
+
+	//Initialize a dependencies list to hold array dimensions names
 	list<pair<Rec_Event_name,size_t>> dependencies_order_list;
-	size_t event_index = index_map.at(event_name);
+
+	//Get the list of the event's parents
 	const list<shared_ptr<Rec_Event>> parents_list = model_parms.get_parents(event_name);
 
 	//Now compute the marginal probabilities of the event realizations
@@ -186,65 +342,112 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> Model_marginals::comp
 		}
 		//Emplace Event order
 		dependencies_order_list.emplace_back(event_name,event_size);
-		for(shared_ptr<Rec_Event> event_ptr : kept_dependencies_list){
-			dependencies_order_list.emplace_back(event_ptr->get_name() , event_ptr->size());
+		for(Rec_Event_name ev_name : kept_dependencies_list){
+			dependencies_order_list.emplace_back(ev_name , model_parms.get_event_pointer(ev_name)->size());
 		}
 	}
 	else{
-		//Compute event marginal array size and create an array on which we compute the joint probabilities
-		size_t marginal_event_size = this->get_event_size(event_ptr,model_parms);
+		//Compute event marginal array size(including kept dependencies) and create an array on which we compute the joint probabilities
+		size_t marginal_event_size = event_size;
 
-		//Create a utility list
-		joint_proba_array
-		//Preprocess parents and see the overlap with kept dependencies
-		for(shared_ptr<Rec_Event> event_ptr : dependencies_order_list){
+		//Make a copy of the kept dependencies and remove the parents and the event itself from it in order to avoid duplicate dimensions
+		set<Rec_Event_name> tmp_kept_dependencies_utility = kept_dependencies_list;
 
+		/*
+		 * Here we get the list of dimensions in the correct order with respect to the existing marginals
+		 * We use the inverse offset map for it and the fact that the event itself is always the first dimension
+		 */
+		//Add the event itself as a first array dimension (since it always is the first dimension according to the offset map construction)
+		dependencies_order_list.emplace_back(event_name,event_size);
+
+		//Remove potential appearance of the event in the kept dependencies
+		if(tmp_kept_dependencies_utility.count(event_name)>0){
+			tmp_kept_dependencies_utility.erase(event_name);
 		}
 
-		double joint_proba_array [marginal_arr_size];
+		//Create a list containing all parents if they are not already in the kept dependencies (avoid duplicates)
+		//Use the inverse offset map to know the correct dimension ordering
+		//Disclaimer: this is going to be quite ugly and should be rewritten //TODO
 
-		//Compute the joint probabilities
-		//First copy the conditionals from the marginals
-		for(size_t i=0 ; i!=marginal_event_size ; ++i){
-			joint_proba_array[i] = this->marginal_array_smart_p[event_index+i];
-		}
-		//For each parent multiply by the marginal probability to obtain the joint
-		for(shared_ptr<Rec_Event> parent_event : parents_list){
-			pair<size_t,shared_ptr<double>> parent_marginal_proba = compute_event_marginal_probability(parent_event->get_name(),kept_dependencies_list,model_parms,index_map,offset_map);
-			size_t parent_size = parent_event->size();
-			size_t parent_offset;
-			bool event_found = false; //Should always be found, just a sanity check
-			const vector<pair<shared_ptr<const Rec_Event>,int>>& offsets_vector = offset_map.at(parent_event->get_name());
-			for(pair<shared_ptr<const Rec_Event>,int> offset_pair : offsets_vector){
-				if(offset_pair.first == event_ptr){
-					parent_offset = offset_pair.second;
-					event_found = true;
-					/*
-					 * Note: comparison is made on the pointer address and not the event itself
-					 * This should not be a problem a priori, otherwise the following exception will probably be raised
-					 */
-				}
-				if(event_found){
-					for(size_t i=0 ; i!=parent_size ; ++i){
-						for(size_t j=0 ; j!=parent_offset ; ++j){
-							joint_proba_array[i*parent_offset + j]*=parent_marginal_proba.second.get()[i];
-						}
-					}
-				}
-				else{
-					throw logic_error("If this exception is thrown there is a problem in the Model_marginals::compute_event_marginal_probability code");
-				}
+		//First copy a list containing the inverse offsets and sort it
+		list<pair<shared_ptr<const Rec_Event>,int>> sorted_inv_offset_list = inverse_offset_map.at(event_name);
+		sorted_inv_offset_list.sort(inverse_offset_comparator());
+
+		//Now add dimensions in the correct order
+		for(const pair<shared_ptr<const Rec_Event>,int>& inv_offset : sorted_inv_offset_list){
+
+			dependencies_order_list.emplace_back(inv_offset.first->get_name(),inv_offset.first->size());
+			marginal_event_size*=inv_offset.first->size();
+
+			if(tmp_kept_dependencies_utility.count(inv_offset.first->get_name())>0){
+				tmp_kept_dependencies_utility.erase(inv_offset.first->get_name());
 			}
 		}
 
-		//Marginalize
+
+		//Now append kept dependencies that are not parents or the event itself as extra dimensions
+		for(Rec_Event_name kept_dep_name : tmp_kept_dependencies_utility){
+			dependencies_order_list.emplace_back(kept_dep_name,model_parms.get_event_pointer(kept_dep_name)->size());
+			marginal_event_size*=model_parms.get_event_pointer(kept_dep_name)->size();
+		}
+
+
+		// Instantiate a large array to record the full joint proba with kept dependencies
+		shared_ptr<double> joint_proba_array (new double [marginal_event_size]);
+
+		//Compute the joint probabilities
+		//First copy the conditionals from the marginals (again this assumes we have the dimensions in the right order, extra kept dependencies are just copies)
+		size_t event_original_marginal_array_size = this->get_event_size(model_parms.get_event_pointer(event_name),model_parms);
+		for(size_t i=0 ; i!=marginal_event_size ; ++i){
+			joint_proba_array[i] = this->marginal_array_smart_p[event_index+i%event_original_marginal_array_size]; //THIS IS ASSUMING AN ORDER FOR THE MARGINALS, NEED TO MAKE SURE IT IS CORRECT
+		}
+
+		//For each parent multiply by the marginal probability to obtain the joint
+		/*
+		 * Here we call recursively the compute_event_marginal_probability function on every parent
+		 * We append the full list of parents (necessary if some joint ancestors exist, or if one parent is ancestor of the other) to the ket dependencies
+		 * We also append the event itself: although it cannot be an ancestor of the parents (acyclic graph) it will force to output an array of the correct size
+		 * Note that this might result in very big arrays if the graph is big, and might turn out to be inefficient //TODO compute overlap with ancestors and reexpand after marginalization
+		 */
+		set<Rec_Event_name>& new_kept_dependencies_list  = kept_dependencies_list;
+		new_kept_dependencies_list.emplace(event_name);
+		for(shared_ptr<Rec_Event> parent_event : parents_list){
+			new_kept_dependencies_list.emplace(parent_event->get_name());
+		}
+
+		for(shared_ptr<Rec_Event> parent_event : parents_list){
+
+			//Compute the marginal parent proba
+			pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> parent_marginal_proba = compute_event_marginal_probability(parent_event->get_name(),new_kept_dependencies_list,model_parms,index_map,offset_map,inverse_offset_map);
+
+			//Now align the obtained marginals to the reference joint marginals
+			align_marginal_array(dependencies_order_list,parent_marginal_proba);
+
+			//Once aligned simply multiply term by term to obtain the joint
+			for(size_t i=0 ; i!=marginal_event_size ; ++i){
+				joint_proba_array[i] *= parent_marginal_proba.second[i]; //THIS IS ASSUMING AN ORDER FOR THE MARGINALS? NEED TO MAKE SURE IT IS CORRECT
+			}
+
+		}
+
+		//Now compute the final marginalized array
 		//Initialize the array
 		for(size_t i =0 ; i!= event_size ; ++i){
-			marginal_proba_ptr.get()[i] = 0.0;
+			marginal_proba_ptr[i] = 0.0;
 		}
-		//Now from the joint compute the marginal probability
+
+		//Now re-organize the joint in order to have all necessary dimensions before marginalized ones
+		list<pair<Rec_Event_name,size_t>> final_dimensions_order_list;
+		final_dimensions_order_list.emplace_back(event_name,event_size);
+		for(Rec_Event_name ev_name : kept_dependencies_list){
+			final_dimensions_order_list.emplace_back(ev_name , model_parms.get_event_pointer(ev_name)->size());
+		}
+		pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>> tmp_pair = make_pair(dependencies_order_list,joint_proba_array);
+		align_marginal_array(final_dimensions_order_list,tmp_pair);
+
+		//Now from the joint compute the marginal probability (sum all extra dimensions)
 		for(size_t i =0 ; i!= marginal_event_size ; ++i){
-			marginal_proba_ptr.get()[i%event_size]+=joint_proba_array[i];
+			marginal_proba_ptr[i%new_array_size]+=joint_proba_array[i];
 		}
 	}
 
@@ -927,13 +1130,13 @@ void swap_neighboring_events_order(const Rec_Event_name& event_1 ,const Rec_Even
  * Note that the implementation is probably not efficient but at least remains simple
  * Can align marginals with higher number of dimensions than the reference
  */
-void align_marginal_array(const pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>>& reference_marginals , pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>>& aligned_marginals){
-	if(reference_marginals.first.size()>aligned_marginals.first.size()){
+void align_marginal_array(const list<pair<Rec_Event_name,size_t>>& reference_marginals_order , pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<double>>& aligned_marginals){
+	if(reference_marginals_order.size()>aligned_marginals.first.size()){
 		throw runtime_error("Aligned marginals have less dimension than the reference marginals");
 	}
-	list<pair<Rec_Event_name,size_t>>::const_iterator reference_iterator = reference_marginals.first.begin();
+	list<pair<Rec_Event_name,size_t>>::const_iterator reference_iterator = reference_marginals_order.begin();
 	size_t counter = 0;
-	while(reference_iterator != reference_marginals.first.end()){
+	while(reference_iterator != reference_marginals_order.end()){
 		//Swap the reference event directly at the right position
 		swap_events_order(reference_iterator->first , (aligned_marginals.first.begin()+counter)->first , aligned_marginals);
 		++counter;

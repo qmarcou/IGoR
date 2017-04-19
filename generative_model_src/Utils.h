@@ -603,6 +603,12 @@ typedef Enum_fast_memory_dual_key_map<Seq_type,Seq_side,Seq_Offset> Seq_offsets_
  	 }
  };
 
+ struct inverse_offset_comparator{
+	 bool operator()(const std::pair<std::shared_ptr<const Rec_Event>,int>& inv_offset_1 , const std::pair<std::shared_ptr<const Rec_Event>,int>& inv_offset_2){
+		 return inv_offset_1.second < inv_offset_2.second;
+	 }
+ };
+
 
 
 
