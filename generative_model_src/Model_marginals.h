@@ -15,6 +15,7 @@
 #include <forward_list>
 #include <queue>
 #include <unordered_map>
+#include <set>
 #include <stack>
 #include <random>
 #include <chrono>
@@ -36,8 +37,8 @@ public:
 	virtual ~Model_marginals();
 	size_t compute_size(const Model_Parms&);
 	size_t get_event_size( std::shared_ptr<const Rec_Event> , const Model_Parms&) const;
-	std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<double>> compute_event_marginal_probability(Rec_Event_name , const Model_Parms& ) const;
-	std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<double>> compute_event_marginal_probability(Rec_Event_name , const std::set<Rec_Event_name>& , const Model_Parms& ) const;
+	std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>> compute_event_marginal_probability(Rec_Event_name , const Model_Parms& ) const;
+	std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>> compute_event_marginal_probability(Rec_Event_name , const std::set<Rec_Event_name>& , const Model_Parms& ) const;
 
 	Model_marginals& operator=(const Model_marginals&);
 	Model_marginals& operator +=(Model_marginals );
@@ -75,23 +76,26 @@ public:
 	std::unique_ptr<long double []> marginal_array_smart_p;
 
 private:
-	std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<double>> compute_event_marginal_probability(Rec_Event_name , const std::set<Rec_Event_name>& , const Model_Parms& ,const std::unordered_map<Rec_Event_name,int>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , const std::unordered_map<Rec_Event_name,std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>>& ) const;
+	std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>> compute_event_marginal_probability(Rec_Event_name , const std::set<Rec_Event_name>& , const Model_Parms& ,const std::unordered_map<Rec_Event_name,int>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , const std::unordered_map<Rec_Event_name,std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>>& ) const;
 	void iterate_normalize(std::shared_ptr<const Rec_Event>, std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>& , int ,int );
 	void write2txt_iteration(const std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>::const_iterator,const std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>::const_iterator,int,std::ofstream&, std::shared_ptr<Rec_Event> , std::list<std::string>&);
 	size_t marginal_arr_size;
 	Model_marginals(size_t);
 
 };
+
+
+
 struct offset_comp {
 	 bool operator()(const std::pair<std::shared_ptr<const Rec_Event>,int> pair_1 , const std::pair<std::shared_ptr<const Rec_Event>,int> pair_2 ){
 		 return pair_1.second > pair_2.second;
 	 }
 };
 
-void recurs_array_copy(std::list<std::shared_ptr<Rec_Event>>::const_iterator,size_t,std::shared_ptr<double>,Marginal_array_p);
-void swap_events_order(const Rec_Event_name& ,const Rec_Event_name& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<double>>&);
-void swap_neighboring_events_order(const Rec_Event_name& ,const Rec_Event_name& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<double>>&);
-void align_marginal_array(const std::list<std::pair<Rec_Event_name,size_t>>& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<double>>&);
+void recurs_array_copy(std::list<std::shared_ptr<Rec_Event>>::const_iterator,size_t,std::shared_ptr<long double []>,Marginal_array_p);
+void swap_events_order(const Rec_Event_name& ,const Rec_Event_name& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
+void swap_neighboring_events_order(const Rec_Event_name& ,const Rec_Event_name& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
+void align_marginal_array(const std::list<std::pair<Rec_Event_name,size_t>>& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
 
 
 

@@ -17,6 +17,7 @@
 #include "IntStr.h"
 #include <list>
 #include <unordered_map>
+#include <set>
 #include <string>
 #include <queue>
 #include "Errorrate.h"

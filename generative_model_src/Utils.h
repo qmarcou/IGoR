@@ -17,6 +17,9 @@
 #include <iostream>
 #include "IntStr.h"
 #include <memory>
+#include <list>
+
+class Rec_Event;
 
 
 enum Event_type {GeneChoice_t , Deletion_t , Insertion_t , Dinuclmarkov_t,Undefined_t};
