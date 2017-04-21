@@ -354,7 +354,7 @@ bool Model_Parms::has_edge(Rec_Event* parent_point, Rec_Event* child_point) cons
 }
 
 bool Model_Parms::has_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Event> child_point) const{
-	this->has_edge(parent_point,child_point);
+	return this->has_edge(parent_point->get_name(),child_point->get_name());
 }
 
 bool Model_Parms::has_edge(Rec_Event_name parent_name, Rec_Event_name child_name) const{

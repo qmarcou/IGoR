@@ -93,8 +93,8 @@ struct offset_comp {
 };
 
 void recurs_array_copy(std::list<std::shared_ptr<Rec_Event>>::const_iterator,size_t,std::shared_ptr<long double []>,Marginal_array_p);
-void swap_events_order(const Rec_Event_name& ,const Rec_Event_name& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
-void swap_neighboring_events_order(const Rec_Event_name& ,const Rec_Event_name& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
+void swap_events_order(const Rec_Event_name ,const Rec_Event_name , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
+void swap_neighboring_events_order(const Rec_Event_name ,const Rec_Event_name , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
 void align_marginal_array(const std::list<std::pair<Rec_Event_name,size_t>>& , std::pair<std::list<std::pair<Rec_Event_name,size_t>>,std::shared_ptr<long double>>&);
 
 
