@@ -12,7 +12,7 @@ using namespace std;
 Pgen_counter::Pgen_counter(): Pgen_counter("/tmp/" , false) {
 }
 
-Pgen_counter::Pgen_counter(std::string path): Pgen_counter(path , false) {
+Pgen_counter::Pgen_counter(std::string path): Pgen_counter(path , true) {
 }
 
 Pgen_counter::Pgen_counter(std::string path , bool output_Pgen_estimator_only , bool do_output_sequences): Counter(path) , output_sequences(do_output_sequences) , output_Pgen_estimator(output_Pgen_estimator_only) , sequence_Pgens_map(unordered_map<Int_Str,pair<double,long double>>()) , scenario_resulting_sequence(Int_Str()) , read_likelihood(0)  , v_gene(false) , d_gene(false) , j_gene(false) , vd_ins(false) , dj_ins(false) , vj_ins(false){
