@@ -311,9 +311,10 @@ void Model_Parms::invert_edge(shared_ptr<Rec_Event> ev1_point, shared_ptr<Rec_Ev
 		try{
 			this->add_edge(ev2_point,ev1_point);
 		}
-		catch(runtime_error& e){
+		catch(exception& e){
 			//add_edge checks for cycle creation since 13/04/2017
-			cerr<<"Exception caught trying to invert an edge between" + ev1_point->get_name() +" and " + ev2_point->get_name() +" , this is most likely creating a cycle, throwing exception now!"<<endl;
+			cerr<<"Exception caught trying to invert an edge between " + ev1_point->get_name() +" and " + ev2_point->get_name() +" in Model_Parms::invert_edge , this is most likely creating a cycle, throwing exception now..."<<endl;
+			throw e;
 		}
 
 	}
@@ -324,9 +325,10 @@ void Model_Parms::invert_edge(shared_ptr<Rec_Event> ev1_point, shared_ptr<Rec_Ev
 		try{
 			this->add_edge(ev1_point,ev2_point);
 		}
-		catch(runtime_error& e){
+		catch(exception& e){
 			//add_edge checks for cycle creation since 13/04/2017
-			cerr<<"Exception caught trying to invert an edge between" + ev1_point->get_name() +" and " + ev2_point->get_name() +" , this is most likely creating a cycle, throwing exception now!"<<endl;
+			cerr<<"Exception caught trying to invert an edge between " + ev1_point->get_name() +" and " + ev2_point->get_name() +" in Model_Parms::invert_edge , this is most likely creating a cycle, throwing exception now..."<<endl;
+			throw e;
 		}
 	}
 	else{

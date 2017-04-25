@@ -95,17 +95,17 @@ Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Even
 
 	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> marginalized_parent_probabilities = compute_event_marginal_probability(parent_ptr->get_name(),child_kept_dependencies,model_parms);
 
-	cout<<"Model_marginals::invert_edge()"<<endl;
+	/*cout<<"Model_marginals::invert_edge()"<<endl;
 	size_t tmp_size = 1;
 	for(pair<Rec_Event_name,size_t> tmp : marginalized_parent_probabilities.first){
 		cout<<tmp.first<<",";
 		tmp_size*=tmp.second;
 	}
-	cout<<endl;
+	cout<<endl<<"Marginalized_parent_probabilities:"<<endl;
 	for(size_t i=0 ; i!=tmp_size ; ++i){
 		cout<<marginalized_parent_probabilities.second.get()[i]<<",";
 	}
-	cout<<endl;
+	cout<<endl;*/
 
 
 	size_t joint_array_size = this->get_event_size(child_ptr,model_parms);
@@ -117,9 +117,8 @@ Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Even
 	//Init the joint proba array
 	for(size_t i=0 ; i!= joint_array_size ; ++i){
 		joint_child_array.get()[i] = this->marginal_array_smart_p[child_index+i];
-		cout<<joint_child_array.get()[i]<<",";
 	}
-	cout<<endl;
+
 
 	//Get the array ordering
 	//First copy a list containing the inverse offsets and sort it
@@ -154,6 +153,11 @@ Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Even
 	for(size_t j=0 ; j!=joint_array_size ; ++j){
 		new_child_array.get()[j%new_array_size] += joint_child_array.get()[j];
 	}
+	/*cout<<"Marginalized joint child:"<<endl;
+	for(size_t j=0 ; j!=new_array_size ; ++j){
+		cout<<new_child_array.get()[j]<<",";
+	}
+	cout<<endl;*/
 
 	/*
 	 * Now we recompute the marginals of the event gaining a parent
@@ -181,18 +185,41 @@ Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Even
 	marginalized_child_probabilities.first.emplace_back(parent_ptr->get_name() , parent_ptr->size());
 	marginalized_child_probabilities.second = marginalized_child_proba_expanded_arr;
 
+	/*cout<<"Marginalized child expanded: "<<endl;
+	for(size_t i=0 ; i!=new_child_array_size ; ++i){
+		cout<<marginalized_child_proba_expanded_arr.get()[i]<<",";
+	}
+	cout<<endl;
+	cout<<"Sanity check on the marginalized child expanded pointer transfer:"<<endl;
+	for(size_t i=0 ; i!=new_child_array_size ; ++i){
+		cout<<marginalized_child_probabilities.second.get()[i]<<",";
+	}
+	cout<<endl;*/
 
 	//Now compute the marginal distribution keeping the parent dependence
 	parent_kept_dependencies.emplace(parent_ptr->get_name());
 	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> marginalized_child_g_parent_probabilities = compute_event_marginal_probability(child_ptr->get_name(),parent_kept_dependencies,model_parms);
 
+	/*cout<<"Marginalized child given parent: "<<endl;
+	size_t tmp_sizzze = 1;
+	for(auto zz : marginalized_child_g_parent_probabilities.first){
+		tmp_sizzze*=zz.second;
+	}
+	for(size_t i=0 ; i!=tmp_sizzze ; ++i){
+		cout<<marginalized_child_g_parent_probabilities.second.get()[i]<<",";
+	}
+	cout<<endl;*/
+
 	//Now extract the former marginal values and expand the dimension with the former child
 	shared_ptr<long double> new_parent_array (new long double [new_child_array_size]);
 	int parent_index = orig_marginals_index_map.at(parent_ptr->get_name());
-	cout<<"zzzzzzzzzzzzzzzz"<<endl;
+	//cout<<"New parent array:"<<endl;
 	for(size_t i=0 ; i!=new_child_array_size ; ++i){
 		new_parent_array.get()[i] = this->marginal_array_smart_p.get()[parent_index + i%(new_child_array_size/child_ptr->size())];
+		//cout<<new_parent_array.get()[i]<<",";
 	}
+	//cout<<endl;
+
 	//Get the corresponding order list
 	//First copy a list containing the inverse offsets and sort it
 	sorted_inv_offset_list = orig_marginals_inverse_offset_map.at(parent_ptr->get_name());
@@ -221,6 +248,7 @@ Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Even
 	for(const pair<shared_ptr<const Rec_Event>,int>& inv_offset : sorted_inv_offset_list){
 		final_new_child_ordering_list.emplace_back(inv_offset.first->get_name(),inv_offset.first->size());
 	}
+	final_new_child_ordering_list.emplace_back(child_ptr->get_name() , child_ptr->size());
 
 	//Align everything
 	align_marginal_array(final_new_child_ordering_list,marginalized_child_g_parent_probabilities);
@@ -228,12 +256,51 @@ Model_marginals& Model_marginals::invert_edge(Rec_Event_name ev1_name , Rec_Even
 	pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> tmp_pair_parent = make_pair(parents_dependencies_order_list,new_parent_array);
 	align_marginal_array(final_new_child_ordering_list,tmp_pair_parent);
 
+/*	cout<<"Sanity test:"<<endl;
+	size_t bobby = 1;
+	for(auto zzz: marginalized_child_g_parent_probabilities.first){
+		cout<<zzz.first<<",";
+		bobby*=zzz.second;
+	}
+	cout<<endl;
+	for(size_t i=0 ; i!= bobby ; ++i){
+		cout<<marginalized_child_g_parent_probabilities.second.get()[i]<<",";
+	}
+	cout<<endl;
+	bobby = 1;
+	for(auto zzz: marginalized_child_probabilities.first){
+		cout<<zzz.first<<",";
+		bobby*=zzz.second;
+	}
+	cout<<endl;
+	for(size_t i=0 ; i!= bobby ; ++i){
+		cout<<marginalized_child_probabilities.second.get()[i]<<",";
+	}
+	cout<<endl;
+	bobby = 1;
+	for(auto zzz: tmp_pair_parent.first){
+		cout<<zzz.first<<",";
+		bobby*=zzz.second;
+	}
+	cout<<endl;
+	for(size_t i=0 ; i!= bobby ; ++i){
+		cout<<tmp_pair_parent.second.get()[i]<<",";
+	}
+	cout<<endl;
+*/
 	//Finally compute the new marginal values
+	//cout<<"New parent array final:"<<endl;
 	for(size_t i=0 ; i!=new_child_array_size ; ++i){
 		if(marginalized_child_probabilities.second.get()[i]!=0){
 			new_parent_array.get()[i] *= marginalized_child_g_parent_probabilities.second.get()[i]/marginalized_child_probabilities.second.get()[i];
 		}
+		else{
+			new_parent_array.get()[i] = 0.0;
+		}
+		//cout<<new_parent_array.get()[i]<<",";
 	}
+	//cout<<endl;
+
 
 	//Create a full new marginal array and copy the values in the right place
 	unique_ptr<long double []> new_marginal_array (new long double[ this->compute_size(model_parms)]);
@@ -335,7 +402,9 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> Model_marginals:
 	//Compute the total new array size and instantiate the corresponding array
 	size_t new_array_size = event_size;
 	for(Rec_Event_name ev_name : kept_dependencies_list){
-		new_array_size*= model_parms.get_event_pointer(ev_name)->size();
+		if(ev_name != event_name){
+			new_array_size*= model_parms.get_event_pointer(ev_name)->size();
+		}
 	}
 	shared_ptr<long double> marginal_proba_ptr (new long double [new_array_size]);
 
@@ -345,12 +414,12 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> Model_marginals:
 	//Get the list of the event's parents
 	const list<shared_ptr<Rec_Event>> parents_list = model_parms.get_parents(event_name);
 
-	cout<<"Model_marginals::compute_event_marginal_probability()"<<endl;
+/*	cout<<"Model_marginals::compute_event_marginal_probability()"<<endl;
 	cout<<"Marginalized event: "<<event_name<<endl<<"Kept dependencies: ";
 	for(Rec_Event_name ev_name : kept_dependencies_list){
 		cout<<ev_name<<",";
 	}
-	cout<<endl;
+	cout<<endl;*/
 
 	//Now compute the marginal probabilities of the event realizations
 	if(parents_list.empty()){
@@ -399,6 +468,13 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> Model_marginals:
 		list<pair<shared_ptr<const Rec_Event>,int>> sorted_inv_offset_list = inverse_offset_map.at(event_name);
 		sorted_inv_offset_list.sort(inverse_offset_comparator());
 
+		/*cout<<"Inverse offset list: ";
+		for(const pair<shared_ptr<const Rec_Event>,int>& inv_offset : sorted_inv_offset_list){
+			cout<<"("<<inv_offset.first->get_name()<<","<<inv_offset.second<<");";
+		}
+		cout<<endl;*/
+
+
 		//Now add dimensions in the correct order
 		for(const pair<shared_ptr<const Rec_Event>,int>& inv_offset : sorted_inv_offset_list){
 
@@ -426,9 +502,9 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> Model_marginals:
 		size_t event_original_marginal_array_size = this->get_event_size(model_parms.get_event_pointer(event_name),model_parms);
 		for(size_t i=0 ; i!=marginal_event_size ; ++i){
 			joint_proba_array.get()[i] = this->marginal_array_smart_p[event_index+i%event_original_marginal_array_size]; //THIS IS ASSUMING AN ORDER FOR THE MARGINALS, NEED TO MAKE SURE IT IS CORRECT
-			cout<<joint_proba_array.get()[i]<<",";
+			//cout<<joint_proba_array.get()[i]<<",";
 		}
-		cout<<endl;
+		//cout<<endl;
 
 		//For each parent multiply by the marginal probability to obtain the joint
 		/*
@@ -438,9 +514,13 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> Model_marginals:
 		 * Note that this might result in very big arrays if the graph is big, and might turn out to be inefficient //TODO compute overlap with ancestors and reexpand after marginalization
 		 */
 		set<Rec_Event_name> new_kept_dependencies_list  = kept_dependencies_list;
-		new_kept_dependencies_list.emplace(event_name);
+		if(new_kept_dependencies_list.count(event_name)==0){
+			new_kept_dependencies_list.emplace(event_name);
+		}
 		for(shared_ptr<Rec_Event> parent_event : parents_list){
-			new_kept_dependencies_list.emplace(parent_event->get_name());
+			if(new_kept_dependencies_list.count(parent_event->get_name())==0){
+				new_kept_dependencies_list.emplace(parent_event->get_name());
+			}
 		}
 
 		for(shared_ptr<Rec_Event> parent_event : parents_list){
@@ -448,17 +528,59 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> Model_marginals:
 			//Compute the marginal parent proba
 			pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> parent_marginal_proba = compute_event_marginal_probability(parent_event->get_name(),new_kept_dependencies_list,model_parms,index_map,offset_map,inverse_offset_map);
 
+			/*cout<<"Marginalized parent order: ";
+			for(auto zzzz : parent_marginal_proba.first){
+				cout<<zzzz.first<<",";
+			}
+			cout<<endl;
+			cout<<"Marginalized parent order array: "<<endl;
+			for(size_t i=0 ; i!=marginal_event_size ; ++i){
+				cout<<parent_marginal_proba.second.get()[i]<<",";
+			}
+			cout<<endl;*/
+
 			//Now align the obtained marginals to the reference joint marginals
 			align_marginal_array(dependencies_order_list,parent_marginal_proba);
+
+			/*cout<<"Marginalized parent name: "<<parent_event->get_name()<<endl;
+			cout<<"Marginalized parent reorder: ";
+			for(auto zzzz : parent_marginal_proba.first){
+				cout<<zzzz.first<<",";
+			}
+			cout<<endl;
+			cout<<"Marginalized parent reorder array: "<<endl;
+			double test_sum = 0.0;
+			for(size_t i=0 ; i!=marginal_event_size ; ++i){
+				cout<<parent_marginal_proba.second.get()[i]<<",";
+				test_sum+=parent_marginal_proba.second.get()[i];
+			}
+			cout<<endl<<"Marginalized parent sum : ";
+			cout<<test_sum<<endl;
+
+			cout<<"original parent marginal: "<<endl;
+			for(size_t i=0 ; i!=this->get_event_size(parent_event,model_parms) ; ++i){
+				cout<<this->marginal_array_smart_p[index_map.at(parent_event->get_name())+i]<<",";
+			}
+			cout<<endl;*/
 
 			//Once aligned simply multiply term by term to obtain the joint
 			for(size_t i=0 ; i!=marginal_event_size ; ++i){
 				joint_proba_array.get()[i] *= parent_marginal_proba.second.get()[i]; //THIS IS ASSUMING AN ORDER FOR THE MARGINALS? NEED TO MAKE SURE IT IS CORRECT
-				cout<<joint_proba_array.get()[i]<<",";
+				//cout<<joint_proba_array.get()[i]<<",";
 			}
-			cout<<endl;
+			//cout<<endl;
 
 		}
+
+		/*double joint_sum = 0.0;
+		cout<<"Joint proba array: "<<endl;
+		for(size_t i=0 ; i!=marginal_event_size ; ++i){
+			cout<<joint_proba_array.get()[i]<<',';
+			joint_sum+=joint_proba_array.get()[i];
+		}
+		cout<<endl;
+		cout<<"JOINT PROBA SUM: "<<joint_sum<<endl;*/
+
 
 		//Now compute the final marginalized array
 		//Initialize the array
@@ -468,18 +590,60 @@ pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> Model_marginals:
 
 		//Now re-organize the joint in order to have all necessary dimensions before marginalized ones
 		list<pair<Rec_Event_name,size_t>> final_dimensions_order_list;
-		final_dimensions_order_list.emplace_back(event_name,event_size);
+		final_dimensions_order_list.emplace_back(event_name,event_size);//Put the considered event in first position
 		for(Rec_Event_name ev_name : kept_dependencies_list){
-			final_dimensions_order_list.emplace_back(ev_name , model_parms.get_event_pointer(ev_name)->size());
+			if(ev_name != event_name){
+				final_dimensions_order_list.emplace_back(ev_name , model_parms.get_event_pointer(ev_name)->size());
+			}
 		}
 		pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>> tmp_pair = make_pair(dependencies_order_list,joint_proba_array);
 		align_marginal_array(final_dimensions_order_list,tmp_pair);
+		//Now reassign the correct pointer since i has been changed in the function and make_pair made a copy of teh smart pointer
+		joint_proba_array = tmp_pair.second;
+		dependencies_order_list = tmp_pair.first;
 
-		//Now from the joint compute the marginal probability (sum all extra dimensions)
+		/*cout<<"Joint proba array reorder: "<<endl;
+		for(size_t i=0 ; i!=marginal_event_size ; ++i){
+			cout<<joint_proba_array.get()[i]<<',';
+		}
+		cout<<endl;*/
+
+		//Now from the joint compute the marginal joint probability (sum all extra dimensions)
 		for(size_t i =0 ; i!= marginal_event_size ; ++i){
 			marginal_proba_ptr.get()[i%new_array_size]+=joint_proba_array.get()[i];
 		}
+
+		//And finally get the conditional
+		shared_ptr<long double> summed_joint_arr (new long double [new_array_size/event_size]);
+		for(size_t i=0 ; i!= new_array_size/event_size ; ++i){
+			summed_joint_arr.get()[i] = 0.0;
+		}
+		//compute the sum over dependencies
+		for(size_t i =0 ; i!= new_array_size ; ++i){
+			summed_joint_arr.get()[i/event_size]+=marginal_proba_ptr.get()[i];
+		}
+		//renormalize to get the conditional
+		for(size_t i =0 ; i!= new_array_size ; ++i){
+			if(summed_joint_arr.get()[i/event_size]!=0){
+				marginal_proba_ptr.get()[i]/=summed_joint_arr.get()[i/event_size];
+			}
+			else{
+				marginal_proba_ptr.get()[i] = 0.0;
+			}
+		}
+		/*cout<<"Final dimension order list: ";
+		for(auto zzzz : final_dimensions_order_list){
+			cout<<zzzz.first<<",";
+		}
+		cout<<endl;
+		cout<<"Dependencies order list: ";
+		for(auto zzzz : dependencies_order_list){
+			cout<<zzzz.first<<",";
+		}
+		cout<<endl;*/
+
 		dependencies_order_list = final_dimensions_order_list;
+
 	}
 
 	return make_pair(dependencies_order_list,marginal_proba_ptr);
@@ -1002,7 +1166,7 @@ void swap_events_order(const Rec_Event_name event_1 ,const Rec_Event_name event_
 	list<pair<Rec_Event_name,size_t>>::iterator event_2_iterator;
 
 //////////////////////////////////////
-		cout<<"swap_events_order()"<<endl;
+		/*cout<<"swap_events_order()"<<endl;
 		cout<<event_1<<endl;
 		cout<<event_2<<endl;
 		size_t tmp_size = 1;
@@ -1014,7 +1178,7 @@ void swap_events_order(const Rec_Event_name event_1 ,const Rec_Event_name event_
 		for(size_t i=0 ; i!=tmp_size ; ++i){
 			cout<<swapped_marginals.second.get()[i]<<",";
 		}
-		cout<<endl;
+		cout<<endl;*/
 /////////////////////////////////////
 
 	for(list<pair<Rec_Event_name,size_t>>::iterator iter = swapped_marginals.first.begin() ; iter!=swapped_marginals.first.end() ; ++iter){
@@ -1051,7 +1215,7 @@ void swap_events_order(const Rec_Event_name event_1 ,const Rec_Event_name event_
 				break;
 			}
 		}
-		list<pair<Rec_Event_name,size_t>>::iterator next_event_iter = event_1_iterator;
+		list<pair<Rec_Event_name,size_t>>::iterator next_event_iter = event_2_iterator;
 		if(increment_factor==-1){
 			--next_event_iter;
 		}
@@ -1088,11 +1252,11 @@ void swap_events_order(const Rec_Event_name event_1 ,const Rec_Event_name event_
 			throw runtime_error("issue in swap event order");
 		}
 		//swap_neighboring_events_order(event_1 , (event_2_iterator+increment_factor)->first , swapped_marginals);
-		swap_neighboring_events_order(event_1 , next_event_iter->first , swapped_marginals);
+		swap_neighboring_events_order(event_2 , next_event_iter->first , swapped_marginals);
 		event_2_position+=increment_factor;
 	}
 
-	cout<<"swap_events_order() suite"<<endl;
+	/*cout<<"swap_events_order() suite"<<endl;
 	cout<<"Swapped version"<<endl;
 	cout<<event_2<<endl;
 	tmp_size = 1;
@@ -1104,7 +1268,7 @@ void swap_events_order(const Rec_Event_name event_1 ,const Rec_Event_name event_
 	for(size_t i=0 ; i!=tmp_size ; ++i){
 		cout<<swapped_marginals.second.get()[i]<<",";
 	}
-	cout<<endl;
+	cout<<endl;*/
 }
 /**
  * \bug Will invalidate iterators to the swapped marginals
@@ -1121,6 +1285,20 @@ void swap_neighboring_events_order(const Rec_Event_name event_1 ,const Rec_Event
 	list<pair<Rec_Event_name,size_t>>::iterator event_2_iterator;
 
 	size_t current_offset = 1;
+
+	/*cout<<"swap_neighboring_events_order : "<<endl;
+	cout<<event_1<<endl;
+	cout<<event_2<<endl;
+	size_t tmp_size = 1;
+	for(pair<Rec_Event_name,size_t> tmp : swapped_marginals.first){
+		cout<<tmp.first<<",";
+		tmp_size*=tmp.second;
+	}
+	cout<<endl;
+	for(size_t i=0 ; i!=tmp_size ; ++i){
+		cout<<swapped_marginals.second.get()[i]<<",";
+	}
+	cout<<endl;*/
 
 	for(list<pair<Rec_Event_name,size_t>>::iterator iter = swapped_marginals.first.begin() ; iter!=swapped_marginals.first.end() ; ++iter){
 		if( iter->first == event_1 and not event_2_found){
@@ -1143,8 +1321,9 @@ void swap_neighboring_events_order(const Rec_Event_name event_1 ,const Rec_Event
 		}
 
 		current_offset*=iter->second;//Need to get the total array size, thus loop over all realizations
-
+		//cout<<iter->first<<",";
 	}
+	//cout<<endl;
 
 	if(event_1_found){
 		//Event 1 is first on the array, event_2 should be right after
@@ -1226,6 +1405,18 @@ void swap_neighboring_events_order(const Rec_Event_name event_1 ,const Rec_Event
 	//Reassign the swapped array
 	swapped_marginals.second = new_array_ptr;
 
+	/*cout<<"swap_neighboring_events_order swapped : "<<endl;
+	tmp_size = 1;
+	for(pair<Rec_Event_name,size_t> tmp : swapped_marginals.first){
+		cout<<tmp.first<<",";
+		tmp_size*=tmp.second;
+	}
+	cout<<endl;
+	for(size_t i=0 ; i!=tmp_size ; ++i){
+		cout<<swapped_marginals.second.get()[i]<<",";
+	}
+	cout<<endl;*/
+
 }
 
 /**
@@ -1236,7 +1427,7 @@ void swap_neighboring_events_order(const Rec_Event_name event_1 ,const Rec_Event
 void align_marginal_array(const list<pair<Rec_Event_name,size_t>>& reference_marginals_order , pair<list<pair<Rec_Event_name,size_t>>,shared_ptr<long double>>& aligned_marginals){
 
 	////////////////////////////////////////////////////
-	cout<<"align_marginal_array()"<<endl;
+	/*cout<<"align_marginal_array()"<<endl;
 	cout<<"Reference marginal order: ";
 	for(pair<Rec_Event_name,size_t> zzz : reference_marginals_order){
 		cout<<zzz.first<<",";
@@ -1245,11 +1436,11 @@ void align_marginal_array(const list<pair<Rec_Event_name,size_t>>& reference_mar
 	for(pair<Rec_Event_name,size_t> zzz : aligned_marginals.first){
 		cout<<zzz.first<<",";
 	}
-	cout<<endl;
+	cout<<endl;*/
 
 
 	if(reference_marginals_order.size()>aligned_marginals.first.size()){
-		throw runtime_error("Aligned marginals have less dimension than the reference marginals");
+		throw runtime_error("Aligned marginals have less dimensions than the reference marginals in align_marginal_array()");
 	}
 	list<pair<Rec_Event_name,size_t>>::const_iterator reference_iterator = reference_marginals_order.cbegin();
 	size_t counter = 0;
