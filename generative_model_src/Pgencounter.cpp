@@ -131,6 +131,9 @@ void Pgen_counter::dump_sequence_data(int seq_index , int iteration_n ){
 			}
 		}
 	}
+	if(read_likelihood == 0.0){
+		log_P_gen_estimate = std::nan("");
+	}
 	if(output_Pgen_estimator){
 		(*output_pgen_file_ptr.get())<<seq_index<<";"<<exp(log_P_gen_estimate)<<endl;
 	}
