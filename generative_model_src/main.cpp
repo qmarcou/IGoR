@@ -797,19 +797,25 @@ int main(int argc , char* argv[]){
 			any_custom_gene = true;
 			shared_ptr<Rec_Event> v_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side));
 			shared_ptr<Gene_choice> v_choice_gc = dynamic_pointer_cast<Gene_choice>(v_choice);
+			Rec_Event_name former_name = v_choice_gc->get_name();
 			v_choice_gc->set_genomic_templates(v_genomic);
+			cl_model_parms.update_edge_event_name(former_name,v_choice_gc->get_name());
 		}
 		if(has_D and custom_d){
 			any_custom_gene = true;
 			shared_ptr<Rec_Event> d_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side));
 			shared_ptr<Gene_choice> d_choice_gc = dynamic_pointer_cast<Gene_choice>(d_choice);
+			Rec_Event_name former_name = d_choice_gc->get_name();
 			d_choice_gc->set_genomic_templates(d_genomic);
+			cl_model_parms.update_edge_event_name(former_name,d_choice_gc->get_name());
 		}
 		if(custom_j){
 			any_custom_gene = true;
 			shared_ptr<Rec_Event> j_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side));
 			shared_ptr<Gene_choice> j_choice_gc = dynamic_pointer_cast<Gene_choice>(j_choice);
+			Rec_Event_name former_name = j_choice_gc->get_name();
 			j_choice_gc->set_genomic_templates(j_genomic);
+			cl_model_parms.update_edge_event_name(former_name,j_choice_gc->get_name());
 		}
 
 		cl_model_marginals = Model_marginals(cl_model_parms);
