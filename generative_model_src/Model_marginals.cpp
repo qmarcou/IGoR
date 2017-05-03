@@ -299,7 +299,7 @@ void Model_marginals::normalize(unordered_map<Rec_Event_name,list<pair<shared_pt
 	}
 }
 
-void Model_marginals::iterate_normalize(shared_ptr<Rec_Event> current_event_point, list<pair<shared_ptr<const Rec_Event>,int>>& related_events, int index , int current_offset){
+void Model_marginals::iterate_normalize(shared_ptr<const Rec_Event> current_event_point, list<pair<shared_ptr<const Rec_Event>,int>>& related_events, int index , int current_offset){
 
 	if(related_events.empty()) {
 		/*double sum_marginals = 0;
@@ -410,6 +410,66 @@ void Model_marginals::flatten(shared_ptr<const Rec_Event> event,const Model_Parm
 	}
 	this->normalize(inverse_offset_map,index_map,model_queue);
 
+}
+
+/**
+ * Sets the realization probability to the given value
+ * Note that the value will be set for all conditional dependences
+ *
+ * //TODO recode this in order to be able to set several realizations probas at the same time
+ */
+void Model_marginals::set_realization_proba(string realization_name ,shared_ptr<const Rec_Event> event_ptr ,double new_value ,const Model_Parms& model_parms){
+	if( (new_value<0) or (new_value>1) ){
+		throw runtime_error("Invalid new probability value \"" + to_string(new_value) +"\" in Model_marginals::set_realization_proba()");
+	}
+
+	//First get the index_map and event marginal size
+	const unordered_map<Rec_Event_name,int> index_map = this->get_index_map(model_parms);
+	size_t marginal_event_size = this->get_event_size(event_ptr,model_parms);
+	size_t event_size = event_ptr->size();
+
+	//Get the realization index
+	if(event_ptr->get_realizations_map().count(realization_name)<=0){
+		throw runtime_error("Unknown realization \"" + realization_name
+				+ "\" for event " + event_ptr->get_name() + " in Model_marginals::set_realization_proba");
+	}
+	const Event_realization& event_real = event_ptr->get_realizations_map().at(realization_name);
+	const size_t& real_index = event_real.index;
+	const size_t& event_index = index_map.at(event_ptr->get_name());
+
+	//Get the summed probabilities for all othe realizations for every conditioning
+	double* summed_probas = new double[marginal_event_size/event_size];
+	for(size_t i=0 ; i!=marginal_event_size ; ++i){
+		if(i%event_size != real_index){
+			summed_probas[i/event_size]+=this->marginal_array_smart_p[event_index+i];
+		}
+	}
+
+	//Now compute the new value to set before normalization
+	for(size_t i=0 ; i!=marginal_event_size/event_size ; ++i){
+		summed_probas[i] *= new_value/(1-new_value);
+	}
+
+	//Finally set the value
+	for(size_t i=0 ; i!=marginal_event_size/event_size ; ++i){
+		this->marginal_array_smart_p[event_index+i*event_size+real_index] = summed_probas[i];
+	}
+
+	//Delete the array
+	delete [] summed_probas;
+
+	//Now renormalize the marginals
+	auto inverse_offset_map = this->get_inverse_offset_map(model_parms);
+	list<pair< shared_ptr<const Rec_Event>,int>> related_events;
+	if(inverse_offset_map.count(event_ptr->get_name()) == 0){
+		related_events = list<pair<shared_ptr<const Rec_Event> , int >> (); //TODO change this to prevent memory leak
+	}
+	else{
+		related_events = inverse_offset_map.at(event_ptr->get_name());
+	}
+
+	this->iterate_normalize(event_ptr,related_events,event_index , 0 );
+	return;
 }
 
 void Model_marginals::write2txt(string filename , const Model_Parms& model_parms){

@@ -171,7 +171,7 @@ void Rec_Event::initialize_event( unordered_set<Rec_Event_name>& processed_event
 	return;
 }
 
-void Rec_Event::ind_normalize(Marginal_array_p& marginal_array_p , size_t base_index){
+void Rec_Event::ind_normalize(Marginal_array_p& marginal_array_p , size_t base_index) const{
 	long double sum_marginals = 0;
 	for(int i =0 ; i != this->size() ; ++i){
 		sum_marginals+= marginal_array_p[base_index + i];

@@ -46,6 +46,7 @@ public:
 	void null_initialize();
 	void random_initialize(const Model_Parms&);
 	void flatten(std::shared_ptr<const Rec_Event>,const Model_Parms& );
+	void set_realization_proba(std::string,std::shared_ptr<const Rec_Event>,double,const Model_Parms&);
 	bool add_to_marginals(double event_proba , std::list<std::shared_ptr<Rec_Event>> , Model_Parms); //FIXME drop this? pass a list of pointers instead, is this method still needed???
 	void copy_fixed_events_marginals(const Model_marginals&,const Model_Parms&,const std::unordered_map<Rec_Event_name,int>&);
 	std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>> get_offsets_map(const Model_Parms&);
@@ -66,7 +67,7 @@ public:
 	std::unique_ptr<long double []> marginal_array_smart_p;
 
 private:
-	void iterate_normalize(std::shared_ptr<Rec_Event>, std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>& , int ,int );
+	void iterate_normalize(std::shared_ptr<const Rec_Event>, std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>& , int ,int );
 	void write2txt_iteration(const std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>::const_iterator,const std::list<std::pair<std::shared_ptr<const Rec_Event>,int>>::const_iterator,int,std::ofstream&, std::shared_ptr<Rec_Event> , std::list<std::string>&);
 	size_t marginal_arr_size;
 	Model_marginals(size_t);

@@ -80,7 +80,7 @@ public:
 	void update_event_name();
 	virtual std::queue<int> draw_random_realization( const Marginal_array_p& , std::unordered_map<Rec_Event_name,int>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::unordered_map<Seq_type , std::string>& , std::default_random_engine&)const =0;
 	virtual void write2txt(std::ofstream&)=0;
-	virtual void ind_normalize(Marginal_array_p&,size_t);
+	virtual void ind_normalize(Marginal_array_p&,size_t) const;
 	virtual void initialize_event( std::unordered_set<Rec_Event_name>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , Downstream_scenario_proba_bound_map& , Seq_type_str_p_map& , Safety_bool_map&  , std::shared_ptr<Error_rate> , Mismatch_vectors_map& , Seq_offsets_map& , Index_map&);
 	virtual void initialize_crude_scenario_proba_bound(double& , std::forward_list<double*>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&);
 	virtual void add_to_marginals(long double , Marginal_array_p&) const =0;
