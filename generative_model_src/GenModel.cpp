@@ -415,7 +415,7 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
 /*
  * Generate sequences in a memory efficient way
  */
-void GenModel::generate_sequences(int number_seq,bool generate_errors , string filename_ind_seq , string filename_ind_real){
+void GenModel::generate_sequences(int number_seq,bool generate_errors , string filename_ind_seq , string filename_ind_real,list<pair<gen_seq_trans,void*>> transform_func_and_data /*= list<pair<gen_seq_trans,void*>>()*/ , bool output_only_func /*= false*/){
 	ofstream outfile_ind_seq(filename_ind_seq);
 	ofstream outfile_ind_real(filename_ind_real);
 
@@ -497,12 +497,11 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		}
 		outfile_ind_real<<endl;
 
+		for(pair<gen_seq_trans,void*> func_data_pair : transform_func_and_data){
+			func_data_pair.first(sequence,func_data_pair.second);
+		}
 	}
-
-
-
-
-
+	return;
 }
 
 pair<string,queue<queue<int>>> GenModel::generate_unique_sequence(queue<shared_ptr<Rec_Event>> model_queue , unordered_map<Rec_Event_name,int> index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>>& offset_map , default_random_engine& generator ){
@@ -589,4 +588,43 @@ vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>> get
 	}
 
 	return all_aligns_copy;
+}
+
+void output_CDR3_gen_data(std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data){
+	gen_CDR3_data* func_data_cast = static_cast<gen_CDR3_data*>(func_data);
+
+
+	tuple<string,size_t,size_t,string>* v_gene_anchors;
+	tuple<string,size_t,size_t,string>* j_gene_anchors;
+
+	size_t i = 0;
+	while(i!=max(func_data_cast->v_event_queue_position,func_data_cast->j_event_queue_position)+1
+			and (not seq_and_real.second.empty())){
+		if(i== func_data_cast->v_event_queue_position){
+			v_gene_anchors = &func_data_cast->v_anchors.at(seq_and_real.second.front().front());
+			//There should be only one realization for v gene choice
+		}
+		else if(i== func_data_cast->j_event_queue_position){
+			j_gene_anchors = &func_data_cast->j_anchors.at(seq_and_real.second.front().front());
+		}
+		seq_and_real.second.pop();
+		++i;
+	}
+
+	//Compute the index of the last letter of the J anchor
+	size_t tmp_index = seq_and_real.first.size() - get<2>(*j_gene_anchors) + get<1>(*j_gene_anchors) +2;
+	string nt_cdr3_seq = seq_and_real.first.substr(get<1>(*v_gene_anchors), tmp_index - get<1>(*v_gene_anchors) +1);
+
+	if( (nt_cdr3_seq.substr(0,3) == get<3>(*v_gene_anchors)) and (nt_cdr3_seq.substr(nt_cdr3_seq.size()-3,3) == get<3>(*j_gene_anchors))){
+		func_data_cast->output_file<<nt_cdr3_seq<<";;"<<true<<";";
+		if(nt_cdr3_seq.size()%3==0){
+			func_data_cast->output_file<<true<<";"<<endl;
+		}
+		else{
+			func_data_cast->output_file<<false<<";"<<endl;
+		}
+	}
+	else{
+		func_data_cast->output_file<<";;;"<<false<<";"<<false<<";"<<false<<endl;
+	}
 }

@@ -26,6 +26,53 @@
 #include <stack>
 #include <memory>
 
+//Make typedef for the function pointers
+typedef void (*gen_seq_trans)(std::pair<std::string , std::queue<std::queue<int>>>,void*);
+
+/**
+ * Hardcode a data structure for the function extracting CDR3s in generated sequences
+ */
+struct gen_CDR3_data{
+	std::map<int,std::tuple<std::string,size_t,size_t,std::string>> v_anchors;
+	size_t v_event_queue_position;
+	std::map<int,std::tuple<std::string,size_t,size_t,std::string>> j_anchors;
+	size_t j_event_queue_position;
+	std::ofstream output_file;
+
+	gen_CDR3_data(const std::unordered_map<std::string,size_t>& v_anchors_indices , const std::list<Event_realization>& v_reals, size_t v_event_pos,
+			const std::unordered_map<std::string,size_t>& j_anchors_indices , const std::list<Event_realization>& j_reals, size_t j_event_pos,
+			std::string filename): v_event_queue_position(v_event_pos) , j_event_queue_position(j_event_pos) , output_file(filename){
+
+
+		//First get all V anchors
+		this->v_anchors.clear();
+		for(const Event_realization v_real : v_reals){
+			size_t v_anchor_index;
+			try{
+				v_anchor_index = v_anchors_indices.at(v_real.name);
+			}
+			catch (std::exception& e) {
+				std::cerr<<"Could not find "<<v_real.name<<" in the V genes anchors map"<<std::endl;
+				throw e;
+			}
+			v_anchors.emplace(v_real.index,std::make_tuple(v_real.name,v_anchor_index,v_real.value_str.size(),v_real.value_str.substr(v_anchor_index,3)));
+		}
+
+		//Now get all J anchors
+		this->j_anchors.clear();
+		for(const Event_realization j_real : j_reals){
+			size_t j_anchor_index;
+			try{
+				j_anchor_index = j_anchors_indices.at(j_real.name);
+			}
+			catch (std::exception& e) {
+				std::cerr<<"Could not find "<<j_real.name<<" in the J genes anchors map"<<std::endl;
+				throw e;
+			}
+			v_anchors.emplace(j_real.index,std::make_tuple(j_real.name,j_anchor_index,j_real.value_str.size(),j_real.value_str.substr(j_anchor_index,3)));
+		}
+	}
+};
 
 class GenModel {
 public:
@@ -40,7 +87,7 @@ public:
 	bool infer_model(const std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter , double likelihood_threshold , bool viterbi_like , double proba_threshold_factor , double mean_number_seq_err_thresh = INFINITY);
 
 	std::forward_list<std::pair<std::string , std::queue<std::queue<int>>>> generate_sequences (int,bool);
-	void generate_sequences(int,bool,std::string,std::string);
+	void generate_sequences(int,bool,std::string,std::string,std::list<std::pair<gen_seq_trans,void*>> = std::list<std::pair<gen_seq_trans,void*>>(),bool output_only_func = false);
 	bool load_genmodel();
 	bool write2txt ();
 	bool readtxt ();
@@ -61,5 +108,11 @@ private:
 };
 
 std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>> get_best_aligns (const std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>&, Gene_class);
+
+
+
+void output_CDR3_gen_data(std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data);
+
+
 
 #endif /* GENMODEL_H_ */
