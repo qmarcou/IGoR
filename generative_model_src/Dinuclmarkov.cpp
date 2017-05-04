@@ -318,7 +318,7 @@ double Dinucl_markov::compute_nt_freq(int index , const Marginal_array_p& model_
 	return nucl_freq;
 }
 
-void Dinucl_markov::ind_normalize(Marginal_array_p& marginal_array_p , size_t base_index){
+void Dinucl_markov::ind_normalize(Marginal_array_p& marginal_array_p , size_t base_index) const{
 	size_t numb_realizations = this->event_realizations.size();
 	for(size_t i = 0 ; i != numb_realizations ; ++i){
 		long double sum_marginals = 0;
