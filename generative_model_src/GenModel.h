@@ -27,7 +27,7 @@
 #include <memory>
 
 //Make typedef for the function pointers
-typedef void (*gen_seq_trans)(size_t , std::pair<std::string , std::queue<std::queue<int>>>,void*);
+typedef void (*gen_seq_trans)(size_t , std::pair<std::string , std::queue<std::queue<int>>>,std::shared_ptr<void>);
 
 /**
  * Hardcode a data structure for the function extracting CDR3s in generated sequences
@@ -37,7 +37,7 @@ struct gen_CDR3_data{
 	size_t v_event_queue_position;
 	std::map<int,std::tuple<std::string,size_t,size_t,std::string>> j_anchors;
 	size_t j_event_queue_position;
-	std::ostream* output_stream;
+	std::shared_ptr<std::ostream> output_stream;
 	//Some config booleans
 	bool output_nt_CDR3 = true;
 	bool output_anchors_found = true;
@@ -48,7 +48,7 @@ struct gen_CDR3_data{
 
 	gen_CDR3_data(const std::unordered_map<std::string,size_t>& v_anchors_indices , const std::unordered_map < std::string, Event_realization >& v_reals, size_t v_event_pos,
 			const std::unordered_map<std::string,size_t>& j_anchors_indices , const std::unordered_map < std::string, Event_realization >& j_reals, size_t j_event_pos,
-			std::ostream* output_stream_ptr = &std::cout): v_event_queue_position(v_event_pos) , j_event_queue_position(j_event_pos) , output_stream(output_stream_ptr){
+			std::shared_ptr<std::ostream> output_stream_ptr = std::shared_ptr<std::ostream>(&std::cout,null_delete<std::ostream>())): v_event_queue_position(v_event_pos) , j_event_queue_position(j_event_pos) , output_stream(output_stream_ptr){
 
 
 		//First get all V anchors
@@ -96,23 +96,23 @@ struct gen_CDR3_data{
 		}
 
 		//Write output file header
-		*output_stream<<"seq_index";
+		*output_stream.get()<<"seq_index";
 		if(output_nt_CDR3){
-			*output_stream<<",nt_CDR3";
+			*output_stream.get()<<",nt_CDR3";
 		}
 		if(output_anchors_found){
-			*output_stream<<",anchors_found";
+			*output_stream.get()<<",anchors_found";
 		}
 		if(output_inframe){
-			*output_stream<<",is_inframe";
+			*output_stream.get()<<",is_inframe";
 		}
 		if(output_aa_CDR3){
-			*output_stream<<",aa_CDR3";
+			*output_stream.get()<<",aa_CDR3";
 		}
 		if(output_productive){
-			*output_stream<<",is_productive";
+			*output_stream.get()<<",is_productive";
 		}
-		*output_stream_ptr<<std::endl;
+		*output_stream.get()<<std::endl;
 	}
 };
 
@@ -129,7 +129,7 @@ public:
 	bool infer_model(const std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter , double likelihood_threshold , bool viterbi_like , double proba_threshold_factor , double mean_number_seq_err_thresh = INFINITY);
 
 	std::forward_list<std::pair<std::string , std::queue<std::queue<int>>>> generate_sequences (int,bool);
-	void generate_sequences(int,bool,std::string,std::string,std::list<std::pair<gen_seq_trans,void*>> = std::list<std::pair<gen_seq_trans,void*>>(),bool output_only_func = false);
+	void generate_sequences(int,bool,std::string,std::string,std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>> = std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>>(),bool output_only_func = false);
 	bool load_genmodel();
 	bool write2txt ();
 	bool readtxt ();
@@ -153,7 +153,7 @@ std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vect
 
 
 
-void output_CDR3_gen_data(size_t , std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data);
+void output_CDR3_gen_data(size_t , std::pair<std::string , std::queue<std::queue<int>>> seq_and_real , std::shared_ptr<void> func_data);
 
 
 

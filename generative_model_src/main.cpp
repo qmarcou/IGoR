@@ -1255,7 +1255,7 @@ int main(int argc , char* argv[]){
 			}
 
 			//Initialize generated sequences output function
-			std::list<std::pair<gen_seq_trans,void*>> func_data_pairs_list;
+			std::list<std::pair<gen_seq_trans,shared_ptr<void>>> func_data_pairs_list;
 
 			if(gen_output_CDR3_data){
 				//Get V and J event
@@ -1278,18 +1278,18 @@ int main(int argc , char* argv[]){
 					++i;
 					model_queue.pop();
 				}
-				ofstream outputfile (cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + "_CDR3_info.csv");
-				gen_CDR3_data CDR3_func_data = gen_CDR3_data(v_CDR3_anchors,v_event_ptr->get_realizations_map(),v_queue_pos,
+				shared_ptr<ostream> outputfile_ptr = shared_ptr<ostream>(new ofstream(cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + "_CDR3_info.csv"));
+				shared_ptr<void> CDR3_func_data_ptr = shared_ptr<void>(new gen_CDR3_data(v_CDR3_anchors,v_event_ptr->get_realizations_map(),v_queue_pos,
 						j_CDR3_anchors,j_event_ptr->get_realizations_map(),j_queue_pos,
-						&outputfile);
+						outputfile_ptr));
 
-				func_data_pairs_list.emplace_back(output_CDR3_gen_data,&CDR3_func_data);
+				func_data_pairs_list.emplace_back(output_CDR3_gen_data,CDR3_func_data_ptr);
 			}
 
 			genmodel.generate_sequences(generate_n_seq,generate_werr,
 					cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + ".csv",
 					cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv",
-					func_data_pairs_list,false);
+					func_data_pairs_list);
 		}
 
 	}

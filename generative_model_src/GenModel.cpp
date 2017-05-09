@@ -415,12 +415,12 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
 /*
  * Generate sequences in a memory efficient way
  */
-void GenModel::generate_sequences(int number_seq,bool generate_errors , string filename_ind_seq , string filename_ind_real,list<pair<gen_seq_trans,void*>> transform_func_and_data /*= list<pair<gen_seq_trans,void*>>()*/ , bool output_only_func /*= false*/){
+void GenModel::generate_sequences(int number_seq,bool generate_errors , string filename_ind_seq , string filename_ind_real,list<pair<gen_seq_trans,shared_ptr<void>>> transform_func_and_data /*= list<pair<gen_seq_trans,shared_ptr<void>>>()*/ , bool output_only_func /*= false*/){
 	ofstream outfile_ind_seq;
 	ofstream outfile_ind_real;
 	if(not output_only_func){
 		outfile_ind_seq = ofstream(filename_ind_seq);
-		outfile_ind_seq = ofstream(filename_ind_real);
+		outfile_ind_real = ofstream(filename_ind_real);
 	}
 	string folder_path = filename_ind_seq.substr(0,filename_ind_seq.rfind("/")+1); //Get the file path
 	ofstream generation_infos_file(folder_path + "generation_info.out",fstream::out | fstream::app); //Opens the file in append mode
@@ -472,6 +472,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		if(generate_errors){
 			sequence.second.push(this->model_parms.get_err_rate_p()->generate_errors(sequence.first,generator));
 		}
+
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		//TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		//string tmp = sequence.first.substr(sequence.first.size()-101,100);
@@ -482,7 +483,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-		for(pair<gen_seq_trans,void*> func_data_pair : transform_func_and_data){
+		for(pair<gen_seq_trans,shared_ptr<void>> func_data_pair : transform_func_and_data){
 			func_data_pair.first(seq,sequence,func_data_pair.second);
 		}
 
@@ -599,8 +600,8 @@ vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>> get
 /**
  * FIXME for now the handling of non given anchors is very bad
  */
-void output_CDR3_gen_data(size_t seq_index, std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data){
-	gen_CDR3_data* func_data_cast = static_cast<gen_CDR3_data*>(func_data);
+void output_CDR3_gen_data(size_t seq_index, std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,std::shared_ptr<void> func_data){
+	gen_CDR3_data* func_data_cast = static_cast<gen_CDR3_data*>(func_data.get());
 
 
 	tuple<string,size_t,size_t,string>* v_gene_anchors;
