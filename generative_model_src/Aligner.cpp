@@ -1066,6 +1066,26 @@ bool align_compare(Alignment_data align1 , Alignment_data align2 ){
 	return align1.score > align2.score;
 }
 
+/**
+ * A dumb function to read CSV anchor gene indices
+ */
+unordered_map<string,size_t> read_gene_anchors_csv(string filename , string sep){
+	ifstream infile(filename);
+		if(!infile){
+			throw runtime_error("File not found: "+filename + " in read_gene_anchors_csv()");
+		}
 
+		string temp_str;
+		unordered_map<string,size_t> anchors_map;
+
+		getline(infile,temp_str); //Ignore first header line
+
+		while (getline(infile,temp_str)){
+			int coma_index = temp_str.find(sep);
+			anchors_map.emplace(temp_str.substr(0,coma_index),stoi(temp_str.substr(coma_index+1,string::npos)));
+		}
+
+		return anchors_map;
+}
 
 

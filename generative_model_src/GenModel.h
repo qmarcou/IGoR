@@ -27,7 +27,7 @@
 #include <memory>
 
 //Make typedef for the function pointers
-typedef void (*gen_seq_trans)(std::pair<std::string , std::queue<std::queue<int>>>,void*);
+typedef void (*gen_seq_trans)(size_t , std::pair<std::string , std::queue<std::queue<int>>>,void*);
 
 /**
  * Hardcode a data structure for the function extracting CDR3s in generated sequences
@@ -37,40 +37,82 @@ struct gen_CDR3_data{
 	size_t v_event_queue_position;
 	std::map<int,std::tuple<std::string,size_t,size_t,std::string>> j_anchors;
 	size_t j_event_queue_position;
-	std::ofstream output_file;
+	std::ostream* output_stream;
+	//Some config booleans
+	bool output_nt_CDR3 = true;
+	bool output_anchors_found = true;
+	bool output_inframe  = true;
+	bool output_aa_CDR3 = true;
+	bool output_productive = true;
 
-	gen_CDR3_data(const std::unordered_map<std::string,size_t>& v_anchors_indices , const std::list<Event_realization>& v_reals, size_t v_event_pos,
-			const std::unordered_map<std::string,size_t>& j_anchors_indices , const std::list<Event_realization>& j_reals, size_t j_event_pos,
-			std::string filename): v_event_queue_position(v_event_pos) , j_event_queue_position(j_event_pos) , output_file(filename){
+
+	gen_CDR3_data(const std::unordered_map<std::string,size_t>& v_anchors_indices , const std::unordered_map < std::string, Event_realization >& v_reals, size_t v_event_pos,
+			const std::unordered_map<std::string,size_t>& j_anchors_indices , const std::unordered_map < std::string, Event_realization >& j_reals, size_t j_event_pos,
+			std::ostream* output_stream_ptr = &std::cout): v_event_queue_position(v_event_pos) , j_event_queue_position(j_event_pos) , output_stream(output_stream_ptr){
 
 
 		//First get all V anchors
 		this->v_anchors.clear();
-		for(const Event_realization v_real : v_reals){
+		for(const std::pair<std::string,Event_realization> v_real : v_reals){
 			size_t v_anchor_index;
-			try{
+			if(v_anchors_indices.count(v_real.second.name)>0){
+				v_anchor_index = v_anchors_indices.at(v_real.second.name);
+				v_anchors.emplace(v_real.second.index,std::make_tuple(v_real.second.name,v_anchor_index,v_real.second.value_str.size(),v_real.second.value_str.substr(v_anchor_index,3)));
+			}
+			else{
+				v_anchor_index = 0;
+				v_anchors.emplace(v_real.second.index,std::make_tuple(v_real.second.name,v_anchor_index,v_real.second.value_str.size(),""));
+			}
+			/*try{
 				v_anchor_index = v_anchors_indices.at(v_real.name);
 			}
 			catch (std::exception& e) {
 				std::cerr<<"Could not find "<<v_real.name<<" in the V genes anchors map"<<std::endl;
 				throw e;
-			}
-			v_anchors.emplace(v_real.index,std::make_tuple(v_real.name,v_anchor_index,v_real.value_str.size(),v_real.value_str.substr(v_anchor_index,3)));
+			}*/
+			//v_anchors.emplace(v_real.second.index,std::make_tuple(v_real.second.name,v_anchor_index,v_real.second.value_str.size(),v_real.second.value_str.substr(v_anchor_index,3)));
 		}
 
 		//Now get all J anchors
 		this->j_anchors.clear();
-		for(const Event_realization j_real : j_reals){
+		for(const std::pair<std::string,Event_realization> j_real : j_reals){
 			size_t j_anchor_index;
-			try{
+			/*try{
 				j_anchor_index = j_anchors_indices.at(j_real.name);
 			}
 			catch (std::exception& e) {
 				std::cerr<<"Could not find "<<j_real.name<<" in the J genes anchors map"<<std::endl;
 				throw e;
+			}*/
+			if(j_anchors_indices.count(j_real.second.name)>0){
+				j_anchor_index = j_anchors_indices.at(j_real.second.name);
+				j_anchors.emplace(j_real.second.index,std::make_tuple(j_real.second.name,j_anchor_index,j_real.second.value_str.size(),j_real.second.value_str.substr(j_anchor_index,3)));
 			}
-			v_anchors.emplace(j_real.index,std::make_tuple(j_real.name,j_anchor_index,j_real.value_str.size(),j_real.value_str.substr(j_anchor_index,3)));
+			else{
+				j_anchor_index = std::string::npos;
+				j_anchors.emplace(j_real.second.index,std::make_tuple(j_real.second.name,j_anchor_index,j_real.second.value_str.size(),""));
+			}
+			//j_anchors.emplace(j_real.second.index,std::make_tuple(j_real.second.name,j_anchor_index,j_real.second.value_str.size(),j_real.second.value_str.substr(j_anchor_index,3)));
 		}
+
+		//Write output file header
+		*output_stream<<"seq_index";
+		if(output_nt_CDR3){
+			*output_stream<<",nt_CDR3";
+		}
+		if(output_anchors_found){
+			*output_stream<<",anchors_found";
+		}
+		if(output_inframe){
+			*output_stream<<",is_inframe";
+		}
+		if(output_aa_CDR3){
+			*output_stream<<",aa_CDR3";
+		}
+		if(output_productive){
+			*output_stream<<",is_productive";
+		}
+		*output_stream_ptr<<std::endl;
 	}
 };
 
@@ -111,7 +153,7 @@ std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vect
 
 
 
-void output_CDR3_gen_data(std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data);
+void output_CDR3_gen_data(size_t , std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data);
 
 
 

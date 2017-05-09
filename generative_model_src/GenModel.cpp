@@ -416,9 +416,12 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
  * Generate sequences in a memory efficient way
  */
 void GenModel::generate_sequences(int number_seq,bool generate_errors , string filename_ind_seq , string filename_ind_real,list<pair<gen_seq_trans,void*>> transform_func_and_data /*= list<pair<gen_seq_trans,void*>>()*/ , bool output_only_func /*= false*/){
-	ofstream outfile_ind_seq(filename_ind_seq);
-	ofstream outfile_ind_real(filename_ind_real);
-
+	ofstream outfile_ind_seq;
+	ofstream outfile_ind_real;
+	if(not output_only_func){
+		outfile_ind_seq = ofstream(filename_ind_seq);
+		outfile_ind_seq = ofstream(filename_ind_real);
+	}
 	string folder_path = filename_ind_seq.substr(0,filename_ind_seq.rfind("/")+1); //Get the file path
 	ofstream generation_infos_file(folder_path + "generation_info.out",fstream::out | fstream::app); //Opens the file in append mode
 
@@ -426,14 +429,16 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 
 
 	//Create a header for the files
-	outfile_ind_seq<<"seq_index;nt_sequence"<<endl;
 	queue<shared_ptr<Rec_Event>> model_queue = this->model_parms.get_model_queue();
-	outfile_ind_real<<"seq_index";
-	while(!model_queue.empty()){
-		outfile_ind_real<<";"<<model_queue.front()->get_name();
-		model_queue.pop();
+	if(not output_only_func){
+		outfile_ind_seq<<"seq_index;nt_sequence"<<endl;
+		outfile_ind_real<<"seq_index";
+		while(!model_queue.empty()){
+			outfile_ind_real<<";"<<model_queue.front()->get_name();
+			model_queue.pop();
+		}
+		outfile_ind_real<<";Errors"<<endl;
 	}
-	outfile_ind_real<<";Errors"<<endl;
 	model_queue = this->model_parms.get_model_queue();
 	unordered_map<Rec_Event_name,int> index_map = this->model_marginals.get_index_map(this->model_parms,model_queue);
 	unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>> offset_map = this->model_marginals.get_offsets_map(this->model_parms,model_queue);
@@ -462,7 +467,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	generation_infos_file<<"Generated with errors = "<<generate_errors<<endl;
 	generation_infos_file<<"Seed  = "<<time_seed<<endl;
 
-	for(int seq = 0 ; seq != number_seq ; ++seq){
+	for(size_t seq = 0 ; seq != number_seq ; ++seq){
 		pair<string,queue<queue<int>>> sequence = this->generate_unique_sequence(model_queue , index_map ,offset_map , generator);
 		if(generate_errors){
 			sequence.second.push(this->model_parms.get_err_rate_p()->generate_errors(sequence.first,generator));
@@ -477,29 +482,31 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
-		outfile_ind_seq<<seq<<";"<<sequence.first<<endl;
-		outfile_ind_real<<seq;
-		queue<queue<int>>& realizations = sequence.second;
-		while(!realizations.empty()){
-			outfile_ind_real<<";";
-			queue<int> event_real = realizations.front();
-			outfile_ind_real<<"(";
-			while(!event_real.empty()){
-				outfile_ind_real<<event_real.front();
-				event_real.pop();
-				if(!event_real.empty()){
-					outfile_ind_real<<",";
-				}
-			}
-			outfile_ind_real<<")";
-			realizations.pop();
-		}
-		outfile_ind_real<<endl;
-
 		for(pair<gen_seq_trans,void*> func_data_pair : transform_func_and_data){
-			func_data_pair.first(sequence,func_data_pair.second);
+			func_data_pair.first(seq,sequence,func_data_pair.second);
 		}
+
+		if(not output_only_func){
+			outfile_ind_seq<<seq<<";"<<sequence.first<<endl;
+			outfile_ind_real<<seq;
+			queue<queue<int>>& realizations = sequence.second;
+			while(!realizations.empty()){
+				outfile_ind_real<<";";
+				queue<int> event_real = realizations.front();
+				outfile_ind_real<<"(";
+				while(!event_real.empty()){
+					outfile_ind_real<<event_real.front();
+					event_real.pop();
+					if(!event_real.empty()){
+						outfile_ind_real<<",";
+					}
+				}
+				outfile_ind_real<<")";
+				realizations.pop();
+			}
+			outfile_ind_real<<endl;
+		}
+
 	}
 	return;
 }
@@ -589,8 +596,10 @@ vector<tuple<int,string,unordered_map<Gene_class , vector<Alignment_data>>>> get
 
 	return all_aligns_copy;
 }
-
-void output_CDR3_gen_data(std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data){
+/**
+ * FIXME for now the handling of non given anchors is very bad
+ */
+void output_CDR3_gen_data(size_t seq_index, std::pair<std::string , std::queue<std::queue<int>>> seq_and_real ,void* func_data){
 	gen_CDR3_data* func_data_cast = static_cast<gen_CDR3_data*>(func_data);
 
 
@@ -598,7 +607,7 @@ void output_CDR3_gen_data(std::pair<std::string , std::queue<std::queue<int>>> s
 	tuple<string,size_t,size_t,string>* j_gene_anchors;
 
 	size_t i = 0;
-	while(i!=max(func_data_cast->v_event_queue_position,func_data_cast->j_event_queue_position)+1
+	while( (i!=max(func_data_cast->v_event_queue_position,func_data_cast->j_event_queue_position)+1)
 			and (not seq_and_real.second.empty())){
 		if(i== func_data_cast->v_event_queue_position){
 			v_gene_anchors = &func_data_cast->v_anchors.at(seq_and_real.second.front().front());
@@ -613,18 +622,42 @@ void output_CDR3_gen_data(std::pair<std::string , std::queue<std::queue<int>>> s
 
 	//Compute the index of the last letter of the J anchor
 	size_t tmp_index = seq_and_real.first.size() - get<2>(*j_gene_anchors) + get<1>(*j_gene_anchors) +2;
-	string nt_cdr3_seq = seq_and_real.first.substr(get<1>(*v_gene_anchors), tmp_index - get<1>(*v_gene_anchors) +1);
+	size_t tmp_v_index = get<1>(*v_gene_anchors);
+	string nt_cdr3_seq = seq_and_real.first.substr(tmp_v_index, tmp_index - tmp_v_index +1);
 
-	if( (nt_cdr3_seq.substr(0,3) == get<3>(*v_gene_anchors)) and (nt_cdr3_seq.substr(nt_cdr3_seq.size()-3,3) == get<3>(*j_gene_anchors))){
-		func_data_cast->output_file<<nt_cdr3_seq<<";;"<<true<<";";
+
+/*	if( (nt_cdr3_seq.substr(0,3) == get<3>(*v_gene_anchors)) and (nt_cdr3_seq.substr(nt_cdr3_seq.size()-3,3) == get<3>(*j_gene_anchors))){
+		func_data_cast->output_file<<nt_cdr3_seq<<",,"<<true<<",";
 		if(nt_cdr3_seq.size()%3==0){
-			func_data_cast->output_file<<true<<";"<<endl;
+			func_data_cast->output_file<<true<<","<<endl;
 		}
 		else{
-			func_data_cast->output_file<<false<<";"<<endl;
+			func_data_cast->output_file<<false<<","<<endl;
 		}
 	}
 	else{
-		func_data_cast->output_file<<";;;"<<false<<";"<<false<<";"<<false<<endl;
+		func_data_cast->output_file<<",,,"<<false<<","<<false<<","<<false<<endl;
 	}
+*/
+	*func_data_cast->output_stream<<seq_index;
+	if(func_data_cast->output_nt_CDR3){
+		*func_data_cast->output_stream<<","<<nt_cdr3_seq;
+	}
+	if(func_data_cast->output_anchors_found){
+		bool anchors_found = (nt_cdr3_seq.substr(0,3) == get<3>(*v_gene_anchors)) and (nt_cdr3_seq.substr(nt_cdr3_seq.size()-3,3) == get<3>(*j_gene_anchors));
+		*func_data_cast->output_stream<<","<<anchors_found;
+	}
+	if(func_data_cast->output_inframe){
+		bool is_inframe = nt_cdr3_seq.size()%3==0;
+		*func_data_cast->output_stream<<","<<is_inframe;
+	}
+	if(func_data_cast->output_aa_CDR3){
+		//FIXME
+		*func_data_cast->output_stream<<","<<"";
+	}
+	if(func_data_cast->output_productive){
+		//FIXME
+		*func_data_cast->output_stream<<","<<"";
+	}
+	*func_data_cast->output_stream<<endl;
 }

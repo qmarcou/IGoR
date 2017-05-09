@@ -68,6 +68,12 @@ int main(int argc , char* argv[]){
 	bool custom_j = false;
 	string custom_j_path;
 
+	//Custom gene anchors loading variables
+	bool custom_v_anchors = false;
+	string custom_v_anchors_path;
+	bool custom_j_anchors = false;
+	string custom_j_anchors_path;
+
 	//Input sequences variables
 	bool read_seqs = false;
 	bool fasta_seqs = false;
@@ -77,6 +83,8 @@ int main(int argc , char* argv[]){
 	vector<pair<string,string>> v_genomic;
 	vector<pair<string,string>> d_genomic;
 	vector<pair<string,string>> j_genomic;
+	unordered_map<string,size_t> v_CDR3_anchors;
+	unordered_map<string,size_t> j_CDR3_anchors;
 
 	//Model parms and marginals
 	bool load_last_inferred_parms = false;
@@ -88,6 +96,7 @@ int main(int argc , char* argv[]){
 	//Sequence generation parms
 	size_t generate_n_seq;
 	bool generate_werr = true;
+	bool gen_output_CDR3_data = false;
 
 	//Inference parms
 	bool viterbi_inference = false;
@@ -197,6 +206,34 @@ int main(int argc , char* argv[]){
 					and (not custom_d)
 					and (not custom_j)){
 				throw runtime_error("No gene argument was passed after -set_genomic");
+			}
+		}
+
+		else if(string(argv[carg_i]) == string("-set_CDR3_anchors")){
+			while((carg_i+1<argc)
+					and (string(argv[carg_i+1]).size()>2)
+					and string(argv[carg_i+1]).substr(0,2) == "--"){
+
+				++carg_i;
+
+				if(string(argv[carg_i]) == "--V"){
+					custom_v_anchors = true;
+					++carg_i;
+					custom_v_anchors_path = string(argv[carg_i]);
+				}
+				else if(string(argv[carg_i]) == "--J"){
+					custom_j_anchors = true;
+					++carg_i;
+					custom_j_anchors_path = string(argv[carg_i]);
+				}
+				else{
+					throw invalid_argument("Unknown gene argument \"" + string(argv[carg_i]) +"\" to set CDR3 anchors");
+				}
+			}
+
+			if((not custom_v_anchors)
+					and (not custom_j_anchors)){
+				throw runtime_error("No gene argument was passed after -set_CDR3_anchors");
 			}
 		}
 
@@ -658,6 +695,9 @@ int main(int argc , char* argv[]){
 				if(string(argv[carg_i]) == "--noerr"){
 					generate_werr = false;
 				}
+				else if(string(argv[carg_i]) == "--CDR3"){
+					gen_output_CDR3_data = true;
+				}
 				else{
 					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
 				}
@@ -740,6 +780,9 @@ int main(int argc , char* argv[]){
 				//TODO infer only \mu for the hypermutation model
 			}
 		}
+		//Read CDR3 anchors(cystein, tryptophan/phenylalanin indices)
+		v_CDR3_anchors = read_gene_anchors_csv("../models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
+		j_CDR3_anchors = read_gene_anchors_csv("../models/"+species_str+"/"+chain_path_str+"/ref_genome/J_gene_CDR3_anchors.csv");
 	}
 
 	//Read custom genomic templates if some custom ones were specified
@@ -752,6 +795,14 @@ int main(int argc , char* argv[]){
 	}
 	if(custom_j){
 		j_genomic = read_genomic_fasta(custom_j_path);
+	}
+
+	//Read custom CDR3
+	if(custom_v_anchors){
+		v_CDR3_anchors = read_gene_anchors_csv(custom_v_anchors_path);
+	}
+	if(custom_j_anchors){
+		j_CDR3_anchors = read_gene_anchors_csv(custom_j_anchors_path);
 	}
 
 	//Make sure passed arguments are unambiguous
@@ -1203,7 +1254,42 @@ int main(int argc , char* argv[]){
 				w_err_str = "noerr";
 			}
 
-			genmodel.generate_sequences(generate_n_seq,generate_werr,cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + ".csv",cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv");
+			//Initialize generated sequences output function
+			std::list<std::pair<gen_seq_trans,void*>> func_data_pairs_list;
+
+			if(gen_output_CDR3_data){
+				//Get V and J event
+				auto events_map = cl_model_parms.get_events_map();
+				shared_ptr<const Rec_Event> v_event_ptr = events_map.at(make_tuple(GeneChoice_t,V_gene,Undefined_side));
+				shared_ptr<const Rec_Event> j_event_ptr = events_map.at(make_tuple(GeneChoice_t,J_gene,Undefined_side));
+
+				//Get V and J event positions on the queue
+				auto model_queue = cl_model_parms.get_model_queue();
+				size_t i=0;
+				size_t v_queue_pos;
+				size_t j_queue_pos;
+				while(not model_queue.empty()){
+					if(model_queue.front()->get_name() == v_event_ptr->get_name()){
+						v_queue_pos = i;
+					}
+					else if(model_queue.front()->get_name() == j_event_ptr->get_name()){
+						j_queue_pos = i;
+					}
+					++i;
+					model_queue.pop();
+				}
+				ofstream outputfile (cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + "_CDR3_info.csv");
+				gen_CDR3_data CDR3_func_data = gen_CDR3_data(v_CDR3_anchors,v_event_ptr->get_realizations_map(),v_queue_pos,
+						j_CDR3_anchors,j_event_ptr->get_realizations_map(),j_queue_pos,
+						&outputfile);
+
+				func_data_pairs_list.emplace_back(output_CDR3_gen_data,&CDR3_func_data);
+			}
+
+			genmodel.generate_sequences(generate_n_seq,generate_werr,
+					cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + ".csv",
+					cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv",
+					func_data_pairs_list,false);
 		}
 
 	}

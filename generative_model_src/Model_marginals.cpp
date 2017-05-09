@@ -417,6 +417,7 @@ void Model_marginals::flatten(shared_ptr<const Rec_Event> event,const Model_Parm
  * Note that the value will be set for all conditional dependences
  *
  * //TODO recode this in order to be able to set several realizations probas at the same time
+ * //FIXME if the supplied new value is 1.0 there will be a zero division issue (this could be fixed by fixing all others to 0 instead of trying to set the supplied one to 1)
  */
 void Model_marginals::set_realization_proba(string realization_name ,shared_ptr<const Rec_Event> event_ptr ,double new_value ,const Model_Parms& model_parms){
 	if( (new_value<0) or (new_value>1) ){
@@ -433,7 +434,7 @@ void Model_marginals::set_realization_proba(string realization_name ,shared_ptr<
 		throw runtime_error("Unknown realization \"" + realization_name
 				+ "\" for event " + event_ptr->get_name() + " in Model_marginals::set_realization_proba");
 	}
-	const Event_realization& event_real = event_ptr->get_realizations_map().at(realization_name);
+	const Event_realization event_real = event_ptr->get_realizations_map().at(realization_name);
 	const size_t& real_index = event_real.index;
 	const size_t& event_index = index_map.at(event_ptr->get_name());
 
