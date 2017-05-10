@@ -259,9 +259,11 @@ shared_ptr<Rec_Event> Model_Parms::get_event_pointer(const Rec_Event_name& event
 }
 
 void Model_Parms::update_edge_event_name(Rec_Event_name former_name , Rec_Event_name new_name){
-	Adjacency_list adjacency_list =  this->edges.at(former_name);
-	this->edges.emplace(new_name , adjacency_list);
-	this->edges.erase(former_name);
+	if(former_name != new_name){
+		Adjacency_list adjacency_list =  this->edges.at(former_name);
+		this->edges.emplace(new_name , adjacency_list);
+		this->edges.erase(former_name);
+	}
 }
 
 const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>> Model_Parms::get_events_map() const{

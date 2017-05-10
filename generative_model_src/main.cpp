@@ -833,55 +833,164 @@ int main(int argc , char* argv[]){
 
 	/*
 	 * Read supplied model parms and marginals
-	 * If some custom genomic templates were supplied, we replace the genomic templates contained in the model by the supplied ones
-	 * and re-initialize the marginals
 	 */
 	if( ((not custom_cl_parms) and (not load_last_inferred_parms))
 			and (infer or evaluate or generate)){
 		cout<<"read some model parms"<<endl;
 		cl_model_parms.read_model_parms("../models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
+		cl_model_marginals = Model_marginals(cl_model_parms);
+		cl_model_marginals.txt2marginals("../models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
+	}
 
 
+	/*
+	 * If some custom genomic templates were supplied, two possible cases here:
+	 * - if any supplied genomic template is absent from the model, or if its actual sequence is different the marginals will be re-initialized
+	 * - if all the supplied templates were already contained in the model the missing one will be set to 0 probability,
+	 * 	 the others will keep their probability ratio.
+	 *
+	 * This will be executed whether using a supplied model, a custom model or the last inferred one.
+	 */
+	if((infer or evaluate or generate)){
 		bool any_custom_gene = false;
 		unordered_map<tuple<Event_type,Gene_class,Seq_side>,shared_ptr<Rec_Event>> tmp_events_map = cl_model_parms.get_events_map();
 		if(custom_v){
-			any_custom_gene = true;
 			shared_ptr<Rec_Event> v_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,V_gene,Undefined_side));
 			shared_ptr<Gene_choice> v_choice_gc = dynamic_pointer_cast<Gene_choice>(v_choice);
-			Rec_Event_name former_name = v_choice_gc->get_name();
-			v_choice_gc->set_genomic_templates(v_genomic);
-			cl_model_parms.update_edge_event_name(former_name,v_choice_gc->get_name());
+			bool any_genomic_difference = false;
+			unordered_map<string , Event_realization> realization_map_copy = v_choice_gc->get_realizations_map();
+			/*
+			 * We loop over provided genomic templates and check if they are contained in the current model
+			 */
+			for(pair<string,string> genomic_template : v_genomic){
+				if(realization_map_copy.count(genomic_template.first)>0){
+					Event_realization& ev_real = realization_map_copy.at(genomic_template.first);
+					if(ev_real.value_str == genomic_template.second){
+						//Remove the genomic template from the unseen list
+						//FIXME this will fail if the same genomic template has been read several times
+						realization_map_copy.erase(genomic_template.first);
+					}
+					else{
+						any_genomic_difference = true;
+					}
+				}
+				else{
+					any_genomic_difference = true;
+				}
+				if(any_genomic_difference){
+					break;
+				}
+			}
+			if(any_genomic_difference){
+				//If any difference is detected reset the marginals
+				Rec_Event_name former_name = v_choice_gc->get_name();
+				v_choice_gc->set_genomic_templates(v_genomic);
+				cl_model_parms.update_edge_event_name(former_name,v_choice_gc->get_name());
+				any_custom_gene = true;
+			}
+			else{
+				//Else we set to 0 probability all the ones that were not found in the list of genomic templates
+				for(pair<string,Event_realization> ev_real : realization_map_copy){
+					cl_model_marginals.set_realization_proba(ev_real.first,v_choice,0.0,cl_model_parms);
+				}
+			}
 		}
 		if(has_D and custom_d){
 			any_custom_gene = true;
 			shared_ptr<Rec_Event> d_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,D_gene,Undefined_side));
 			shared_ptr<Gene_choice> d_choice_gc = dynamic_pointer_cast<Gene_choice>(d_choice);
-			Rec_Event_name former_name = d_choice_gc->get_name();
-			d_choice_gc->set_genomic_templates(d_genomic);
-			cl_model_parms.update_edge_event_name(former_name,d_choice_gc->get_name());
+			bool any_genomic_difference = false;
+			unordered_map<string , Event_realization> realization_map_copy = d_choice_gc->get_realizations_map();
+			/*
+			 * We loop over provided genomic templates and check if they are contained in the current model
+			 */
+			for(pair<string,string> genomic_template : d_genomic){
+				if(realization_map_copy.count(genomic_template.first)>0){
+					Event_realization& ev_real = realization_map_copy.at(genomic_template.first);
+					if(ev_real.value_str == genomic_template.second){
+						//Remove the genomic template from the unseen list
+						//FIXME this will fail if the same genomic template has been read several times
+						realization_map_copy.erase(genomic_template.first);
+					}
+					else{
+						any_genomic_difference = true;
+					}
+				}
+				else{
+					any_genomic_difference = true;
+				}
+				if(any_genomic_difference){
+					break;
+				}
+			}
+			if(any_genomic_difference){
+				//If any difference is detected reset the marginals
+				Rec_Event_name former_name = d_choice_gc->get_name();
+				d_choice_gc->set_genomic_templates(d_genomic);
+				cl_model_parms.update_edge_event_name(former_name,d_choice_gc->get_name());
+				any_custom_gene = true;
+			}
+			else{
+				//Else we set to 0 probability all the ones that were not found in the list of genomic templates
+				for(pair<string,Event_realization> ev_real : realization_map_copy){
+					cl_model_marginals.set_realization_proba(ev_real.first,d_choice,0.0,cl_model_parms);
+				}
+			}
 		}
 		if(custom_j){
 			any_custom_gene = true;
 			shared_ptr<Rec_Event> j_choice = tmp_events_map.at(tuple<Event_type,Gene_class,Seq_side>(GeneChoice_t,J_gene,Undefined_side));
 			shared_ptr<Gene_choice> j_choice_gc = dynamic_pointer_cast<Gene_choice>(j_choice);
-			Rec_Event_name former_name = j_choice_gc->get_name();
-			j_choice_gc->set_genomic_templates(j_genomic);
-			cl_model_parms.update_edge_event_name(former_name,j_choice_gc->get_name());
+			bool any_genomic_difference = false;
+			unordered_map<string , Event_realization> realization_map_copy = j_choice_gc->get_realizations_map();
+			/*
+			 * We loop over provided genomic templates and check if they are contained in the current model
+			 */
+			for(pair<string,string> genomic_template : j_genomic){
+				if(realization_map_copy.count(genomic_template.first)>0){
+					Event_realization& ev_real = realization_map_copy.at(genomic_template.first);
+					if(ev_real.value_str == genomic_template.second){
+						//Remove the genomic template from the unseen list
+						//FIXME this will fail if the same genomic template has been read several times
+						realization_map_copy.erase(genomic_template.first);
+					}
+					else{
+						any_genomic_difference = true;
+					}
+				}
+				else{
+					any_genomic_difference = true;
+				}
+				if(any_genomic_difference){
+					break;
+				}
+			}
+			if(any_genomic_difference){
+				//If any difference is detected reset the marginals
+				Rec_Event_name former_name = j_choice_gc->get_name();
+				j_choice_gc->set_genomic_templates(j_genomic);
+				cl_model_parms.update_edge_event_name(former_name,j_choice_gc->get_name());
+				any_custom_gene = true;
+			}
+			else{
+				//Else we set to 0 probability all the ones that were not found in the list of genomic templates
+				for(pair<string,Event_realization> ev_real : realization_map_copy){
+					cl_model_marginals.set_realization_proba(ev_real.first,j_choice,0.0,cl_model_parms);
+				}
+			}
 		}
 
-		cl_model_marginals = Model_marginals(cl_model_parms);
 		if(any_custom_gene){
 			/*
 			 * If some custom genomic templates were provided we have replaced the genomic templates contained in the model
 			 * Thus other components (e.g deletion profiles) might not match anymore and re inferring a model is necessary
 			 * Marginals are initialized with a uniform distribution
 			 */
-
+			cl_model_marginals = Model_marginals(cl_model_parms);
 			cl_model_marginals.uniform_initialize(cl_model_parms);
+			cout<<"Not all custom genomic templates were found in the loaded Model parameters, Model marginals are thus reinitialized to a uniform distribution!"<<endl;
 		}
-		else{
-			cl_model_marginals.txt2marginals("../models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
-		}
+
 	}
 
 	/*
