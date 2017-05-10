@@ -50,11 +50,8 @@ public:
 	void null_initialize();
 	void random_initialize(const Model_Parms&);
 	void flatten(std::shared_ptr<const Rec_Event>,const Model_Parms& );
-<<<<<<< 567d2b3958f347767dadf91d2e59e0d632af4ee0
 	void set_realization_proba(std::string,std::shared_ptr<const Rec_Event>,double,const Model_Parms&);
-=======
 	void add_pseudo_counts(double);
->>>>>>> First attempt for Model_marginals::invert_edge
 	bool add_to_marginals(double event_proba , std::list<std::shared_ptr<Rec_Event>> , Model_Parms); //FIXME drop this? pass a list of pointers instead, is this method still needed???
 	void copy_fixed_events_marginals(const Model_marginals&,const Model_Parms&,const std::unordered_map<Rec_Event_name,int>&);
 	std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>> get_offsets_map(const Model_Parms&) const;
