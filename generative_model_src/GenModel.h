@@ -42,8 +42,10 @@ struct gen_CDR3_data{
 	bool output_nt_CDR3 = true;
 	bool output_anchors_found = true;
 	bool output_inframe  = true;
-	bool output_aa_CDR3 = true;
-	bool output_productive = true;
+	//FIXME
+	//For now do not output aa CDR3 stats
+	bool output_aa_CDR3 = false;
+	bool output_productive = false;
 
 
 	gen_CDR3_data(const std::unordered_map<std::string,size_t>& v_anchors_indices , const std::unordered_map < std::string, Event_realization >& v_reals, size_t v_event_pos,
