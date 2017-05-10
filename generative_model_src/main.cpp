@@ -76,7 +76,7 @@ int main(int argc , char* argv[]){
 
 	//Input sequences variables
 	bool read_seqs = false;
-	bool fasta_seqs = false;
+	Fileformat seqs_fileformat;
 	string input_seqs_file;
 
 	//Genomic templates list and aligns parms
@@ -712,14 +712,30 @@ int main(int argc , char* argv[]){
 			read_seqs = true;
 			++carg_i;
 			input_seqs_file = string(argv[carg_i]);
-			string tmp_str = input_seqs_file.substr(input_seqs_file.size() -6 , string::npos );
-			transform(tmp_str.begin(),tmp_str.end(),tmp_str.begin(),::tolower);
-			if( tmp_str == ".fasta" ){
-				fasta_seqs = true;
-				cout<<"FASTA extension detected for the input sequence file"<<endl;
+			//Get the extension index
+			size_t extension_index = input_seqs_file.rfind(".");
+			if(extension_index!=string::npos){
+				string tmp_str = input_seqs_file.substr(extension_index , string::npos );
+				transform(tmp_str.begin(),tmp_str.end(),tmp_str.begin(),::tolower);
+				if( tmp_str == ".fasta" ){
+					seqs_fileformat = FASTA_f;
+					cout<<"FASTA extension detected for the input sequence file"<<endl;
+				}
+				else if(tmp_str == ".csv"){
+					seqs_fileformat = CSV_f;
+					cout<<"CSV extension detected for the input sequence file"<<endl;
+				}
+				else if(tmp_str == ".txt"){
+					seqs_fileformat = TXT_f;
+					cout<<"TXT extension detected for the input sequence file"<<endl;
+				}
+				else{
+					throw runtime_error("Unknown file extension \"" + tmp_str + "\" for input sequences file! ");
+				}
 			}
 			else{
-				cout<<"No FASTA extension detected for the input sequence file assuming a text file without header"<<endl;
+				cout<<"No extension detected for the input sequence file assuming a text file without header"<<endl;
+				seqs_fileformat = TXT_f;
 			}
 		}
 
@@ -1266,12 +1282,20 @@ int main(int argc , char* argv[]){
 		//Execute code dictated by command line arguments
 		if(read_seqs){
 			vector<pair<const int, const string>> indexed_seqlist;
-			if(fasta_seqs){
+			switch(seqs_fileformat){
+			case FASTA_f:
 				indexed_seqlist = read_fasta(input_seqs_file);
-			}
-			else{
+				break;
+			case CSV_f:
+				indexed_seqlist = read_indexed_csv(input_seqs_file);
+				break;
+			case TXT_f:
 				indexed_seqlist = read_txt(input_seqs_file);
+				break;
+			default:
+				throw runtime_error("Unknown file format for input seqs file!");
 			}
+
 			//create the directory
 			system(&("mkdir " + cl_path + "aligns")[0]);
 
