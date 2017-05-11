@@ -230,6 +230,26 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 				(*first_init_event).set_viterbi_run(viterbi_like);
 			}
 
+			/*
+			 * Initialize the array of next event pointers
+			 * This array replaces the formerly copied queue<shared_ptr<Rec_Event>> (was copied at each iterate_wrap_up call)
+			 * Each event will access the pointer corresponding to its identifier address when calling iterate inside iterate_wrap_up
+			 * The last event will point to null pointer enabling to call the error_rate
+			 */
+			shared_ptr<Next_event_ptr> next_event_ptr_arr (new Next_event_ptr[single_thread_model_parms.get_event_list().size()]);
+			init_single_thread_model_queue = single_thread_model_queue;
+			while(!init_single_thread_model_queue.empty()){
+				shared_ptr<Rec_Event> first_init_event = init_single_thread_model_queue.front();
+				init_single_thread_model_queue.pop();
+				if(!init_single_thread_model_queue.empty()){
+					next_event_ptr_arr.get()[first_init_event->get_event_identifier()] = init_single_thread_model_queue.front();
+				}
+				else{
+					//This is the last event thus we emplace a shared null pointer
+					next_event_ptr_arr.get()[first_init_event->get_event_identifier()] = Next_event_ptr(NULL);
+				}
+			}
+
 
 			//Initialize error rate
 			single_thread_err_rate->initialize(events_map);
@@ -299,7 +319,7 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 				 */
 				try{
 
-					first_event->iterate(init_proba , downstream_proba_map , get<1>(*seq_it) , int_sequence , index_mapp , single_thread_offset_map , model_queue_copy , single_seq_marginals.marginal_array_smart_p , single_thread_model_marginals.marginal_array_smart_p , get<2>(*seq_it) , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
+					first_event->iterate(init_proba , downstream_proba_map , get<1>(*seq_it) , int_sequence , index_mapp , single_thread_offset_map , next_event_ptr_arr , single_seq_marginals.marginal_array_smart_p , single_thread_model_marginals.marginal_array_smart_p , get<2>(*seq_it) , constructed_sequences , seq_offsets , single_thread_err_rate , single_thread_counter_list , events_map , safety_set , mismatches_lists , max_proba_scenario , proba_threshold_factor);
 
 				}
 

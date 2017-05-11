@@ -48,6 +48,9 @@ typedef std::string Rec_Event_name;
 typedef int Seq_Offset;
 typedef Int_Str* Int_Str_ptr;
 
+//Typedef used for getting the next event ptr
+typedef std::shared_ptr<Rec_Event> Next_event_ptr;
+
 /*Declare a null_delete function
  * This function is not performing any task, it's purpose is to supply a "null_delete" function
  * to prevent shared pointer objects created when passing Rec_Event or Error_rate objects pointers to model_parms

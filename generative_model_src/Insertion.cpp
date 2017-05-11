@@ -74,7 +74,7 @@ bool Insertion::add_realization(int insertion_number){
 	return 0;
 }
 
-void Insertion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_map& downstream_proba_map , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , queue<shared_ptr<Rec_Event>>& model_queue , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p , map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
+void Insertion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_map& downstream_proba_map , const string& sequence , const Int_Str& int_sequence , Index_map& base_index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , shared_ptr<Next_event_ptr>& next_event_ptr_arr , Marginal_array_p& updated_marginals_point , const Marginal_array_p& model_parameters_point ,const unordered_map<Gene_class , vector<Alignment_data>>& allowed_realizations , Seq_type_str_p_map& constructed_sequences , Seq_offsets_map& seq_offsets , shared_ptr<Error_rate>& error_rate_p , map<size_t,shared_ptr<Counter>>& counters_list , const unordered_map<tuple<Event_type,Gene_class,Seq_side>, shared_ptr<Rec_Event>>& events_map , Safety_bool_map& safety_set , Mismatch_vectors_map& mismatches_lists, double& seq_max_prob_scenario , double& proba_threshold_factor){
 	base_index = base_index_map.at(this->event_index);
 	new_scenario_proba = scenario_proba;
 	proba_contribution = 1;
@@ -238,7 +238,7 @@ void Insertion::iterate(double& scenario_proba , Downstream_scenario_proba_bound
 		downstream_proba_map.multiply_all(scenario_upper_bound_proba,current_downstream_proba_memory_layers);
 
 		if(scenario_upper_bound_proba>=(seq_max_prob_scenario*proba_threshold_factor)){
-			Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , model_queue  , updated_marginals_point  , model_parameters_point , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set ,mismatches_lists,seq_max_prob_scenario,proba_threshold_factor);
+			Rec_Event::iterate_wrap_up(new_scenario_proba , downstream_proba_map , sequence , int_sequence , base_index_map , offset_map , next_event_ptr_arr  , updated_marginals_point  , model_parameters_point , allowed_realizations , constructed_sequences , seq_offsets , error_rate_p , counters_list , events_map , safety_set ,mismatches_lists,seq_max_prob_scenario,proba_threshold_factor);
 		}
 	}
 }
