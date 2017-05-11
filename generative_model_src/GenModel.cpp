@@ -242,11 +242,11 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 				shared_ptr<Rec_Event> first_init_event = init_single_thread_model_queue.front();
 				init_single_thread_model_queue.pop();
 				if(!init_single_thread_model_queue.empty()){
-					next_event_ptr_arr.get()[first_init_event->get_event_identifier()] = init_single_thread_model_queue.front();
+					next_event_ptr_arr.get()[first_init_event->get_event_identifier()] = init_single_thread_model_queue.front().get();
 				}
 				else{
 					//This is the last event thus we emplace a shared null pointer
-					next_event_ptr_arr.get()[first_init_event->get_event_identifier()] = Next_event_ptr(NULL);
+					next_event_ptr_arr.get()[first_init_event->get_event_identifier()] = NULL; //Next_event_ptr(NULL);
 				}
 			}
 

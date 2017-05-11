@@ -49,7 +49,8 @@ typedef int Seq_Offset;
 typedef Int_Str* Int_Str_ptr;
 
 //Typedef used for getting the next event ptr
-typedef std::shared_ptr<Rec_Event> Next_event_ptr;
+//typedef std::shared_ptr<Rec_Event> Next_event_ptr; //Does not work for some reason
+typedef Rec_Event* Next_event_ptr;
 
 /*Declare a null_delete function
  * This function is not performing any task, it's purpose is to supply a "null_delete" function
