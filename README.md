@@ -36,7 +36,7 @@ IGoR uses the autotools suite for compilation and installation in order to ensur
 ## Linux
 Widely tested on several Debian related distros.
 Install gcc/g++ if not already installed (although can also be compiled using icc for instance).
-With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Once over, type `make` to compile the sources and obtain IGoR's executable.
+With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Once over, type `make` to compile the sources and obtain IGoR's executable in the *igor_src* folder (compilation will take a few minutes).
 
 ** Due to some installation issues please do not try to install using make install, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
 
@@ -210,6 +210,12 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. NOT FUNCTIONAL YET |
 
 ## Command examples
+First as a sanity check try and run the demo code:
+```
+#!bash
+./igor -run_demo
+```
+
 Here we give an example with a few commands illustrating a typical workflow. In this example we assume to be executing IGoR from the directory containing the executable.
 
 ```
