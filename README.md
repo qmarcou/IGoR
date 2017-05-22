@@ -38,6 +38,8 @@ Widely tested on several Debian related distros.
 Install gcc/g++ if not already installed (although can also be compiled using icc for instance).
 With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Once over, type `make` to compile the sources and obtain IGoR's executable.
 
+** Due to some installation issues please do not try to install using make install, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
+
 ## MacOS
 MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports and install gcc from there.
 
