@@ -2,7 +2,7 @@
 
 # AUTOMAKE_OPTIONS = readme-alpha
 
-SUBDIRS = gsl utils sys test err block vector matrix permutation cblas blas linalg rng histogram
+SUBDIRS = gsl utils sys test err block vector matrix permutation cblas blas linalg rng histogram cdf complex ieee-utils integration sort statistics eigen poly specfunc
 
 SUBLIBS = block/libgslblock.la blas/libgslblas.la cblas/libgslcblas.la err/libgslerr.la histogram/libgslhistogram.la linalg/libgsllinalg.la matrix/libgslmatrix.la permutation/libgslpermutation.la rng/libgslrng.la test/libgsltest.la utils/libutils.la vector/libgslvector.la
 
