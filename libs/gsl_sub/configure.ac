@@ -592,6 +592,7 @@ blas/Makefile                \
 block/Makefile               \
 cblas/Makefile               \
 err/Makefile                 \
+gsl/Makefile                 \
 histogram/Makefile           \
 linalg/Makefile              \
 matrix/Makefile              \
