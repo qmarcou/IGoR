@@ -1264,7 +1264,7 @@ int main(int argc , char* argv[]){
 
 		begin_time = myclock::now();
 
-		gen_model.infer_model(sorted_alignments_vec , 20 , string("../demo/run_demo/") , true ,1e-35,0.0001);
+		gen_model.infer_model(sorted_alignments_vec , 4 , string("../demo/run_demo/") , true ,1e-35,0.0001);
 
 		end_time= myclock::now();
 		elapsed = end_time - begin_time;
