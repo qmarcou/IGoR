@@ -439,8 +439,8 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	ofstream outfile_ind_seq;
 	ofstream outfile_ind_real;
 	if(not output_only_func){
-		outfile_ind_seq = ofstream(filename_ind_seq);
-		outfile_ind_real = ofstream(filename_ind_real);
+		outfile_ind_seq.open(filename_ind_seq);
+		outfile_ind_real.open(filename_ind_real);
 	}
 	string folder_path = filename_ind_seq.substr(0,filename_ind_seq.rfind("/")+1); //Get the file path
 	ofstream generation_infos_file(folder_path + "generation_info.out",fstream::out | fstream::app); //Opens the file in append mode
