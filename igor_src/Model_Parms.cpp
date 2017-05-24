@@ -252,7 +252,7 @@ bool Model_Parms::remove_edge(Rec_Event* parent_point, Rec_Event* child_point){
 }
 bool Model_Parms::remove_edge(shared_ptr<Rec_Event> parent_point, shared_ptr<Rec_Event> child_point){
 	if(this->has_edge(parent_point,child_point)){
-		list<shared_ptr<Rec_Event>>::const_iterator iter;
+		list<shared_ptr<Rec_Event>>::iterator iter;
 
 		//Remove the child from the parent's children list
 		list<shared_ptr<Rec_Event>>& children_list = this->edges.at(parent_point->get_name()).children;
