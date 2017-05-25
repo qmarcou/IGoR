@@ -14,6 +14,12 @@ IGoR is a C++ software designed to infer V(D)J recombination related processes f
 + Best candidates recombination scenarios
 + Generation probabilities of sequences (even hypermutated)
 
+The following paper describes the methodology, performance tests and some new biological results obtained with IGoR:
+
+[*IGoR: A Tool For High-Throughput Immune Repertoire Analysis.*][igor_bioarxiv] (2017) Quentin Marcou, Thierry Mora, Aleksandra M. Walczak
+
+[igor_bioarxiv]: https://arxiv.org/abs/1705.08246
+
 Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures. 
 
 ### Version ###
@@ -26,8 +32,8 @@ Its heavily object oriented and modular style was designed to ensure long term s
 # Dependencies
 
 + a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread) such as GCC
-+ GSL library : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies 
-+ jemalloc (optional although recommended for full parallel proficiency) memory allocation library: also shipped with IGoR to avoid dependencies issues (requires pthreads)
++ [GSL library](https://www.gnu.org/software/gsl/) : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies 
++ [jemalloc](http://jemalloc.net/) (optional although recommended for full parallel proficiency) memory allocation library: also shipped with IGoR to avoid dependencies issues (requires a pthreads compatible compiler)
 + bash
 + autotools suite if building from unpackaged sources
 
@@ -36,15 +42,17 @@ IGoR uses the autotools suite for compilation and installation in order to ensur
 
 First download the latest released package on the download page (on the left). Extract the files where you wish to have IGoR installed. 
 
+A (sadly) non exhaustive list of potential installation troubleshoots follows in the next section. If your problem is not referenced there please [contact](<quentin.marcou@lpt.ens.fr> "myadress") us. If you end up finding a solution by yourself please help us append it to the following list and help the user community.
+
 ## Linux
 Widely tested on several Debian related distros.
 Install gcc/g++ if not already installed (note that another compiler could be used).
-With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Many options can be appended to ./configure such as `./configure CC=gcc` to enforce the use of gcc as compiler. Once over, type `make` to compile the sources (this will take a few minutes). * IGoR's executable will appear in the igor_src folder *
+With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Many options can be appended to ./configure such as `./configure CC=gcc CXX=g++` to enforce the use of gcc as compiler. Once over, type `make` to compile the sources (this will take a few minutes). **IGoR's executable will appear in the igor_src folder**
 
 ** Due to some installation issues please do not try to install using `make install`, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
 
 ## MacOS
-MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc (through name aliasing) and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports and install gcc from there.
+MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc (through name aliasing) and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports or Homebrew and install gcc from there.
 
 First if not already present on your system install XCode through the application store. 
 
@@ -61,13 +69,33 @@ The full list of available GCC versions is available [here][macports_gccs], sele
 
 ```
 port select --list gcc #Will list the versions of gcc available on your system
-sudo port select --set gcc mp-gcc6 #set the one you wish to have as default
+sudo port select --set gcc mp-gcc6 #set the one you wish to have as default call upon using the gcc command
 ```
 
-Once done, as for Linux simply go to IGoR's root folder and type `./configure;make` 
+If you prefer to use Homebrew over Macports, it can be downloaded and installed [here](https://brew.sh/).
+
+Then install GCC using the following command:
+
+`brew install gcc`
+
+**Note: if you decide to use Homebrew you should apparently refrain yourself from assigning the newly installed gcc to the `gcc` command(see [this page](http://docs.brew.sh/Custom-GCC-and-cross-compilers.html) for more details). You will thus have to pass the correct compiler instructions to the configure script with the *CC* and *CXX* flags.** 
+
+Once done, as for Linux simply go to IGoR's root folder and type `./configure` to create the appropriate makefiles and compile using `make` (this will take a few minutes). **IGoR's executable will appear in the igor_src folder** 
+
+** Due to some installation issues please do not try to install using `make install`, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
 
 ## Windows (not tested)
 The configure script relies on bash to work. A first step would be to download a bash interpreter (such as Cygwin or MinGW) and a compiler. Open the command line of the one of your choice and use `./configure;make`
+
+## Troubleshoots 
+Here is a list of some install troubleshoots that have been reported and their corresponding solution
+
+| Issue | Reason | Solution |
+| :------------- | :------------------------------ | :------------------------------ |
+|In file included from Aligner.cpp:8: /n ./Aligner.h:19:10: fatal error: 'omp.h' file not found /n #include <omp.h>| The compiler used is not supporting OpenMP | Make sure you have an OpenMP compatible compiler installed (such as GCC). If such a compiler is installed make sure the right compiler is called upon compiling. In order to specify a specific compiler to use (such as mc-gcc6 for macport installed gcc under MacOS) pass the following option upon executing the configure script: `./configure CC=mc-gcc6 CXX=mc-g++6`. The *CC* option will specify the C compiler to use to compile jemalloc and gsl, while *CXX* specifies the C++ compiler to use to compile IGoR sources. |
+|  *aclocal-1.15: command not found*; *WARNING: 'aclocal-1.15' is missing on your system.*; *make: *** [aclocal.m4] Error 127* | The *configure* script relies on file timestamps to assess whether it is up to date. These time stamps might be compromised when extracting files from the archive. | Run the following command in IGoR root directory: `touch configure.ac aclocal.m4 configure Makefile.* */Makefile.* */*/Makefile.*` |
+| *.libs/sasum.o: No such file or directory* error at compile time | Unknown | Running `make clean;make` will fix this issue |
+| *src/jemalloc.c:241:1: error: initializer element is not constant* ; *static malloc_mutex_t init_lock = MALLOC_MUTEX_INITIALIZER;* | Might be related to MacOS Sierra? | Unknown |
 
 # Workflow
 As a preprocessing step IGoR first needs to align the genomic templates to the read (`-align`) before exploring all putative recombination scenarios for this read. 
@@ -299,4 +327,4 @@ For further versions a Python/Cython interface for IGoR might be supplied
 
 # Contact 
 
-For any question please file an issue on github or email quentin.marcou@lpt.ens.fr
+For any question please file an issue on github or email <quentin.marcou@lpt.ens.fr>
