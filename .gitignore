@@ -2,9 +2,13 @@
 *.o
 *.gcno
 *.d
+*.lo
 # Ignore compiled static library
 *.a
 *.gcda
+*.la
 # Ignore temporary files
 *.cpp~
 *.sh~
+#Ignore generated Makefiles
+Makefile
