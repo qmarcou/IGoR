@@ -8,7 +8,7 @@ igor_SOURCES = Aligner.cpp Aligner.h Bestscenarioscounter.cpp Bestscenarioscount
 
 # Include GSL subparts and jemalloc without installation
 
-igor_LDADD = ../libs/gsl_sub/libgsl_sub.la ../libs/jemalloc/lib/libjemalloc.a -lpthread #Need to link pthread since it is not statically linked with jemalloc (for now)
+igor_LDADD = ../libs/gsl_sub/libgsl_sub.la ../libs/jemalloc/lib/libjemalloc.a -lpthread -ldl #Need to link pthread since it is not statically linked with jemalloc (for now)
 
 igor_CXXFLAGS = -I$(srcdir)/../libs/jemalloc/include/jemalloc -I$(srcdir)/../libs/gsl_sub $(OPENMP_CXXFLAGS)
 
