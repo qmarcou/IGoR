@@ -25,28 +25,49 @@ Its heavily object oriented and modular style was designed to ensure long term s
 
 # Dependencies
 
-+ a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread)
++ a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread) such as GCC
 + GSL library : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies 
 + jemalloc (optional although recommended for full parallel proficiency) memory allocation library: also shipped with IGoR to avoid dependencies issues (requires pthreads)
 + bash
++ autotools suite if building from unpackaged sources
 
 # Install
 IGoR uses the autotools suite for compilation and installation in order to ensure portability to many systems. 
 
+First download the latest released package on the download page (on the left). Extract the files where you wish to have IGoR installed. 
+
 ## Linux
 Widely tested on several Debian related distros.
-Install gcc/g++ if not already installed (although can also be compiled using icc for instance).
-With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Once over, type `make` to compile the sources and obtain IGoR's executable in the *igor_src* folder (compilation will take a few minutes).
+Install gcc/g++ if not already installed (note that another compiler could be used).
+With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Many options can be appended to ./configure such as `./configure CC=gcc` to enforce the use of gcc as compiler. Once over, type `make` to compile the sources (this will take a few minutes). * IGoR's executable will appear in the igor_src folder *
 
-** Due to some installation issues please do not try to install using make install, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
+** Due to some installation issues please do not try to install using `make install`, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
 
 ## MacOS
-MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports and install gcc from there.
+MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc (through name aliasing) and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports and install gcc from there.
+
+First if not already present on your system install XCode through the application store. 
+
+Macports can be found [here][macports_site]. Download and install the version corresponding to your MacOS version.
+[macports_site]: https://www.macports.org/install.php
+
+Once installed, use Macports to install GCC:
+```
+sudo port selfupdate #Update macports database
+sudo port install gcc6 #install gcc version 6
+```
+The full list of available GCC versions is available [here][macports_gccs], select a sufficiently recent one to get C++11 standards enabled. In order to set GCC as your default compiler use the following commands:
+[macports_gccs]: https://www.macports.org/ports.php?by=name&substr=gcc
+
+```
+port select --list gcc #Will list the versions of gcc available on your system
+sudo port select --set gcc mp-gcc6 #set the one you wish to have as default
+```
 
 Once done, as for Linux simply go to IGoR's root folder and type `./configure;make` 
 
 ## Windows (not tested)
-The configure script relies on bash to work. A first step is to download a bash interpreter (such as Cygwin or MinGW). Open the command line of the one of your choice and use `./configure;make`
+The configure script relies on bash to work. A first step would be to download a bash interpreter (such as Cygwin or MinGW) and a compiler. Open the command line of the one of your choice and use `./configure;make`
 
 # Workflow
 As a preprocessing step IGoR first needs to align the genomic templates to the read (`-align`) before exploring all putative recombination scenarios for this read. 
@@ -210,7 +231,7 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. NOT FUNCTIONAL YET |
 
 ## Command examples
-First as a sanity check try and run the demo code:
+First as a sanity check try and run the demo code (this will run for a few minutes on all cores available):
 ```
 #!bash
 ./igor -run_demo
