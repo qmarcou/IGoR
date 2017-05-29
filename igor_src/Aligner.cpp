@@ -626,21 +626,21 @@ int Aligner::incorporate_in_dels(string& data_seq , string& genomic_seq , const 
 Int_Str nt2int(string nt_sequence){
 	Int_Str int_seq;
 	for(size_t i=0 ; i!= nt_sequence.size() ; ++i){
-		if(nt_sequence[i]=='A'){int_seq.append(0);}
-		else if(nt_sequence[i]=='C'){int_seq.append(1);}
-		else if(nt_sequence[i]=='G'){int_seq.append(2);}
-		else if(nt_sequence[i]=='T'){int_seq.append(3);}
-		else if(nt_sequence[i]=='R'){int_seq.append(4);}
-		else if(nt_sequence[i]=='Y'){int_seq.append(5);}
-		else if(nt_sequence[i]=='K'){int_seq.append(6);}
-		else if(nt_sequence[i]=='M'){int_seq.append(7);}
-		else if(nt_sequence[i]=='S'){int_seq.append(8);}
-		else if(nt_sequence[i]=='W'){int_seq.append(9);}
-		else if(nt_sequence[i]=='B'){int_seq.append(10);}
-		else if(nt_sequence[i]=='D'){int_seq.append(11);}
-		else if(nt_sequence[i]=='H'){int_seq.append(12);}
-		else if(nt_sequence[i]=='V'){int_seq.append(13);}
-		else if(nt_sequence[i]=='N'){int_seq.append(14);}
+		if(nt_sequence[i]=='A'){int_seq.append(int_A);}
+		else if(nt_sequence[i]=='C'){int_seq.append(int_C);}
+		else if(nt_sequence[i]=='G'){int_seq.append(int_G);}
+		else if((nt_sequence[i]=='T') or (nt_sequence[i]=='U')){int_seq.append(int_T);}
+		else if(nt_sequence[i]=='R'){int_seq.append(int_R);}
+		else if(nt_sequence[i]=='Y'){int_seq.append(int_Y);}
+		else if(nt_sequence[i]=='K'){int_seq.append(int_K);}
+		else if(nt_sequence[i]=='M'){int_seq.append(int_M);}
+		else if(nt_sequence[i]=='S'){int_seq.append(int_S);}
+		else if(nt_sequence[i]=='W'){int_seq.append(int_W);}
+		else if(nt_sequence[i]=='B'){int_seq.append(int_B);}
+		else if(nt_sequence[i]=='D'){int_seq.append(int_D);}
+		else if(nt_sequence[i]=='H'){int_seq.append(int_H);}
+		else if(nt_sequence[i]=='V'){int_seq.append(int_V);}
+		else if(nt_sequence[i]=='N'){int_seq.append(int_N);}
 		else{
 			cout<<"print:"<<nt_sequence<<endl;
 			cout<<i<<endl;
@@ -650,14 +650,178 @@ Int_Str nt2int(string nt_sequence){
 	return int_seq;
 }
 
-bool inline comp_nt_int(const char& char_1 , const char& char_2){
-	if(char_1 != char_2){
+/**
+ * This function compares nucleotides and output a boolean if they do not necessarily imply an error (ambiguous nucleotides are thus treated in a loose sense).
+ */
+bool inline comp_nt_int(const int& nt_1 , const int& nt_2){
+	if(nt_1 != nt_2){
+		switch(nt_1){
+				case int_A:
+					if((nt_2 == int_R)
+							or (nt_2 == int_W)
+							or (nt_2 == int_M)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_C:
+					if((nt_2 == int_Y)
+							or (nt_2 == int_S)
+							or (nt_2 == int_M)
+							or (nt_2 == int_B)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_G:
+					if((nt_2 == int_R)
+							or (nt_2 == int_S)
+							or (nt_2 == int_K)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_T:
+					if((nt_2 == int_Y)
+							or (nt_2 == int_W)
+							or (nt_2 == int_K)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_R:
+					if((nt_2 == int_A)
+							or (nt_2 == int_G)
+							or (nt_2 == int_S)
+							or (nt_2 == int_W)
+							or (nt_2 == int_K)
+							or (nt_2 == int_M)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_Y:
+					if((nt_2 == int_C)
+							or (nt_2 == int_T)
+							or (nt_2 == int_S)
+							or (nt_2 == int_W)
+							or (nt_2 == int_K)
+							or (nt_2 == int_M)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_K:
+					if((nt_2 == int_G)
+							or (nt_2 == int_T)
+							or (nt_2 == int_R)
+							or (nt_2 == int_Y)
+							or (nt_2 == int_S)
+							or (nt_2 == int_W)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_M:
+					if((nt_2 == int_A)
+							or (nt_2 == int_C)
+							or (nt_2 == int_R)
+							or (nt_2 == int_Y)
+							or (nt_2 == int_S)
+							or (nt_2 == int_W)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_S:
+					if((nt_2 == int_G)
+							or (nt_2 == int_C)
+							or (nt_2 == int_R)
+							or (nt_2 == int_Y)
+							or (nt_2 == int_K)
+							or (nt_2 == int_M)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_W:
+					if((nt_2 == int_A)
+							or (nt_2 == int_T)
+							or (nt_2 == int_R)
+							or (nt_2 == int_Y)
+							or (nt_2 == int_K)
+							or (nt_2 == int_M)
+							or (nt_2 == int_B)
+							or (nt_2 == int_D)
+							or (nt_2 == int_H)
+							or (nt_2 == int_V)
+							or (nt_2 == int_N)){
+						return true;
+					}
+					break;
+				case int_B:
+					if((nt_2 != int_A)){ //Of course this is in the hope that nt_2 is in the correct range of int
+						return true;
+					}
+					break;
+				case int_D:
+					if((nt_2 != int_C)){ //Of course this is in the hope that nt_2 is in the correct range of int
+						return true;
+					}
+					break;
+				case int_H:
+					if((nt_2 != int_G)){ //Of course this is in the hope that nt_2 is in the correct range of int
+						return true;
+					}
+					break;
+				case int_V:
+					if((nt_2 != int_T)){ //Of course this is in the hope that nt_2 is in the correct range of int
+						return true;
+					}
+					break;
+				case int_N:
+					return true;
+					break;
+				default:
+					throw runtime_error("Unknown nucleotide index: "+to_string(nt_1) + "in comp_nt_int()");
 
+		}
+		return false;
 	}
 	else{
 		return true;
 	}
-
 }
 
 /*
