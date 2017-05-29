@@ -1174,7 +1174,7 @@ list<pair<int,Alignment_data>> Aligner::sw_align(const Int_Str& int_data_sequenc
 									++dat_ind;
 								}
 								else{
-									if((gen_seq.at(gen_ind)!=dat_seq.at(dat_ind))){
+									if(not (comp_nt_int(gen_seq.at(gen_ind),dat_seq.at(dat_ind)))){
 										mismatches.emplace_back(dat_ind);
 									}
 									++dat_ind;
