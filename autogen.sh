@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #First need to build the configure script for jemalloc using autogen
 cd libs/jemalloc
