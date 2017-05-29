@@ -655,169 +655,122 @@ Int_Str nt2int(string nt_sequence){
  */
 bool inline comp_nt_int(const int& nt_1 , const int& nt_2){
 	if(nt_1 != nt_2){
-		switch(nt_1){
-				case int_A:
-					if((nt_2 == int_R)
-							or (nt_2 == int_W)
-							or (nt_2 == int_M)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_C:
-					if((nt_2 == int_Y)
-							or (nt_2 == int_S)
-							or (nt_2 == int_M)
-							or (nt_2 == int_B)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_G:
-					if((nt_2 == int_R)
-							or (nt_2 == int_S)
-							or (nt_2 == int_K)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_T:
-					if((nt_2 == int_Y)
-							or (nt_2 == int_W)
-							or (nt_2 == int_K)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_R:
-					if((nt_2 == int_A)
-							or (nt_2 == int_G)
-							or (nt_2 == int_S)
-							or (nt_2 == int_W)
-							or (nt_2 == int_K)
-							or (nt_2 == int_M)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_Y:
-					if((nt_2 == int_C)
-							or (nt_2 == int_T)
-							or (nt_2 == int_S)
-							or (nt_2 == int_W)
-							or (nt_2 == int_K)
-							or (nt_2 == int_M)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_K:
-					if((nt_2 == int_G)
-							or (nt_2 == int_T)
-							or (nt_2 == int_R)
-							or (nt_2 == int_Y)
-							or (nt_2 == int_S)
-							or (nt_2 == int_W)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_M:
-					if((nt_2 == int_A)
-							or (nt_2 == int_C)
-							or (nt_2 == int_R)
-							or (nt_2 == int_Y)
-							or (nt_2 == int_S)
-							or (nt_2 == int_W)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_S:
-					if((nt_2 == int_G)
-							or (nt_2 == int_C)
-							or (nt_2 == int_R)
-							or (nt_2 == int_Y)
-							or (nt_2 == int_K)
-							or (nt_2 == int_M)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_W:
-					if((nt_2 == int_A)
-							or (nt_2 == int_T)
-							or (nt_2 == int_R)
-							or (nt_2 == int_Y)
-							or (nt_2 == int_K)
-							or (nt_2 == int_M)
-							or (nt_2 == int_B)
-							or (nt_2 == int_D)
-							or (nt_2 == int_H)
-							or (nt_2 == int_V)
-							or (nt_2 == int_N)){
-						return true;
-					}
-					break;
-				case int_B:
-					if((nt_2 != int_A)){ //Of course this is in the hope that nt_2 is in the correct range of int
-						return true;
-					}
-					break;
-				case int_D:
-					if((nt_2 != int_C)){ //Of course this is in the hope that nt_2 is in the correct range of int
-						return true;
-					}
-					break;
-				case int_H:
-					if((nt_2 != int_G)){ //Of course this is in the hope that nt_2 is in the correct range of int
-						return true;
-					}
-					break;
-				case int_V:
-					if((nt_2 != int_T)){ //Of course this is in the hope that nt_2 is in the correct range of int
-						return true;
-					}
-					break;
-				case int_N:
-					return true;
-					break;
-				default:
-					throw runtime_error("Unknown nucleotide index: "+to_string(nt_1) + "in comp_nt_int()");
-
+		if( (nt_1<4) & (nt_2<4)){
+			return false;
 		}
-		return false;
+		else{
+			switch(nt_1){
+					case int_A:
+						switch(nt_2){
+							case int_R: case int_W: case int_M: case int_D: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_C:
+						switch(nt_2){
+							case int_Y: case int_S: case int_M: case int_B: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_G:
+						switch(nt_2){
+							case int_R: case int_S: case int_K: case int_B: case int_D: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_T:
+						switch(nt_2){
+							case int_Y: case int_W: case int_K: case int_B: case int_D: case int_H: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_R:
+						switch(nt_2){
+							case int_A: case int_G:
+							case int_S: case int_W: case int_K: case int_M:
+							case int_B: case int_D: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_Y:
+						switch(nt_2){
+							case int_C: case int_T:
+							case int_S: case int_W: case int_K: case int_M:
+							case int_B: case int_D: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_K:
+						switch(nt_2){
+							case int_G: case int_T:
+							case int_R: case int_Y: case int_S: case int_W:
+							case int_B: case int_D: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_M:
+						switch(nt_2){
+							case int_A: case int_C:
+							case int_R: case int_Y: case int_S: case int_W:
+							case int_B: case int_D: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_S:
+						switch(nt_2){
+							case int_G: case int_C:
+							case int_R: case int_Y: case int_K: case int_M:
+							case int_B: case int_D: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_W:
+						switch(nt_2){
+							case int_A: case int_T:
+							case int_R: case int_Y: case int_K: case int_M:
+							case int_B: case int_D: case int_H: case int_V: case int_N:
+								return true;
+								break;
+						}
+						break;
+					case int_B:
+						if(nt_2 != int_A){ //Of course this is in the hope that nt_2 is in the correct range of int
+							return true;
+						}
+						break;
+					case int_D:
+						if(nt_2 != int_C){ //Of course this is in the hope that nt_2 is in the correct range of int
+							return true;
+						}
+						break;
+					case int_H:
+						if(nt_2 != int_G){ //Of course this is in the hope that nt_2 is in the correct range of int
+							return true;
+						}
+						break;
+					case int_V:
+						if(nt_2 != int_T){ //Of course this is in the hope that nt_2 is in the correct range of int
+							return true;
+						}
+						break;
+					case int_N:
+						return true;
+						break;
+					default:
+						throw runtime_error("Unknown nucleotide index: "+to_string(nt_1) + "in comp_nt_int()");
+
+			}
+			return false;
+		}
 	}
 	else{
 		return true;
