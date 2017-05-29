@@ -272,7 +272,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 								cout<<endl;
 */
 								for(int i = 0 ; i != (-(*iter).value_int) ; ++i ){
-									if(tmp_str[i] != int_sequence.at(v_3_offset+1+i)){
+									if(not comp_nt_int(tmp_str[i] , int_sequence.at(v_3_offset+1+i))){
 										mismatches_vector.push_back(v_3_offset+1+i);
 									}
 								}
@@ -510,7 +510,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 
 									for(int i = 0 ; i != (-(*iter).value_int) ; ++i ){
 										//Check for errors in reverse order to keep the mismatch vector ordered
-										if(d_5_new_offset+i<int_sequence.size() and tmp_str[i] != int_sequence.at(d_5_new_offset+i)){
+										if(d_5_new_offset+i<int_sequence.size() and (not comp_nt_int(tmp_str[i] , int_sequence.at(d_5_new_offset+i)))){
 											mismatches_vector.push_back(d_5_new_offset+i);
 										}
 									}
@@ -761,7 +761,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 									mismatches_vector = d_mismatch_list;
 
 									for(int i = 0 ; i != (-(*iter).value_int) ; ++i ){
-										if(d_3_offset+1+i<0){
+										/*if(d_3_offset+1+i<0){
 											cout<<"problem"<<endl;
 											cout<<d_3_offset<<endl;
 											cout<<i<<endl;
@@ -771,9 +771,9 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 											cout<<seq_offsets.at(D_gene_seq,Three_prime)<<endl;
 											cout<<seq_offsets.at(J_gene_seq,Five_prime)<<endl;
 
-										}
+										}*/
 
-										if(d_3_offset+1+i>=0 and tmp_str[i] != int_sequence.at(d_3_offset+1+i)){
+										if(d_3_offset+1+i>=0 and (not comp_nt_int(tmp_str[i] , int_sequence.at(d_3_offset+1+i)))){
 											mismatches_vector.push_back(d_3_offset+1+i);
 										}
 									}
@@ -1056,7 +1056,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 							cout<<endl;*/
 							for(int i = 0 ; i != (-(*iter).value_int) ; ++i ){
 								//Check for errors in reverse order to keep the mismatch vector ordered
-								if(tmp_str[i] != int_sequence.at(j_5_new_offset+i)){
+								if( not comp_nt_int(tmp_str[i] , int_sequence.at(j_5_new_offset+i))){
 									mismatches_vector.push_back(j_5_new_offset+i);
 								}
 							}
