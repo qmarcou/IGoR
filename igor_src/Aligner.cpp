@@ -777,6 +777,47 @@ bool inline comp_nt_int(const int& nt_1 , const int& nt_2){
 	}
 }
 
+list<Int_nt> get_ambiguous_nt_list(const Int_nt& ambiguous_nt){
+	list<Int_nt> nt_list;
+
+	if ( (ambiguous_nt == int_A) or (ambiguous_nt == int_C) or  (ambiguous_nt ==int_G) or (ambiguous_nt == int_T)){
+		nt_list.emplace_back(ambiguous_nt);
+	}
+	else{
+		bool any_true=false;
+		//Add an A for all cases implying an A	(do not add a break to allow for execution of other cases and possibly add more letters to the list)
+		if((ambiguous_nt == int_R) or (ambiguous_nt == int_W) or (ambiguous_nt == int_M) or (ambiguous_nt == int_D)
+				or (ambiguous_nt == int_H) or (ambiguous_nt ==int_V) or (ambiguous_nt ==int_N)){
+			nt_list.emplace_back(int_A);
+			any_true=true;
+		}
+		//Same for C
+		if((ambiguous_nt == int_Y) or (ambiguous_nt == int_S) or (ambiguous_nt ==int_M) or (ambiguous_nt == int_B)
+				or (ambiguous_nt ==int_H) or (ambiguous_nt == int_V) or (ambiguous_nt ==int_N)){
+			nt_list.emplace_back(int_C);
+			any_true=true;
+		}
+		//Same for G
+		if((ambiguous_nt == int_R) or (ambiguous_nt ==int_S) or (ambiguous_nt ==int_K) or (ambiguous_nt ==int_B)
+				or (ambiguous_nt ==int_D) or (ambiguous_nt ==int_V) or (ambiguous_nt ==int_N)){
+			nt_list.emplace_back(int_G);
+			any_true=true;
+		}
+		//Same for T
+		if((ambiguous_nt == int_Y) or (ambiguous_nt ==int_W) or (ambiguous_nt ==int_K) or (ambiguous_nt ==int_B)
+				or (ambiguous_nt ==int_D) or (ambiguous_nt ==int_H) or (ambiguous_nt ==int_N)){
+			nt_list.emplace_back(int_T);
+			any_true=true;
+		}
+
+		if( not any_true){
+			throw runtime_error("Unknown nucleotide index: "+to_string(ambiguous_nt) + "in get_ambiguous_nt_list()");
+		}
+
+	}
+	return nt_list;
+}
+
 /*
  * Randomly sample N indexed sequences from a given vector of indexed sequences
  */

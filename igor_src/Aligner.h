@@ -97,6 +97,7 @@ std::unordered_map<std::string,size_t> read_gene_anchors_csv(std::string,std::st
 void write_indexed_seq_csv(std::string , std::vector<std::pair<const int,const std::string>>);
 Int_Str nt2int(std::string);
 bool comp_nt_int(const int& , const int&);
+std::list<Int_nt> get_ambiguous_nt_list(const Int_nt&);
 inline void write_single_seq_alignment( std::ofstream& , int , std::forward_list<Alignment_data> );
 //Compare alignments (sort by score)
 bool align_compare(Alignment_data , Alignment_data );

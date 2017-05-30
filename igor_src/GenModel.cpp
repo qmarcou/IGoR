@@ -280,8 +280,17 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 			}
 			cout<<"Initialization of proba bounds over"<<endl;
 
+			//Now let all the events in the need of it get their own updated copy of the marginals
+			init_single_thread_model_queue = single_thread_model_queue;
+			while(!init_single_thread_model_queue.empty()){
+				init_single_thread_model_queue.front()->update_event_internal_probas(single_thread_model_marginals.marginal_array_smart_p,index_map);
+				init_single_thread_model_queue.pop();
+			}
+
 			chrono::system_clock::time_point single_seq_begin;
 			chrono::duration<double> seq_time;
+
+
 
 
 			//Loop over sequences in parallel, using the number of threads declared previously when declaring the parallel section
