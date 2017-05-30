@@ -106,7 +106,7 @@ public:
 		}
 	}
 
-	T& operator()(int i ,int j ){
+	T& operator()(const int& i ,const int& j ){
 		if( (i>rows-1) || (j>cols-1) ){
 			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
 			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
@@ -114,7 +114,15 @@ public:
 		return array_p[i + rows*j];
 	}
 
-	T get_field(int i ,int j ) const{
+	const T& operator()(const int& i ,const int& j ) const{
+		if( (i>rows-1) || (j>cols-1) ){
+			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
+			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
+		}
+		return array_p[i + rows*j];
+	}
+
+	T get_field(const int& i ,const int& j ) const{
 		if( (i>rows-1) || (j>cols-1) ){
 			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
 			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
