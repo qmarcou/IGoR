@@ -87,6 +87,7 @@ public:
 	virtual void set_crude_upper_bound_proba(size_t , size_t , Marginal_array_p&) ;
 	void set_upper_bound_proba(double);
 	double get_upper_bound_proba()const{return event_upper_bound_proba;};
+	virtual void update_event_internal_probas(const Marginal_array_p& , const std::unordered_map<Rec_Event_name,int>&);
 	//virtual double get_upper_bound_proba() const;
 	void set_event_identifier(size_t);
 	int get_event_identifier() const;

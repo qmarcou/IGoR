@@ -204,7 +204,8 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 		if(inserted_seq[0]=='I'){
 			rand = distribution(generator);
 			prob_count = 0;
-			int offset;
+			/*THIS WAS REMOVED WHEN INTRODUCING AMBIGUOUS NUCLEOTIDES SUPPORT
+			 * int offset;
 			try{
 				offset = event_realizations.at(previous_seq.substr(previous_seq.size()-1,1)).index*event_realizations.size();
 			}
@@ -212,8 +213,11 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 				cout<<"exception caught in DinucMarkov draw random common, key used: "<<previous_seq.substr(previous_seq.size()-1,1);
 				throw except;
 			}
+			*/
+			int prev_nt = nt2int(previous_seq.substr(previous_seq.size()-1,1)).at(0);
 			for(unordered_map<string,Event_realization>::const_iterator iter = event_realizations.begin() ; iter != event_realizations.end() ; ++iter){
-				prob_count += model_marginals_p[index + offset + (*iter).second.index];
+				//prob_count += model_marginals_p[index + offset + (*iter).second.index];
+				prob_count += this->dinuc_proba_matrix(prev_nt,(*iter).second.index);
 				if(prob_count>=rand){
 					inserted_seq[0] = (*iter).second.value_str[0];
 					realization_queue.push((*iter).second.index);
@@ -223,7 +227,7 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 		}
 		for(size_t i=1 ; i!=inserted_seq.size() ; ++i){
 			if(inserted_seq[i]=='I'){
-
+				/*THIS WAS REMOVED WHEN INTRODUCING AMBIGUOUS NUCLEOTIDES SUPPORT
 				int offset;
 				try{
 					offset = event_realizations.at(inserted_seq.substr(i-1,1)).index*event_realizations.size();
@@ -232,11 +236,15 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 					cout<<"exception caught, key used: "<<inserted_seq.substr(i-1,1)<<",ins seq: "<<inserted_seq<<",i = "<<i<<", previous rand: "<<rand<<", previous prob_count: "<<prob_count<<endl;
 					throw except;
 				}
+				*/
+				int prev_nt = nt2int(inserted_seq.substr(i-1,1)).at(0);
+
 				rand = distribution(generator);
 				prob_count = 0;
 
 				for(unordered_map<string,Event_realization>::const_iterator iter = event_realizations.begin() ; iter != event_realizations.end() ; ++iter){
-					prob_count += model_marginals_p[index + offset + (*iter).second.index];
+					//prob_count += model_marginals_p[index + offset + (*iter).second.index];
+					prob_count += this->dinuc_proba_matrix(prev_nt,(*iter).second.index);
 					if(prob_count>=rand){
 						inserted_seq[i] = (*iter).second.value_str[0];
 						realization_queue.push((*iter).second.index);
