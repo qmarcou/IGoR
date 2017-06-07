@@ -23,7 +23,7 @@ The following paper describes the methodology, performance tests and some new bi
 Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures. 
 
 ### Version ###
-Latest released version: 1.0.0.1
+Latest released version: 1.0.0.2
 
 ### Table of Content ###
 

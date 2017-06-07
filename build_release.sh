@@ -28,7 +28,7 @@ if [ $# == 1 ]; then
 	git add configure.ac
 	git add README.md
 	COMMITMESSAGE="IGoR v"$DOTTEDVERSION" release commit."
-	#git commit -m $COMMITMESSAGE
+	git commit -m "$COMMITMESSAGE"
 
 	#Create the packaged archive
 	MYPATH=$(pwd)
@@ -43,7 +43,9 @@ if [ $# == 1 ]; then
 	make distclean
 	cd ..
 	zip -r -D igor_$1.zip ./igor_$1
+	echo Cleaning up temporary directory...
 	rm -rf $NEWDIRPATH
+	echo IGoR v$DOTTEDVERSION release successfully created!
 	
 	
 elif [ $# == 0 ]; then
