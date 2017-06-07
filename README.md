@@ -45,6 +45,7 @@ IGoR uses the autotools suite for compilation and installation in order to ensur
 First download the latest released package on the download page (on the left). Extract the files where you wish to have IGoR installed. 
 
 *Installing from unpackaged sources*
+
 For this you will have to get git and the autotools suite installed. Note that this is the most convenient way to keep IGoR up-to-date but involves a bit more installation steps.
 Using git clone the repository where you desire. Go in the created directory and run the *autogen.sh* bash script. This will create the *configure* script. Upon this stage the installation rules are the same as for packaged developper sources.
 From git you can chose among two branches: the *master* branch corresponds to the latest stable (packaged) release, the dev branch is the most up to date branch including current developpments until they are issued in the next release. The *dev* branch is therefore more bug prone, however this is the natural branch for people ready to help with developpment (even only by functionality testing).
