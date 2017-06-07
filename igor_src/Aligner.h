@@ -93,7 +93,7 @@ std::vector<std::pair<const int , const std::string>> read_indexed_csv(std::stri
 std::vector<std::pair<const int,const std::string>> read_fasta(std::string);
 std::vector<std::pair<std::string,std::string>> read_genomic_fasta(std::string);
 std::vector<std::pair<const int,const std::string>> read_txt(std::string);
-std::unordered_map<std::string,size_t> read_gene_anchors_csv(std::string,std::string separator= ",");
+std::unordered_map<std::string,size_t> read_gene_anchors_csv(std::string,std::string separator= ";");
 void write_indexed_seq_csv(std::string , std::vector<std::pair<const int,const std::string>>);
 Int_Str nt2int(std::string);
 bool comp_nt_int(const int& , const int&);
