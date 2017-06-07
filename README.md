@@ -23,7 +23,7 @@ The following paper describes the methodology, performance tests and some new bi
 Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures. 
 
 ### Version ###
-1.0
+Latest released version: 1.0.0.1
 
 ### Table of Content ###
 
@@ -40,7 +40,14 @@ Its heavily object oriented and modular style was designed to ensure long term s
 # Install
 IGoR uses the autotools suite for compilation and installation in order to ensure portability to many systems. 
 
+*Installing from package releases (recommended)*
+
 First download the latest released package on the download page (on the left). Extract the files where you wish to have IGoR installed. 
+
+*Installing from unpackaged sources*
+For this you will have to get git and the autotools suite installed. Note that this is the most convenient way to keep IGoR up-to-date but involves a bit more installation steps.
+Using git clone the repository where you desire. Go in the created directory and run the *autogen.sh* bash script. This will create the *configure* script. Upon this stage the installation rules are the same as for packaged developper sources.
+From git you can chose among two branches: the *master* branch corresponds to the latest stable (packaged) release, the dev branch is the most up to date branch including current developpments until they are issued in the next release. The *dev* branch is therefore more bug prone, however this is the natural branch for people ready to help with developpment (even only by functionality testing).
 
 A (sadly) non exhaustive list of potential installation troubleshoots follows in the next section. If your problem is not referenced there please [contact](<quentin.marcou@lpt.ens.fr> "myadress") us. If you end up finding a solution by yourself please help us append it to the following list and help the user community.
 
