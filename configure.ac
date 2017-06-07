@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([igor], [1.0], [quentin.marcou@lpt.ens.fr])
+AC_INIT([igor], [1.0.0.2], [quentin.marcou@lpt.ens.fr])
 
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
