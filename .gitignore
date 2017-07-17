@@ -12,3 +12,36 @@
 *.sh~
 #Ignore generated Makefiles
 Makefile
+
+# Ignore autoconf stuff
+**/.deps
+**/aclocal.m4
+**/config.h.in
+**/config.log
+**/config.stamp
+**/config.status
+**/ltmain.sh
+**/Makefile.in
+autom4te.cache
+compile
+config.guess
+config.sub
+configure
+depcomp
+install-sh
+libtool
+m4
+missing
+
+# Ignore jemalloc generated material
+libs/jemalloc/VERSION
+libs/jemalloc/bin
+libs/jemalloc/doc/
+libs/jemalloc/include/
+libs/jemalloc/jemalloc.pc
+libs/jemalloc/test/
+
+# Ignore GSL generated material
+libs/gsl_sub/config.h
+libs/gsl_sub/gsl.spec
+libs/gsl_sub/stamp-h1
