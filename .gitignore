@@ -15,6 +15,7 @@ Makefile
 
 # Ignore autoconf stuff
 **/.deps
+**/.libs
 **/aclocal.m4
 **/config.h.in
 **/config.log
@@ -45,3 +46,10 @@ libs/jemalloc/test/
 libs/gsl_sub/config.h
 libs/gsl_sub/gsl.spec
 libs/gsl_sub/stamp-h1
+igor_src/igor
+libs/gsl_sub/gsl-config
+libs/gsl_sub/gsl-histogram
+libs/gsl_sub/gsl.pc
+libs/gsl_sub/gsl/*.h
+libs/jemalloc/lib
+libs/jemalloc/src/*.sym
