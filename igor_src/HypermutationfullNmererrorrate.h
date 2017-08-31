@@ -20,9 +20,9 @@ class Hypermutation_full_Nmer_errorrate: public Error_rate {
 public:
 public:
 	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double);
-	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>);
+	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,std::vector<double>);
 	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double,std::string);
-	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double,std::vector<double>,std::string);
+	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,std::vector<double>,std::string);
 	//Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class, ??); Constructor to read or copy the error rate
 	virtual ~Hypermutation_full_Nmer_errorrate();
 	double compare_sequences_error_prob( double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Mismatch_vectors_map& , double& , double& );
@@ -34,44 +34,28 @@ public:
 	void write2txt(std::ofstream&);
 	void set_output_Nmer_stream(std::string);
 	std::shared_ptr<Error_rate> copy()const;
-	std::string type() const {return "HypermutationGlobalErrorRate";}
+	std::string type() const {return "HypermutationFullNmerErrorrate";}
 	Hypermutation_full_Nmer_errorrate& operator+=(Hypermutation_full_Nmer_errorrate);
 	Error_rate* add_checked (Error_rate*);
 	const double& get_err_rate_upper_bound(size_t,size_t) ;
 	void build_upper_bound_matrix(size_t,size_t);
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
 	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
-	unsigned generate_random_contributions(double);
+	unsigned generate_random_mutation_probas(double,double);
 
 
 private:
-	void update_Nmers_proba(int,int,double);
-	//void compute_P_SHM_and_BG();
-	double compute_Nmer_unorm_score(int*,double*);
-	double compute_new_model_likelihood(double,gsl_vector*);
-	void increment_base_10_and_4(int& , int*);
 
 	void introduce_uniform_transversion(char&, std::default_random_engine& , std::uniform_real_distribution<double>&) const;
 
 	Gene_class learn_on;
 	Gene_class apply_to;
 	size_t mutation_Nmer_size;
-	//std::unique_ptr<double[]> ei_nucleotide_contributions;
-	double* ei_nucleotide_contributions;
-	double mu;
-	//std::map<int,double> Nmer_background_proba;
-	double* Nmer_mutation_proba;
 
-/*	double* Nmer_P_SHM;
-	double* Nmer_P_BG;*/
+	double* Nmer_mutation_proba;
 
 	size_t alphabet_size = 4;
 
-	//std::map<int,double> Nmer_background_proba_count;
-	//std::map<int,double> Nmer_SHM_proba_count;
-
-
-	//Normalized coverage and error counters
 	//# V D and J possible realizations
 	std::shared_ptr<Gene_choice> v_gene_event_p;
 	size_t n_v_real;
