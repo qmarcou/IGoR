@@ -27,6 +27,7 @@
 #include "Singleerrorrate.h"
 #include "Dinuclmarkov.h"
 #include "Hypermutationglobalerrorrate.h"
+#include "HypermutationfullNmererrorrate.h"
 #include <stdexcept>
 #include <memory>
 
