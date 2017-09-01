@@ -1118,7 +1118,7 @@ void Hypermutation_full_Nmer_errorrate::clean_all_counters(){
 void Hypermutation_full_Nmer_errorrate::write2txt(ofstream& outfile){
 	outfile<<"#HypermutationfullNmererrorrate;"<<this->mutation_Nmer_size<<";"<<this->learn_on<<";"<<this->apply_to<<endl;
 	outfile<<Nmer_mutation_proba[0];
-	for(i=1 ; i!=mutation_Nmer_size*4 ; ++i){
+	for(i=1 ; i!=pow(4,mutation_Nmer_size) ; ++i){
 		outfile<<";"<<Nmer_mutation_proba[i];
 	}
 	outfile<<endl;
