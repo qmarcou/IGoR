@@ -19,10 +19,10 @@
 class Hypermutation_full_Nmer_errorrate: public Error_rate {
 public:
 public:
-	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double);
-	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,std::vector<double>);
-	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double,std::string);
-	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,std::vector<double>,std::string);
+	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double,size_t=0);
+	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,std::vector<double>,size_t=0);
+	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,double,std::string,size_t=0);
+	Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class,std::vector<double>,std::string,size_t=0);
 	//Hypermutation_full_Nmer_errorrate(size_t,Gene_class,Gene_class, ??); Constructor to read or copy the error rate
 	virtual ~Hypermutation_full_Nmer_errorrate();
 	double compare_sequences_error_prob( double ,const std::string& , Seq_type_str_p_map& , const Seq_offsets_map& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>&  , Mismatch_vectors_map& , double& , double& );
@@ -54,6 +54,7 @@ private:
 
 	double* Nmer_mutation_proba;
 
+	size_t n_observed_Nmer_threshold;
 	size_t alphabet_size = 4;
 
 	//# V D and J possible realizations

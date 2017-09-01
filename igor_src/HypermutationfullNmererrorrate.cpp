@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value): Error_rate() , mutation_Nmer_size(nmer_width) , learn_on(learn) , apply_to(apply) , n_v_real(0) , n_j_real(0) , n_d_real(0) ,
+Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value,size_t n_observed_thresh/*=0*/): Error_rate() , n_observed_Nmer_threshold(n_observed_thresh) , mutation_Nmer_size(nmer_width) , learn_on(learn) , apply_to(apply) , n_v_real(0) , n_j_real(0) , n_d_real(0) ,
 		v_sequences(NULL),j_sequences(NULL),
 		dj_ins(true) , vd_ins(true) , vj_ins(true) , v_gene(true) , d_gene(true) , j_gene(true) ,
 		vgene_offset_p(NULL) , dgene_offset_p(NULL) , jgene_offset_p(NULL) ,
@@ -91,7 +91,7 @@ Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer
 	output_Nmer_stat = false;
 }
 
-Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , vector<double> init_Nmer_mutations_probas): Hypermutation_full_Nmer_errorrate(nmer_width , learn , apply , 0){
+Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , vector<double> init_Nmer_mutations_probas,size_t n_observed_thresh/*=0*/): Hypermutation_full_Nmer_errorrate(nmer_width , learn , apply , 0,n_observed_thresh){
 	if(init_Nmer_mutations_probas.size()==pow(4,mutation_Nmer_size)){
 		for(i=0 ; i != init_Nmer_mutations_probas.size() ; ++i){
 			if((init_Nmer_mutations_probas[i]>=0) and (init_Nmer_mutations_probas[i]<=1)){
@@ -107,11 +107,11 @@ Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer
 	}
 }
 
-Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value,string filename):Hypermutation_full_Nmer_errorrate(nmer_width , learn , apply , starting_flat_value) {
+Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value,string filename,size_t n_observed_thresh/*=0*/):Hypermutation_full_Nmer_errorrate(nmer_width , learn , apply , starting_flat_value,n_observed_thresh) {
 	this->set_output_Nmer_stream(filename);
 }
 
-Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , vector<double> init_Nmer_mutations_probas,string filename):Hypermutation_full_Nmer_errorrate(nmer_width , learn , apply ,init_Nmer_mutations_probas) {
+Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , vector<double> init_Nmer_mutations_probas,string filename,size_t n_observed_thresh/*=0*/):Hypermutation_full_Nmer_errorrate(nmer_width , learn , apply ,init_Nmer_mutations_probas,n_observed_thresh) {
 	this->set_output_Nmer_stream(filename);
 }
 
@@ -249,13 +249,23 @@ void Hypermutation_full_Nmer_errorrate::build_upper_bound_matrix(size_t m,size_t
 	Matrix<double> new_bound_mat (m,n);
 
 	//Get min and max mutation proba
-	double max_mut_proba = 0;
+	/*double max_mut_proba = 0;
 	double min_mut_proba = 1;
 	size_t array_size = pow(4,mutation_Nmer_size);
 	for(size_t ii=0 ; ii != array_size ; ++ii){
 		if(max_mut_proba<this->Nmer_mutation_proba[ii]) max_mut_proba=this->Nmer_mutation_proba[ii];
 		if(min_mut_proba>this->Nmer_mutation_proba[ii]) min_mut_proba=this->Nmer_mutation_proba[ii];
+	}*/
+
+	//Get the median hypermutation probability
+	size_t array_size = pow(4,mutation_Nmer_size);
+	vector<double> probas_vector;
+	for(size_t ii=0 ; ii != array_size ; ++ii){
+		probas_vector.push_back(this->Nmer_mutation_proba[ii]);
 	}
+	sort(probas_vector.begin(),probas_vector.end());
+	//By definition the number of mutation probabilities is even (power of 4)
+	double median_mut_proba = (probas_vector[probas_vector.size()/2 -1] + probas_vector[probas_vector.size()/2])/2.0;
 
 	//Fill the matrix
 	for(size_t i=0 ; i!=new_bound_mat.get_n_rows() ; ++i){
@@ -264,7 +274,8 @@ void Hypermutation_full_Nmer_errorrate::build_upper_bound_matrix(size_t m,size_t
 				new_bound_mat(i,j) = this->upper_bound_proba_mat(i,j);
 			}
 			else{
-				new_bound_mat(i,j) = pow(max_mut_proba,i)*pow((1-min_mut_proba),j);
+				//new_bound_mat(i,j) = pow(max_mut_proba,i)*pow((1-min_mut_proba),j);
+				new_bound_mat(i,j) = pow(median_mut_proba,i)*pow((1-median_mut_proba),j);
 			}
 		}
 	}
@@ -913,7 +924,7 @@ void Hypermutation_full_Nmer_errorrate::update(){
 	for(size_t ii = 0 ; ii!=array_size ; ++ii){
 		//Only update the value if the Nmer has been observed
 		//Note that if an Nmer is not observed much the mutation probability might artificially go to 0 because of undersampling, remain cautious when interpreting such values
-		if(Nmer_N_bg[ii]>0){
+		if(Nmer_N_bg[ii]>n_observed_Nmer_threshold){
 			Nmer_mutation_proba[ii] = Nmer_N_SHM[ii]/Nmer_N_bg[ii];
 		}
 	}
