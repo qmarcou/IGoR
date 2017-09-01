@@ -19,11 +19,9 @@ Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer
 		largest_nuc_adress(-1), tmp_int_nt(-1) , Nmer_index(-1),
 		output_Nmer_stat_stream(new ofstream){
 
-	build_upper_bound_matrix(1,1);
-
 
 	if(fmod(nmer_width,2)==0){
-		throw runtime_error("Cannot instanciate hypermutation globale error rate with an even size Nmer(need to be symmetric)");
+		throw runtime_error("Cannot instanciate hypermutation full Nmer error rate with an even size Nmer(need to be symmetric) in Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , double starting_flat_value)");
 	}
 
 	size_t array_size = pow(4,mutation_Nmer_size);
@@ -45,6 +43,9 @@ Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer
 		Nmer_N_SHM[ii] = 0;
 		Nmer_N_bg[ii] = 0;
 	}
+
+	//Now the the probability array is initialized, build the upper bound matrix
+	build_upper_bound_matrix(1,1);
 
 
 	//Initialize booleans
