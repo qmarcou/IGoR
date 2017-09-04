@@ -95,7 +95,7 @@ Hypermutation_full_Nmer_errorrate::Hypermutation_full_Nmer_errorrate(size_t nmer
 	if(init_Nmer_mutations_probas.size()==pow(4,mutation_Nmer_size)){
 		for(i=0 ; i != init_Nmer_mutations_probas.size() ; ++i){
 			if((init_Nmer_mutations_probas[i]>=0) and (init_Nmer_mutations_probas[i]<=1)){
-				Nmer_mutation_proba[i] = init_Nmer_mutations_probas[i];
+				this->Nmer_mutation_proba[i] = init_Nmer_mutations_probas[i];
 			}
 			else{
 				throw invalid_argument("The starting values for the hypermutation probabilities must lie between 0 and 1, passed value is " + to_string(init_Nmer_mutations_probas[i]) + "for Nmer index " + to_string(i) + " in Hypermutation_full_Nmer_errorrate(size_t nmer_width , Gene_class learn , Gene_class apply , vector<double> init_Nmer_mutations_probas)");
@@ -216,13 +216,22 @@ const double& Hypermutation_full_Nmer_errorrate::get_err_rate_upper_bound(size_t
 
 
 	if( n_errors>this->max_err || n_error_free>this->max_noerr){
-		double max_mut_proba = 0;
+		/*double max_mut_proba = 0;
 		double min_mut_proba = 1;
 		size_t array_size = pow(4,mutation_Nmer_size);
 		for(size_t ii=0 ; ii != array_size ; ++ii){
 			if(max_mut_proba<this->Nmer_mutation_proba[ii]) max_mut_proba=this->Nmer_mutation_proba[ii];
 			if(min_mut_proba>this->Nmer_mutation_proba[ii]) min_mut_proba=this->Nmer_mutation_proba[ii];
+		}*/
+
+		size_t array_size = pow(4,mutation_Nmer_size);
+		vector<double> probas_vector;
+		for(size_t ii=0 ; ii != array_size ; ++ii){
+			probas_vector.push_back(this->Nmer_mutation_proba[ii]);
 		}
+		sort(probas_vector.begin(),probas_vector.end());
+		//By definition the number of mutation probabilities is even (power of 4)
+		double median_mut_proba = (probas_vector[probas_vector.size()/2 -1] + probas_vector[probas_vector.size()/2])/2.0;
 
 		//Need to increase the matrix size (anyway the matrix is at very most read_len^2
 		Matrix<double> new_bound_mat (max(this->max_err,n_errors + 10) , max(this->max_noerr , n_error_free+10));
@@ -232,7 +241,7 @@ const double& Hypermutation_full_Nmer_errorrate::get_err_rate_upper_bound(size_t
 					new_bound_mat(i,j) = this->upper_bound_proba_mat(i,j);
 				}
 				else{
-					new_bound_mat(i,j) = pow(max_mut_proba,i)*pow((1-min_mut_proba),j);
+					new_bound_mat(i,j) = pow(median_mut_proba/3.0,i)*pow((1-median_mut_proba),j);
 				}
 			}
 		}
@@ -274,8 +283,8 @@ void Hypermutation_full_Nmer_errorrate::build_upper_bound_matrix(size_t m,size_t
 				new_bound_mat(i,j) = this->upper_bound_proba_mat(i,j);
 			}
 			else{
-				//new_bound_mat(i,j) = pow(max_mut_proba,i)*pow((1-min_mut_proba),j);
-				new_bound_mat(i,j) = pow(median_mut_proba,i)*pow((1-median_mut_proba),j);
+				//new_bound_mat(i,j) = pow(max_mut_proba/3.0,i)*pow((1-min_mut_proba),j);
+				new_bound_mat(i,j) = pow(median_mut_proba/3.0,i)*pow((1-median_mut_proba),j);
 			}
 		}
 	}
