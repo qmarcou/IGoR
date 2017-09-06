@@ -158,7 +158,7 @@ void Hypermutation_full_Nmer_errorrate::set_output_Nmer_stream(string filename){
 
 shared_ptr<Error_rate> Hypermutation_full_Nmer_errorrate::copy()const{
 
-	shared_ptr<Hypermutation_full_Nmer_errorrate> copy_err_r = shared_ptr<Hypermutation_full_Nmer_errorrate>( new Hypermutation_full_Nmer_errorrate(this->mutation_Nmer_size , this->learn_on , this->apply_to , 0) );
+	shared_ptr<Hypermutation_full_Nmer_errorrate> copy_err_r = shared_ptr<Hypermutation_full_Nmer_errorrate>( new Hypermutation_full_Nmer_errorrate(this->mutation_Nmer_size , this->learn_on , this->apply_to , 0 , this->n_observed_Nmer_threshold) );
 	copy_err_r->updated = this->updated;
 	copy_err_r->output_Nmer_stat = this->output_Nmer_stat;
 	copy_err_r->output_Nmer_stat_stream = this->output_Nmer_stat_stream;
