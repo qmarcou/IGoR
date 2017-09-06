@@ -930,11 +930,36 @@ void Hypermutation_full_Nmer_errorrate::update(){
 	// Update the error rate by maximizing the likelihood of the error model
 	// This simply boils down to equating the model mutation probabilities to the posterior mutation frequencies
 
+	//double average_mutability = 0;
+	//size_t n_observed_nmers = 0;
+	vector<double> trusted_probas_vector;
 	for(size_t ii = 0 ; ii!=array_size ; ++ii){
 		//Only update the value if the Nmer has been observed
 		//Note that if an Nmer is not observed much the mutation probability might artificially go to 0 because of undersampling, remain cautious when interpreting such values
-		if(Nmer_N_bg[ii]>n_observed_Nmer_threshold){
+		if(Nmer_N_bg[ii]>=n_observed_Nmer_threshold){
 			Nmer_mutation_proba[ii] = Nmer_N_SHM[ii]/Nmer_N_bg[ii];
+			trusted_probas_vector.push_back(this->Nmer_mutation_proba[ii]); //Compute the median mutability value over trustworthy Nmers
+			//average_mutability+=Nmer_mutation_proba[ii];
+			//++n_observed_nmers;
+		}
+	}
+	sort(trusted_probas_vector.begin(),trusted_probas_vector.end());
+	//Get the median
+	double median_mut_proba;
+	if( (trusted_probas_vector.size()%2) == 0){
+		median_mut_proba = (trusted_probas_vector[trusted_probas_vector.size()/2 -1] + trusted_probas_vector[trusted_probas_vector.size()/2])/2.0;
+	}
+	else{
+		median_mut_proba = trusted_probas_vector[trusted_probas_vector.size()/2];
+	}
+
+
+
+	//Now replace the value by the average mutability for unobserved Nmers
+	//average_mutability/=n_observed_nmers;
+	for(size_t ii = 0 ; ii!=array_size ; ++ii){
+		if(Nmer_N_bg[ii]<n_observed_Nmer_threshold){
+			Nmer_mutation_proba[ii] = median_mut_proba;
 		}
 	}
 
