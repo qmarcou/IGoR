@@ -20,6 +20,7 @@
 #include "Coverageerrcounter.h"
 #include "Bestscenarioscounter.h"
 #include "Pgencounter.h"
+#include "Errorscounter.h"
 #include "Utils.h"
 #include <chrono>
 #include<set>
@@ -1272,6 +1273,9 @@ int main(int argc , char* argv[]){
 		 //Collect sequence generation probability during last iteration
 		shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter ("../demo/run_demo/"));
 		counters_list.emplace(2,pgen_counter_ptr);
+
+		shared_ptr<Counter> errors_counter(new Errors_counter (10,string("../demo/run_demo/")));
+		counters_list.emplace(3,errors_counter);
 
 		//Instantiate the high level GenModel class
 		//This class allows to make most useful high level operations(model inference/Pgen computation , sequence generation)

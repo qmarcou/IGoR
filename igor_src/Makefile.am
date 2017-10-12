@@ -4,7 +4,7 @@ ACLOCAL_AMFLAGS = -I ../m4
 bin_PROGRAMS = igor
 
 # List all Igor sources
-igor_SOURCES = Aligner.cpp Aligner.h Bestscenarioscounter.cpp Bestscenarioscounter.h Counter.cpp Counter.h Coverageerrcounter.cpp Coverageerrcounter.h Deletion.cpp Deletion.h Dinuclmarkov.cpp Dinuclmarkov.h Errorrate.cpp Errorrate.h Genechoice.cpp Genechoice.h GenModel.cpp GenModel.h HypermutationfullNmererrorrate.cpp HypermutationfullNmererrorrate.h Hypermutationglobalerrorrate.cpp Hypermutationglobalerrorrate.h Insertion.cpp Insertion.h IntStr.cpp IntStr.h main.cpp Model_marginals.cpp Model_marginals.h Model_Parms.cpp Model_Parms.h Pgencounter.cpp Pgencounter.h Rec_Event.cpp Rec_Event.h Singleerrorrate.cpp Singleerrorrate.h Utils.cpp Utils.h
+igor_SOURCES = Aligner.cpp Aligner.h Bestscenarioscounter.cpp Bestscenarioscounter.h Counter.cpp Counter.h Coverageerrcounter.cpp Coverageerrcounter.h Deletion.cpp Deletion.h Dinuclmarkov.cpp Dinuclmarkov.h Errorscounter.cpp Errorscounter.h Errorrate.cpp Errorrate.h Genechoice.cpp Genechoice.h GenModel.cpp GenModel.h HypermutationfullNmererrorrate.cpp HypermutationfullNmererrorrate.h Hypermutationglobalerrorrate.cpp Hypermutationglobalerrorrate.h Insertion.cpp Insertion.h IntStr.cpp IntStr.h main.cpp Model_marginals.cpp Model_marginals.h Model_Parms.cpp Model_Parms.h Pgencounter.cpp Pgencounter.h Rec_Event.cpp Rec_Event.h Singleerrorrate.cpp Singleerrorrate.h Utils.cpp Utils.h
 
 # Include GSL subparts and jemalloc without installation
 
