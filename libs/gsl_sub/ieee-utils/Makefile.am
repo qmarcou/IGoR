@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libgslieeeutils.la 
 
-pkginclude_HEADERS = gsl_ieee_utils.h
+noinst_HEADERS = gsl_ieee_utils.h
 
 libgslieeeutils_la_SOURCES =  print.c make_rep.c gsl_ieee_utils.h env.c fp.c read.c
 

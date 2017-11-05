@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libgslpoly.la 
 
-pkginclude_HEADERS = gsl_poly.h
+noinst_HEADERS = gsl_poly.h
 
 AM_CPPFLAGS = -I$(top_srcdir)
 

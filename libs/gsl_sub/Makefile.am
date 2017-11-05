@@ -13,8 +13,8 @@ ACLOCAL_AMFLAGS = -I ../../m4
 
 noinst_SCRIPTS = gsl-config
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA= gsl.pc
+#pkgconfigdir = $(libdir)/pkgconfig
+#pkgconfig_DATA= gsl.pc
 
 CLEANFILES = gsl.pc gsl-config
 
@@ -27,8 +27,8 @@ libgsl_sub_la_LIBADD = $(GSL_LIBADD) $(SUBLIBS)
 libgsl_sub_la_LDFLAGS = $(GSL_LDFLAGS) -version-info $(GSL_LT_VERSION)
 noinst_HEADERS = templates_on.h templates_off.h build.h
 
-m4datadir = $(datadir)/aclocal
-m4data_DATA = gsl.m4
+#m4datadir = $(datadir)/aclocal
+#m4data_DATA = gsl.m4
 
 #noinst_PROGRAMS = gsl-randist gsl-histogram
 noinst_PROGRAMS = gsl-histogram #Do not install but still build in order to produce the tests

@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libgslhistogram.la 
 
-pkginclude_HEADERS = gsl_histogram.h gsl_histogram2d.h
+noinst_HEADERS = gsl_histogram.h gsl_histogram2d.h
 
 AM_CPPFLAGS = -I$(top_srcdir)
 

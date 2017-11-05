@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libgslcblas.la #Do not install cblas library
 libgslcblas_la_LDFLAGS = $(GSLCBLAS_LDFLAGS) -version-info $(GSL_LT_CBLAS_VERSION)
 
-#pkginclude_HEADERS = gsl_cblas.h
+#noinst_HEADERS = gsl_cblas.h
 
 AM_CPPFLAGS = -I$(top_srcdir)
 

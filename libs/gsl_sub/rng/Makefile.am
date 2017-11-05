@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libgslrng.la 
 
-pkginclude_HEADERS = gsl_rng.h
+noinst_HEADERS = gsl_rng.h
 
 AM_CPPFLAGS = -I$(top_srcdir)
 
