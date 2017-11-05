@@ -7,7 +7,7 @@ AC_INIT([igor], [1.0.0.2], [quentin.marcou@lpt.ens.fr])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 #AC_CONFIG_SRCDIR([igor_src/Deletion.h])
-#AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 #INIT LIBTOOL
 AC_CONFIG_MACRO_DIRS([m4])

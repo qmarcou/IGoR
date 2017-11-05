@@ -5,6 +5,7 @@
  *      Author: quentin
  */
 
+#include "../config.h"
 #include "Deletion.h"
 #include "Insertion.h"
 #include "Genechoice.h"
@@ -23,7 +24,7 @@
 #include "Errorscounter.h"
 #include "Utils.h"
 #include <chrono>
-#include<set>
+#include <set>
 
 
 using namespace std;
