@@ -257,6 +257,7 @@ TESTS_CPP_OBJS := $(TESTS_INTEGRATION_CPP_OBJS)
 .PHONY: install_bin install_include install_lib
 .PHONY: install_doc_html install_doc_man install_doc install
 .PHONY: tests check clean distclean relclean
+.PHONY: uninstall
 
 .SECONDARY : $(PRIVATE_NAMESPACE_GEN_HDRS) $(TESTS_OBJS) $(TESTS_CPP_OBJS)
 
@@ -536,6 +537,9 @@ relclean: distclean
 	rm -f $(objroot)VERSION
 	rm -f $(DOCS_HTML)
 	rm -f $(DOCS_MAN3)
+
+uninstall: 
+	echo "All installation pieces of jemalloc have been de-activated in IGoR, nothing to do to uninstall jemalloc"
 
 #===============================================================================
 # Re-configuration rules.
