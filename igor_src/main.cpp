@@ -782,16 +782,16 @@ int main(int argc , char* argv[]){
 		if(chain_arg_str == "alpha"){
 			has_D = false;
 			chain_path_str = "tcr_alpha";
-			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
 
 		}
 		else if(chain_arg_str == "beta"){
 			has_D = true;
 			chain_path_str = "tcr_beta";
-			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			d_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
-			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
 		}
 		else if(chain_arg_str == "light"){
 			cout<<"Support for light chains in command line is not ready yet due to the lack of genomic templates and suitable model"<<endl;
@@ -801,9 +801,9 @@ int main(int argc , char* argv[]){
 		else if( (chain_arg_str == "heavy_naive") or (chain_arg_str == "heavy_memory") ){
 			has_D = true;
 			chain_path_str = "bcr_heavy";
-			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			d_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
-			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
 
 			if( chain_arg_str == "heavy_naive" ){
 				//Use a single error rate
@@ -815,8 +815,8 @@ int main(int argc , char* argv[]){
 			}
 		}
 		//Read CDR3 anchors(cystein, tryptophan/phenylalanin indices)
-		v_CDR3_anchors = read_gene_anchors_csv("../models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
-		j_CDR3_anchors = read_gene_anchors_csv("../models/"+species_str+"/"+chain_path_str+"/ref_genome/J_gene_CDR3_anchors.csv");
+		v_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
+		j_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/J_gene_CDR3_anchors.csv");
 	}
 
 	//Read custom genomic templates if some custom ones were specified
@@ -871,9 +871,9 @@ int main(int argc , char* argv[]){
 	if( ((not custom_cl_parms) and (not load_last_inferred_parms))
 			and (infer or evaluate or generate)){
 		cout<<"read some model parms"<<endl;
-		cl_model_parms.read_model_parms("../models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
+		cl_model_parms.read_model_parms(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
 		cl_model_marginals = Model_marginals(cl_model_parms);
-		cl_model_marginals.txt2marginals("../models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
+		cl_model_marginals.txt2marginals(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
 	}
 
 
@@ -1103,11 +1103,11 @@ int main(int argc , char* argv[]){
 
 		cout<<"Reading genomic templates"<<endl;
 
-		vector<pair<string,string>> v_genomic = read_genomic_fasta( string("../demo/genomicVs_with_primers.fasta"));
+		vector<pair<string,string>> v_genomic = read_genomic_fasta( string(IGOR_DATA_DIR) + "/demo/genomicVs_with_primers.fasta");
 
-		vector<pair<string,string>> d_genomic = read_genomic_fasta( string("../demo/genomicDs.fasta"));
+		vector<pair<string,string>> d_genomic = read_genomic_fasta( string(IGOR_DATA_DIR) + "/demo/genomicDs.fasta");
 
-		vector<pair<string,string>> j_genomic = read_genomic_fasta( string("../demo/genomicJs_all_curated.fasta"));
+		vector<pair<string,string>> j_genomic = read_genomic_fasta( string(IGOR_DATA_DIR) + "/demo/genomicJs_all_curated.fasta");
 
 		//Declare substitution matrix used for alignments(nuc44 here)
 		double nuc44_vect [] = { // A,C,G,T,R,Y,K,M,S,W,B,D,H,V,N
@@ -1145,16 +1145,18 @@ int main(int argc , char* argv[]){
 		begin_time = myclock::now();
 
 
-		vector<pair<const int, const string>> indexed_seqlist = read_txt( string("../demo/murugan_naive1_noncoding_demo_seqs.txt") ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
+		vector<pair<const int, const string>> indexed_seqlist = read_txt( string(IGOR_DATA_DIR) + "/demo/murugan_naive1_noncoding_demo_seqs.txt" ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
 
+		cl_path+="igor_demo/";
+		system(&("mkdir " + cl_path )[0]);
 
-		v_aligner.align_seqs( string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
+		v_aligner.align_seqs( string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
 		//v_aligner.write_alignments_seq_csv(path + string("alignments_V.csv") , v_alignments);
 
-		d_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"),indexed_seqlist,0,false);
+		d_aligner.align_seqs(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"),indexed_seqlist,0,false);
 		//d_aligner.write_alignments_seq_csv(path + string("alignments_D.csv") , d_alignments);
 
-		j_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
+		j_aligner.align_seqs(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
 
 		end_time= myclock::now();
 		chrono::duration<double> elapsed = end_time - begin_time;
@@ -1166,7 +1168,7 @@ int main(int argc , char* argv[]){
 		//j_aligner.write_alignments_seq_csv(path + string("alignments_J.csv") , j_alignments);
 
 
-		write_indexed_seq_csv(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_indexed_seq.csv") , indexed_seqlist);
+		write_indexed_seq_csv(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_indexed_seq.csv") , indexed_seqlist);
 
 
 
@@ -1250,32 +1252,32 @@ int main(int argc , char* argv[]){
 
 		cout<<"Write and read back the model"<<endl;
 		//Write the model_parms into a file
-		parms.write_model_parms(string("../demo/demo_write_model_parms.txt"));
+		parms.write_model_parms(string(cl_path + "/demo_write_model_parms.txt"));
 
 		//Write the marginals into a file
-		model_marginals.write2txt(string("../demo/demo_write_model_marginals.txt"),parms);
+		model_marginals.write2txt(string(cl_path + "/demo_write_model_marginals.txt"),parms);
 
 		//Read a model and marginal pair
 		Model_Parms read_model_parms;
-		read_model_parms.read_model_parms(string("../demo/demo_write_model_parms.txt"));
+		read_model_parms.read_model_parms(string(cl_path + "/demo_write_model_parms.txt"));
 		Model_marginals read_model_marginals(read_model_parms);
-		read_model_marginals.txt2marginals(string("../demo/demo_write_model_marginals.txt"),read_model_parms);
+		read_model_marginals.txt2marginals(string(cl_path + "/demo_write_model_marginals.txt"),read_model_parms);
 
 		//Instantiate a Counter
 		map<size_t,shared_ptr<Counter>> counters_list;
 		 //Collect gene coverage and errors
-		shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter("../demo/run_demo/",VJ_genes,1,false,false));
+		shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter(cl_path + "/run_demo/",VJ_genes,1,false,false));
 		counters_list.emplace(0,coverage_counter_ptr);
 
 		 //Collect 10 best scenarios per sequence during the last iteration
-		shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , "../demo/run_demo/" ,true ));
+		shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , cl_path + "/run_demo/" ,true ));
 		counters_list.emplace(1,best_sc_ptr);
 
 		 //Collect sequence generation probability during last iteration
-		shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter ("../demo/run_demo/"));
+		shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter (cl_path + "/run_demo/"));
 		counters_list.emplace(2,pgen_counter_ptr);
 
-		shared_ptr<Counter> errors_counter(new Errors_counter (10,string("../demo/run_demo/")));
+		shared_ptr<Counter> errors_counter(new Errors_counter (10,string(cl_path + "/run_demo/")));
 		counters_list.emplace(3,errors_counter);
 
 		//Instantiate the high level GenModel class
@@ -1287,9 +1289,9 @@ int main(int argc , char* argv[]){
 
 		//Read alignments
 		//vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(path+ string(argv[2]) + string("indexed_seq.csv"));
-		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"), V_gene , 55 , false , indexed_seqlist  );//40//35
-		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"), D_gene , 35 , false , indexed_seqlist , sorted_alignments);//30//15
-		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"), J_gene , 10 , false , indexed_seqlist , sorted_alignments);//30//20
+		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"), V_gene , 55 , false , indexed_seqlist  );//40//35
+		sorted_alignments = read_alignments_seq_csv_score_range(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"), D_gene , 35 , false , indexed_seqlist , sorted_alignments);//30//15
+		sorted_alignments = read_alignments_seq_csv_score_range(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"), J_gene , 10 , false , indexed_seqlist , sorted_alignments);//30//20
 
 		vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
@@ -1297,8 +1299,8 @@ int main(int argc , char* argv[]){
 		cout<<"Infer model"<<endl;
 
 		begin_time = myclock::now();
-
-		gen_model.infer_model(sorted_alignments_vec , 4 , string("../demo/run_demo/") , true ,1e-35,0.0001);
+		system(&("mkdir " + cl_path + "run_demo")[0]);
+		gen_model.infer_model(sorted_alignments_vec , 4 , string(cl_path + "/run_demo/") , true ,1e-35,0.0001);
 
 		end_time= myclock::now();
 		elapsed = end_time - begin_time;
@@ -1308,7 +1310,7 @@ int main(int argc , char* argv[]){
 		//Generate sequences
 		cout<<"Generate sequences"<<endl;
 		auto generated_seq =  gen_model.generate_sequences(100,false);//Without errors
-		gen_model.write_seq_real2txt(string("../demo/generated_seqs_indexed_demo.csv"), string("../demo/generated_seqs_realizations_demo.csv") , generated_seq);//Member function will be changed
+		gen_model.write_seq_real2txt(string(cl_path + "/generated_seqs_indexed_demo.csv"), string(cl_path + "/generated_seqs_realizations_demo.csv") , generated_seq);//Member function will be changed
 
 	}
 
