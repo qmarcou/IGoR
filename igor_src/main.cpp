@@ -170,6 +170,25 @@ int main(int argc , char* argv[]){
 
 	while(carg_i<argc){
 
+		//Command line argument asking for help
+		if(string(argv[carg_i]) == string("-h")
+				or string(argv[carg_i]) == string("-help")){
+			// Show the manual using man and installed manpages
+			system(&("man igor")[0]);
+			// End the program without error
+			return 0;
+		}
+
+		//Command line argument asking for help
+		if(string(argv[carg_i]) == string("-v")
+				or string(argv[carg_i]) == string("-version")){
+			// Display IGoR's version
+			cout<<"IGoR version "<<PACKAGE_VERSION<<endl;
+			cout<<"Visit "<<PACKAGE_URL<<" to check the latest version!"<<endl;
+			// End the program without error
+			return 0;
+		}
+
 		//Command line argument setting the number of threads
 		if(string(argv[carg_i]) == string("-threads")){
 			omp_set_num_threads(std::stoi(argv[++carg_i]));
@@ -759,7 +778,11 @@ int main(int argc , char* argv[]){
 
 		//If the argument does not correspond to any previous section throw an exception
 		else{
-			throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" ");
+			cerr<<"Unknown IGoR command line argument \""+string(argv[carg_i])+"\" "<<endl;
+			cerr<<"Use \"man igor\", \"igor -help\" or visit "<<PACKAGE_URL<<" to see available commands and their effects."<<endl;
+			cerr<<"Terminating IGoR..."<<endl;
+			return 1;
+			//throw invalid_argument();
 		}
 
 		//Read the next command line argument

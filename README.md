@@ -135,6 +135,8 @@ If you are working on datasets not present in this list and would kindly agree t
 
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
+| `-h` or `-help`   | Displays IGoR's manual. Alternatively one could use `man igor`.  |
+| `-v` or `-version`      |  Displays IGoR's installed version number. |
 | `-set_wd /path/to/dir/`      | Sets the working directory to */path/to/dir/*, default is */tmp*. ** This should be an already existing directory and will not be created by IGoR **   |
 | `-threads N`   | Sets the number of OpenMP threads to *N* for alignments and inference/evaluation. By default IGoR will use the maximum number of threads.     |
 | `-stdout_f /path/to/file`  | Redirects the standard output to the file */path/to/file*  |
