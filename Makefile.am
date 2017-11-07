@@ -9,6 +9,9 @@ SUBDIRS = libs igor_src
 demodir = $(pkgdatadir)/demo
 demo_DATA = demo/genomicVs_with_primers.fasta demo/genomicDs.fasta demo/genomicJs_all_curated.fasta demo/murugan_naive1_noncoding_demo_seqs.txt
 
+#Install the generated man pages
+man_MANS = igor.1
+
 install-data-local:
 	cp -r models/ $(pkgdatadir)
 
