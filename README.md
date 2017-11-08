@@ -150,6 +150,7 @@ If you are working on datasets not present in this list and would kindly agree t
 |`-load_last_inferred`| Using this command will load the last inferred model (folder *inference/final_xx.txt*) as a basis for a new inference, evaluation or generation of synthetic sequences |
 | `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
 | `-run_custom`  |  Runs the code inside the custom section of the main.cpp file |
+| `-subsample N` | Perform actions on a random subsample of *N* sequences. **This flag will have different effects depending on the supplied commands:** if the `-read_seqs` command is used, the resulting indexed sequence file will be a subsample of sequences contained in the original file. Else, if the `-align` command is used the alignments will be performed on a subsample of the indexed sequences. Else, if the `-evaluate` or `-infer` command is used the inference will be run on a subsample of the indexed sequences. * Obviously N should be < to the total number of sequences available. The `-subsample` flag should be used in only one command of a pipeline, see the Command example section for details.* | 
 
 ### Working directory
 This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference, evaluation and outputs.
@@ -211,7 +212,7 @@ Optional parameters are the following:
 |`--infer_only eventnickname1 eventnickname2`| During the inference only the the parameters of the events with nicknames listed are updated | inference |
 |`--not_infer eventnickname1 eventnickname2`| Opposite command to the one above, will fix the parameters of the listed events | inference |
 |`--fix_err`| In the same vein as the two commands above, this one will fix the parameters related to the error rate. | inference |
-| `--subsample N` | Perform the action on a random subsample of *N* sequences. ** Obviously N should be < to the total number of sequences available ** NOT FUNCTIONAL YET | inference & evaluation |
+
 
 ### Inference and evaluation output
 Upon inferring or evaluating several files will be created in the corresponding folder.

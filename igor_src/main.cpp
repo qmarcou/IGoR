@@ -304,6 +304,19 @@ int main(int argc , char* argv[]){
 			custom = true;
 		}
 
+		else if(string(argv[carg_i]) == "-subsample"){
+			subsample_seqs = true;
+			++carg_i;
+			try{
+				n_subsample_seqs = stoi(argv[carg_i]);
+			}
+			catch(exception& e){
+				cerr<<"Expected an integer for the number of sequences to subsample, received: \"" + string(argv[carg_i]) + "\""<<endl;
+				cerr<<"Terminating IGoR..."<<endl;
+				return EXIT_FAILURE;
+			}
+		}
+
 		else if(string(argv[carg_i]) == "-align"){
 			//Provide a boolean for aligning
 			align = true;
@@ -609,18 +622,8 @@ int main(int argc , char* argv[]){
 				else if(string(argv[carg_i]) == "--fix_err"){
 					fix_err_rate = true;
 				}
-				else if(string(argv[carg_i]) == "--subsample"){
-					subsample_seqs = true;
-					++carg_i;
-					try{
-						n_subsample_seqs = stoi(argv[carg_i]);
-					}
-					catch(exception& e){
-						cout<<"Expected an integer for the number of sequences to subsample, received: \"" + string(argv[carg_i]) + "\""<<endl;
-						cout<<"Terminating and throwing exception now..."<<endl;
-						throw e;
-					}
-				}
+
+
 				else{
 					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify inference/evaluate parameters");
 				}
@@ -1112,6 +1115,22 @@ int main(int argc , char* argv[]){
 		counter_int_pair_ptr.second->set_path_to_files(new_path);
 	}
 
+	//Output warnings on the use of the subsample command as it may have different effects depending on the command used
+	if(subsample_seqs){
+		if(read_seqs){
+			clog<<"Subsampling "<<n_subsample_seqs<<" sequences from the input sequence file, the resulting indexed sequence will be a subsample."<<endl;
+		}
+		else if(align
+				and not (infer or evaluate)){
+			clog<<"Subsampling "<<n_subsample_seqs<<" for alignments without an -evaluate or -infer command supplied."<<endl;
+			clog<<"Because -subsample N makes a random sample do not further re-use the command with -evaluate or -infer"<<endl;
+		}
+		else if(align
+				and (infer or evaluate)){
+			clog<<"Subsampling "<<n_subsample_seqs<<" for alignments and evaluation/inference"<<endl;
+		}
+	}
+
 
 
 
@@ -1375,11 +1394,35 @@ int main(int argc , char* argv[]){
 			//create the directory
 			system(&("mkdir " + cl_path + "aligns")[0]);
 
+			if(subsample_seqs){
+				try{
+					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+				}
+				catch(exception& e){
+					cerr<<"Exception caught trying to subsample input files sequences to indexed sequences:"<<endl;
+					cerr<<e.what()<<endl;
+					cerr<<"Terminating IGoR..."<<endl;
+					return EXIT_FAILURE;
+				}
+			}
+
 			write_indexed_seq_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv",indexed_seqlist);
 		}
 
 		if(align){
 			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+
+			if(subsample_seqs and not read_seqs){
+				try{
+					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+				}
+				catch(exception& e){
+					cerr<<"Exception caught trying to subsample indexed sequences before alignments:"<<endl;
+					cerr<<e.what()<<endl;
+					cerr<<"Terminating IGoR..."<<endl;
+					return EXIT_FAILURE;
+				}
+			}
 
 			if(align_v){
 				//Performs V alignments
@@ -1417,8 +1460,16 @@ int main(int argc , char* argv[]){
 			//Reading alignments
 			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
 
-			if(subsample_seqs){
-				indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+			if(subsample_seqs and not align){
+				try{
+					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+				}
+				catch(exception& e){
+					cerr<<"Exception caught trying to subsample indexed sequences before inference/evaluation:"<<endl;
+					cerr<<e.what()<<endl;
+					cerr<<"Terminating IGoR..."<<endl;
+					return EXIT_FAILURE;
+				}
 			}
 
 			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
