@@ -83,6 +83,11 @@ public:
 			array_p[i] = arr[i];
 		}
 	}
+	Matrix(int m , int n , std::vector<T> vect):rows(m) , cols(n) , array_p(new T [m*n]){
+		for(size_t i = 0 ; i != m*n ; i++){
+			array_p[i] = vect.at(i);
+		}
+	}
 	Matrix(const Matrix<T>& other){
 		//Provides deep copy of a matrix
 		this->rows = other.rows;
@@ -627,7 +632,7 @@ typedef Enum_fast_memory_dual_key_map<Seq_type,Seq_side,Seq_Offset> Seq_offsets_
 	 }
  };
 
-
+std::vector<std::string> extract_string_fields(std::string,std::string);
 
 
 #endif /* UTILS_H_ */

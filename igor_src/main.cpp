@@ -357,8 +357,25 @@ int main(int argc , char* argv[]){
 						}
 						else if(string(argv[carg_i]) == "---matrix"){
 							//Read the substitution matrix from a file
-							//TODO code this
-							throw invalid_argument("Support for a changing the substitution matrix from a file is not coded yet");
+							++carg_i;
+							string matrix_filename = string(argv[carg_i]);
+							try{
+								if((gene_str_val == "--V") or (gene_str_val == "--all")){
+									v_subst_matrix = read_substitution_matrix(matrix_filename);
+								}
+								if((gene_str_val == "--D") or (gene_str_val == "--all")){
+									d_subst_matrix = read_substitution_matrix(matrix_filename);
+								}
+								if((gene_str_val == "--J") or (gene_str_val == "--all")){
+									j_subst_matrix = read_substitution_matrix(matrix_filename);
+								}
+							}
+							catch(exception& e){
+								cerr<<"Exception caught while reading the provided substitution matrix for gene: "<<gene_str_val<<endl;
+								cerr<<e.what()<<endl;
+								cerr<<"Terminating IGoR..."<<endl;
+								return EXIT_FAILURE;
+							}
 						}
 						else if(string(argv[carg_i]) == "---gap_penalty"){
 							//Read the gap penalty

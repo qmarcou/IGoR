@@ -271,6 +271,17 @@ Enum_fast_memory_map::~Enum_fast_memory_map(){
 			this->init_bool_array[i] = other.init_bool_array[i];
 		}
 	}*/
-
+vector<string> extract_string_fields(string total_string ,string separator){
+	vector<string> output_vector;
+	int sep_index = -1;
+	int next_sep_index = total_string.find(separator);
+	while(next_sep_index>0){
+		output_vector.emplace_back(total_string.substr(sep_index+1,next_sep_index));
+		sep_index = next_sep_index;
+		next_sep_index = total_string.find(separator,sep_index+1);
+	}
+	output_vector.emplace_back(total_string.substr(sep_index+1,string::npos));
+	return output_vector;
+}
 
 

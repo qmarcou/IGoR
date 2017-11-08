@@ -102,6 +102,7 @@ inline void write_single_seq_alignment( std::ofstream& , int , std::forward_list
 //Compare alignments (sort by score)
 bool align_compare(Alignment_data , Alignment_data );
 std::vector<std::pair<const int , const std::string>> sample_indexed_seq( std::vector<std::pair<const int , const std::string>>,const size_t);
+Matrix<double> read_substitution_matrix(const std::string& , std::string sep=",");
 
 /*
 	namespace substitution_matrices{

@@ -1246,4 +1246,41 @@ unordered_map<string,size_t> read_gene_anchors_csv(string filename , string sep)
 		return anchors_map;
 }
 
+/**
+ * Function reading a substitution matrix from a file
+ * The matrix should be 4*4 or 15*15
+ * Matrix can have a header or not
+ */
+Matrix<double> read_substitution_matrix(const string& filename , string sep/*=","*/){
+	ifstream infile(filename);
+	if(!infile){
+		throw runtime_error("File not found: "+filename + " in read_substitution_matrix()");
+	}
+	vector<double> tmp_vect;
+	string temp_str;
+	bool first_line = true;
+	size_t line_size;
+	while(getline(infile,temp_str)){
+		vector<string> line_vect = extract_string_fields(temp_str,sep);
+		if(first_line){
+			line_size = line_vect.size();
+			if( (line_size!=4)
+					and (line_size!=15)){
+				throw runtime_error("Substitution matrix should be 4*4 (A,C,G,T) or 15*15 (A,C,G,T,R,Y,K,M,S,W,B,D,H,V,N) in read_substitution_matrix()");
+			}
+			first_line = false;
+		}
+		if(line_vect.size()!=line_size){
+			throw runtime_error("Substitution matrix' rows length are inconsistent in input matrix for read_substitution_matrix()");
+		}
+		for(const string field: line_vect){
+			tmp_vect.emplace_back(stod(field));
+		}
+	}
+	if(tmp_vect.size()/line_size != line_size){
+		throw runtime_error("Substitution matrix' number of rows and columns are inconsistent in input matrix for read_substitution_matrix()");
+	}
+	return Matrix<double>(line_size,line_size,tmp_vect);
+}
+
 

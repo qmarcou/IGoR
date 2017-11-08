@@ -167,7 +167,7 @@ Alignment of the sequences is performed upon detection of the `-align` switch in
 | Command line argument | Description                    |
 | :------------- | :------------------------------ |
 | `---thresh X`  | Sets the score threshold for the considered gene alignments to *X*. Default is 50.0 for V, 15.0 for D and 15.0 for J |
-| `---matrix path/to/file` | Sets the substitution matrix to the one given in the file. Must be ZZZ delimited. Default is a NUC44 matrix with stronger penalty on errors (5,-14) ** Not fully supported yet **|
+| `---matrix path/to/file` | Sets the substitution matrix to the one given in the file. Must be *\',\'* delimited. Default is a NUC44 matrix with stronger penalty on errors (5,-14) |
 | `---gap_penalty X` | Sets the alignment gap penalty to X. Default is 50.0 |
 | `---best_only` | If *true* only keep the best alignment per gene/allele. If *false* outputs all alignments above the score threshold. Default is *true* for V and J, and *false* for D. |
 | `---offset_bounds M N` | Constrains the possible positions of the alignments. The offset is defined as the position on the read to which the first nucleotide of the genomic template aligns (can be negative, e.g for V for which most of the V is on the 5' of the read and cannot be seen)  |
