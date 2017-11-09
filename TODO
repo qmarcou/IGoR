@@ -1,0 +1,22 @@
+- add -trace_command command line
+- add all gene anchors (=NOT functional)
+- handling of ambiguous nucleotides for correlated Dinucleotide Markov Model
+- handling of ambiguous nucleotides for hypermutation models (background counting and generation)
+- alignment speed up by sequence truncation
+- CDR3 inference/evaluation
+- primers information for alignment (ask max)
+- enable use of other softwares alignments information
+- reduce output to some debug outputs
+- fast initilization of proba bounds
+- add pigor
+- fill doxygen documentation
+- more bash examples
+- exceptions """handling"""
+- forum? issues? (github collaboration like?)
+- memory BCR?
+- autocompletion
+- increment Doxygen version number automatically
+- gitignore doxygen stuff
+- detail fileformats in README
+- put up license files etc (GNU standards)
+- better formating for doxygen documentation + better graphs?
