@@ -817,7 +817,15 @@ int main(int argc , char* argv[]){
 
 	//Check that both species and chain have been provided
 	if(chain_provided xor species_provided){
-		throw ("Both species and chain must be provided when using a predefined model!");
+		cerr<<"Both species and chain must be provided when using a predefined model!"<<endl;
+		if(chain_provided){
+			cerr<<"Only chain argument was provided by the user"<<endl;
+		}
+		else{
+			cerr<<"Only species argument was provided by the user"<<endl;
+		}
+		cerr<<"Terminating IGoR..."<<endl;
+		return EXIT_FAILURE;
 	}
 
 
@@ -1120,14 +1128,18 @@ int main(int argc , char* argv[]){
 		if(read_seqs){
 			clog<<"Subsampling "<<n_subsample_seqs<<" sequences from the input sequence file, the resulting indexed sequence will be a subsample."<<endl;
 		}
-		else if(align
-				and not (infer or evaluate)){
-			clog<<"Subsampling "<<n_subsample_seqs<<" for alignments without an -evaluate or -infer command supplied."<<endl;
-			clog<<"Because -subsample N makes a random sample do not further re-use the command with -evaluate or -infer"<<endl;
+		else if(align){
+			if((infer or evaluate)){
+				clog<<"Subsampling "<<n_subsample_seqs<<" sequences for alignments and evaluation/inference"<<endl;
+			}
+			else{
+				clog<<"Subsampling "<<n_subsample_seqs<<" sequences for alignments without an -evaluate or -infer command supplied."<<endl;
+				clog<<"/!\\ Because -subsample N makes a random sample do not further re-use the command with -evaluate or -infer /!\\ "<<endl;
+			}
 		}
-		else if(align
-				and (infer or evaluate)){
-			clog<<"Subsampling "<<n_subsample_seqs<<" for alignments and evaluation/inference"<<endl;
+		else if((infer or evaluate)){
+			clog<<"Subsampling "<<n_subsample_seqs<<" sequences for evaluation/inference without an -align command supplied."<<endl;
+			clog<<"/!\\ Because -subsample N makes a random sample make sure you have not used this command during alignment, otherwise the resulting sample will be the intersection of the two random samples! The resulting sample size cannot be guaranteed /!\\ "<<endl;
 		}
 	}
 
