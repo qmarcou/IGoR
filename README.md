@@ -42,13 +42,13 @@ IGoR uses the autotools suite for compilation and installation in order to ensur
 
 *Installing from package releases (recommended)*
 
-First download the latest released package on the download page (on the left). Extract the files where you wish to have IGoR installed. 
+First download the latest released package on the download page (on the left). Extract the files from the archive. 
 
 *Installing from unpackaged sources*
 
-For this you will have to get git and the autotools suite installed. Note that this is the most convenient way to keep IGoR up-to-date but involves a bit more installation steps.
-Using git clone the repository where you desire. Go in the created directory and run the *autogen.sh* bash script. This will create the *configure* script. Upon this stage the installation rules are the same as for packaged developper sources.
-From git you can chose among two branches: the *master* branch corresponds to the latest stable (packaged) release, the dev branch is the most up to date branch including current developpments until they are issued in the next release. The *dev* branch is therefore more bug prone, however this is the natural branch for people ready to help with developpment (even only by functionality testing).
+For this you will have to get git and the autotools suite and the pandoc software installed. Note that this is the most convenient way to keep IGoR up-to-date but involves a bit more installation steps.
+Using *git*, clone the repository where you desire. Go in the created directory and run the *autogen.sh* bash script. This will create the *configure* script. Upon this stage the installation rules are the same as for packaged developper sources.
+From *git* you can chose among two branches: the *master* branch corresponds to the latest stable (packaged) release, the dev branch is the most up to date branch including current developpments until they are issued in the next release. The *dev* branch is therefore more bug prone, however this is the natural branch for people ready to help with developpment (even only by functionality testing).
 
 A (sadly) non exhaustive list of potential installation troubleshoots follows in the next section. If your problem is not referenced there please [contact](<quentin.marcou@lpt.ens.fr> "myadress") us. If you end up finding a solution by yourself please help us append it to the following list and help the user community.
 
@@ -57,7 +57,7 @@ Widely tested on several Debian related distros.
 Install gcc/g++ if not already installed (note that another compiler could be used).
 With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Many options can be appended to ./configure such as `./configure CC=gcc CXX=g++` to enforce the use of gcc as compiler. Once over, type `make` to compile the sources (this will take a few minutes). **IGoR's executable will appear in the igor_src folder**
 
-** Due to some installation issues please do not try to install using `make install`, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
+Finally in order to access all IGoR's features, install IGoR by typing `make install`. This will install IGoR's executable, supplied models and manual on your system. If you do not have administrator privileges, IGoR can be installed locally in the folder of your choice by passing **--prefix=/your/custom/path** upon calling the configure script (e.g `./configure --prefix=$HOME`). Other configure options can be accessed using ./configure -h. 
 
 ## MacOS
 MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc (through name aliasing) and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports or Homebrew and install gcc from there.
@@ -88,9 +88,8 @@ Then install GCC using the following command:
 
 **Note: if you decide to use Homebrew you should apparently refrain yourself from assigning the newly installed gcc to the `gcc` command(see [this page](http://docs.brew.sh/Custom-GCC-and-cross-compilers.html) for more details). You will thus have to pass the correct compiler instructions to the configure script with the *CC* and *CXX* flags.** 
 
-Once done, as for Linux simply go to IGoR's root folder and type `./configure` to create the appropriate makefiles and compile using `make` (this will take a few minutes). **IGoR's executable will appear in the igor_src folder** 
+Once done, as for Linux simply go to IGoR's root folder and type `./configure` to create the appropriate makefiles and compile using `make` (this will take a few minutes). Finally install IGoR using the `make install` command.
 
-** Due to some installation issues please do not try to install using `make install`, this might disrupt some of your libraries installation and might break some command line options. This issue will be fixed soon **
 
 ## Windows (not tested)
 The configure script relies on bash to work. A first step would be to download a bash interpreter (such as Cygwin or MinGW) and a compiler. Open the command line of the one of your choice and use `./configure;make`
@@ -119,9 +118,9 @@ Command options are nested arguments, the general organization of the commands f
 ## General
 
 ### Using predefined genomic templates and models
-IGoR is shipped with a set of genomic templates and already inferred models  from *cite IGoR paper, and hopefully more to come *.
+IGoR is shipped with a set of genomic templates and already inferred models from [[1][igor_bioarxiv]].
 
-** Some installations issues still need to be figured out, in order to use the predefined models please execute IGoR in the folder in which the executable was compiled.**
+** In order to use the predefined models and demo IGoR must have been installed on your system. **
  
 Available options are listed below:
 
@@ -141,16 +140,16 @@ If you are working on datasets not present in this list and would kindly agree t
 | `-threads N`   | Sets the number of OpenMP threads to *N* for alignments and inference/evaluation. By default IGoR will use the maximum number of threads.     |
 | `-stdout_f /path/to/file`  | Redirects the standard output to the file */path/to/file*  |
 | `-read_seqs /path/to/file`  | Reads the input sequences file */path/to/file* and reformat it in the working directory. **This step is necessary for running any action on sequences using the command line**. Can be a fasta file, a csv file (with the sequence index as first column and the sequence in the second separated by a semicolon ';') or a text file with one sequence per line (format recognition is based on the file extension). Providing this file will create a semicolon separated file with indexed sequences in the *align* folder.|
-|`-batch batchname`| Sets the batch name. This name will be used as a prefix to alignment/indexed sequences files, output, infer, evaluate and generate folders.|
+| `-batch batchname`| Sets the batch name. This name will be used as a prefix to alignment/indexed sequences files, output, infer, evaluate and generate folders.|
 | `-chain chainname` | Selects a model and a set of genomic template according to the value. Possible values for `chainname` are: `alpha`, `beta`, `light`, `heavy_naive`, and `heavy_memory`. **This needs to be set in order to use provided genomic templates/model**|
 | `-species speciesname`| Selects a species from the set of predefined species. Possible values are: `human`.**This needs to be set in order to use provided genomic templates/model** |
-|`-set_genomic --*gene* /path/to/file.fasta`| Set a set of custom genomic templates for gene *gene* (possible values are --V,--D and --J) with a list of genomic templates contained in the file */path/to/file.fasta* in fasta format. If the set of provided genomic templates is already fully contained (same name and same sequence) in the loaded model (default, custom, last_inferred), the missing ones will be set to zero probability keeping the ratios of the others. For instance providing only one already known genomic template will result in a model with the considered gene usage to be 1.0, all others set to 0.0.** When using this option and introducing new/modified genomic templates will need to re-infer a model since the genomic templates will no longer correspond to the ones contained in the reference models, the model parameters are reset to a uniform distribution. **|
+| `-set_genomic --*gene* /path/to/file.fasta`| Set a set of custom genomic templates for gene *gene* (possible values are --V,--D and --J) with a list of genomic templates contained in the file */path/to/file.fasta* in fasta format. If the set of provided genomic templates is already fully contained (same name and same sequence) in the loaded model (default, custom, last_inferred), the missing ones will be set to zero probability keeping the ratios of the others. For instance providing only one already known genomic template will result in a model with the considered gene usage to be 1.0, all others set to 0.0.** When using this option and introducing new/modified genomic templates will need to re-infer a model since the genomic templates will no longer correspond to the ones contained in the reference models, the model parameters are reset to a uniform distribution. ** |
 | `-set_CDR3_anchors --*gene*` | Load a CSV file containing the index of the CDR3 anchors for the *gene*(--V or --J). The index should correspond to the first letter of the cystein(for V) or tryptophane/phenylalanin (for J) for the nucleotide sequence of the gene. |
-| `-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt` | Use a custom model as a baseline for inference or evaluation. **Note that this will override  custom genomic templates for inference and evaluation**|
-|`-load_last_inferred`| Using this command will load the last inferred model (folder *inference/final_xx.txt*) as a basis for a new inference, evaluation or generation of synthetic sequences |
+| `-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt` | Use a custom model as a baseline for inference or evaluation. **Note that this will override  custom genomic templates for inference and evaluation** |
+| `-load_last_inferred`| Using this command will load the last inferred model (folder *inference/final_xx.txt*) as a basis for a new inference, evaluation or generation of synthetic sequences |
 | `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
-| `-run_custom`  |  Runs the code inside the custom section of the main.cpp file |
-| `-subsample N` | Perform actions on a random subsample of *N* sequences. **This flag will have different effects depending on the supplied commands:** if the `-read_seqs` command is used, the resulting indexed sequence file will be a subsample of sequences contained in the original file. Else, if the `-align` command is used the alignments will be performed on a subsample of the indexed sequences. Else, if the `-evaluate` or `-infer` command is used the inference will be run on a subsample of the indexed sequences. * Obviously N should be < to the total number of sequences available. The `-subsample` flag should be used in only one command of a pipeline, see the Command example section for details.* | 
+| `-run_custom` |  Runs the code inside the custom section of the main.cpp file |
+| `-subsample N` | Perform actions on a random subsample of *N* sequences. **This flag will have different effects depending on the supplied commands:** if the `-read_seqs` command is used, the resulting indexed sequence file will be a subsample of sequences contained in the original file. Else, if the `-align` command is used the alignments will be performed on a subsample of the indexed sequences. Else, if the `-evaluate` or `-infer` command is used the inference will be run on a subsample of the indexed sequences. * Obviously N should be < to the total number of sequences available. The `-subsample` flag should be used in only one command of a pipeline, see the Command example section for details. * | 
 
 ### Working directory
 This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference, evaluation and outputs.
@@ -209,7 +208,7 @@ Optional parameters are the following:
 | `--L_thresh X`  | Sets the sequence likelihood threshold to X. | inference & evaluation |
 | `--P_ratio_thresh X`  | Sets the probability ratio threshold to X. This influences how much the tree of scenarios is pruned. Setting it 0.0 means exploring every possible scenario (exact but very slow), while setting it to 1.0 only explores scenarios that are more likely than the best scenario explored so far (very fast but inaccurate). This sets a trade off between speed and accuracy, the best value is the largest one for which the likelihood of the sequences almost doesn't change when decreasing it further.  | inference & evaluation |
 | `--MLSO`  | Runs the algorithm in a 'Viterbi like' fashion. Accounts for the Most Likely Scenario Only (as fast as using a probability ratio threshold of 1.0) | inference & evaluation |
-|`--infer_only eventnickname1 eventnickname2`| During the inference only the the parameters of the events with nicknames listed are updated | inference |
+|`--infer_only eventnickname1 eventnickname2`| During the inference only the parameters of the events with nicknames listed will be updated | inference |
 |`--not_infer eventnickname1 eventnickname2`| Opposite command to the one above, will fix the parameters of the listed events | inference |
 |`--fix_err`| In the same vein as the two commands above, this one will fix the parameters related to the error rate. | inference |
 
@@ -234,7 +233,7 @@ Although the inference/evaluation generally run smoothly we try to list out some
 | :------------- | :------------------------------ | 
 |map_base::at() exception | This exception is most likely thrown by a Gene_Choice event in the inference. Try/Catch handling is runtime costly thus some checks are not performed on the fly. Explanation: This is most likely the inference receiving a genomic template whose name does not exist in the model realizations. Solution: make sure the genomic templates (and their names) used for alignments correspond to those contained in your model file. |
 | All 0 output | All marginal files contains 0 parameters after one iteration. All sequences have zero likelihood in the *inference_logs.txt* file. Explanation: none of the scenarios had a sufficiently high likelihood to reach the likelihood threshold. Solution: use the `--L_thresh` argument to decrease the likelihood threshold, if the code becomes utterly slow see below. ** In general while inferring one should make sure not too many sequences are assigned a zero likelihood since it would introduce a systematic bias in the learned distribution ** |
-| Extreme slowness | Runtimes are very far from the ones given in *cite IGoR*. Check the mean number of errors in the *inference_logs.txt* file. If these numbers are higher than you would expect from your data (e.g if you are not studying hypermutated data) check your alignments statistics. A possible explanation would be an incorrect setting of the alignment offsets bounds |
+| Extreme slowness | Runtimes are very far from the ones given in [the original article][igor_bioarxiv]. Check the mean number of errors in the *inference_logs.txt* file. If these numbers are higher than you would expect from your data (e.g if you are not studying hypermutated data) check your alignments statistics. A possible explanation would be an incorrect setting of the alignment offsets bounds |
 
 
 ## Outputs 
