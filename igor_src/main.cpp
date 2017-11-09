@@ -99,6 +99,8 @@ int main(int argc , char* argv[]){
 	size_t generate_n_seq;
 	bool generate_werr = true;
 	bool gen_output_CDR3_data = false;
+	string gen_filename_prefix="";
+	int gen_random_engine_seed=-1; //-1 will cause IGoR to generate a time stamp based seed
 
 	//Inference parms
 	bool viterbi_inference = false;
@@ -754,6 +756,28 @@ int main(int argc , char* argv[]){
 				}
 				else if(string(argv[carg_i]) == "--CDR3"){
 					gen_output_CDR3_data = true;
+				}
+				else if(string(argv[carg_i]) == "--name"){
+					++carg_i;
+					gen_filename_prefix = string(argv[carg_i])+"_";
+				}
+				else if(string(argv[carg_i]) == "--seed"){
+
+					++carg_i;
+					try{
+						double tmp_seed = stod(string(argv[carg_i]));
+						//Make sure the passed value is a positive integer
+						if(tmp_seed<0
+								or ((int) tmp_seed - tmp_seed)!=0.0){
+							throw invalid_argument("");
+						}
+					}
+					catch(exception& e){
+						cerr<<"Expected a positive integer after \"--seed\" for sequence generation's seed, received: \"" + string(argv[carg_i]) + "\""<<endl;
+						cerr<<"Terminating IGoR..."<<endl;
+						return EXIT_FAILURE;
+					}
+					gen_random_engine_seed = stoi(string(argv[carg_i]));
 				}
 				else{
 					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
@@ -1559,9 +1583,9 @@ int main(int argc , char* argv[]){
 			}
 
 			genmodel.generate_sequences(generate_n_seq,generate_werr,
-					cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + ".csv",
-					cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv",
-					func_data_pairs_list);
+					cl_path +  batchname + "generated/" + gen_filename_prefix +"generated_seqs_" + w_err_str + ".csv",
+					cl_path + batchname + "generated/" + gen_filename_prefix +"generated_realizations_" + w_err_str + ".csv",
+					func_data_pairs_list,false,gen_random_engine_seed);
 		}
 
 	}

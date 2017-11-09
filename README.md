@@ -267,8 +267,8 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | :------------- | :------------------------------ |
 | `--noerr`  | Generate sequences without sequencing error (the rate and the way those errors are generated is controlled by the model error rate)|
 | `--CDR3` | Outputs nucleotide CDR3 from generated sequences. The file contains three fields: CDR3 nucleotide sequence, whether the CDR3 anchors were found (if erroneous/mutated) and whether the sequence is inframe or not. NOT FULLY FUNCTIONAL YET: gene anchors are not yet defined for the default models shipped with IGoR, use `-set_CDR3_anchors` to set them.|
-| `--name myname`  | Prefix for the generated sequences filenames. ** Note that setting the *batchname* will change the generated sequences folder name, while setting *--name* will change the file names. ** NOT FUNCTIONAL YET |
-| `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. NOT FUNCTIONAL YET |
+| `--name myname`  | Prefix for the generated sequences filenames. ** Note that setting the *batchname* will change the generated sequences folder name, while setting *--name* will change the file names. ** |
+| `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. |
 
 ## Command examples
 First as a sanity check try and run the demo code (this will run for a few minutes on all cores available):

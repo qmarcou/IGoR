@@ -131,7 +131,7 @@ public:
 	bool infer_model(const std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter , double likelihood_threshold , bool viterbi_like , double proba_threshold_factor , double mean_number_seq_err_thresh = INFINITY);
 
 	std::forward_list<std::pair<std::string , std::queue<std::queue<int>>>> generate_sequences (int,bool);
-	void generate_sequences(int,bool,std::string,std::string,std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>> = std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>>(),bool output_only_func = false);
+	void generate_sequences(int,bool,std::string,std::string,std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>> = std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>>(),bool output_only_func = false , int=-1);
 	bool load_genmodel();
 	bool write2txt ();
 	bool readtxt ();
