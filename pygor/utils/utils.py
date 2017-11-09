@@ -41,3 +41,24 @@ def get_seq_rev_comp(seq):
         else:
             print("Nucleotide " + nt + " not supported in get seq rev comp function")
     return rev_comp_seq
+
+def get_str_asarray(full_str,dtype=float,boundaries_char = ["(",")"],sep = ','):
+#""" Returns subfields of string seperated by *sep* , remove boundary chars and convert to the provided type """
+    full_array = []
+    if(len(full_str)>(len(boundaries_char[0])+len(boundaries_char[1]))):
+        
+        #Check if the beginning and end of the string indeed match the boundaries characters 
+        if full_str.find(boundaries_char[0])!=0:
+            print("Beginning char cannot be found")
+        elif full_str.find(boundaries_char[1])!=(len(full_str)-len(boundaries_char[1])):
+            print("Ending char cannot be found")
+            
+        full_str = full_str[len(boundaries_char[0]):-len(boundaries_char[1])]
+        next_comma_index = full_str.find(sep)
+        comma_index = -1
+        while next_comma_index!=-1:
+             full_array.append(dtype(full_str[comma_index+1:next_comma_index]))
+             comma_index = next_comma_index
+             next_comma_index = full_str.find(',',next_comma_index+1)
+        full_array.append(dtype(full_str[comma_index+1:]))     
+    return full_array

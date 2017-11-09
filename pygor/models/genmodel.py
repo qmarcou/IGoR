@@ -181,7 +181,10 @@ class Rec_Event:
 
 	def update_name(self):
 		""" Updates the name of the event (will have no effect if the RecEvent has not been modified since the last call)"""
-		self.name = self.event_type + "_" + self.seq_type + "_" + self.seq_side + "_prio" + str(self.priority) + "_size" + str(len(self.realizations))
+		if self.event_type == "DinucMarkov":
+			self.name = self.event_type + "_" + self.seq_type + "_" + self.seq_side + "_prio" + str(self.priority) + "_size" + str(len(self.realizations)**2)
+		else:
+			self.name = self.event_type + "_" + self.seq_type + "_" + self.seq_side + "_prio" + str(self.priority) + "_size" + str(len(self.realizations))
         
 	def get_realization_vector(self):
 		""" This methods returns the event realizations sorted by the realization index as a list """
