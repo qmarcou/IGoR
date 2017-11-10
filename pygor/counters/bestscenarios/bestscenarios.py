@@ -23,10 +23,13 @@ def scenarios_indices2values(best_scenarios,input_genmodel,drop_alleles=False,na
 			# Now get realizations as integers or list of integers
 			if event.event_type == "DinucMarkov":
 				tmp_real_indices = best_scenarios[event.name].apply(lambda x:get_str_asarray(x,dtype=int,boundaries_char = ["(",")"],sep = ','))
-				best_scenarios_real[event.name] = tmp_real_indices.apply(lambda x: get_real_list_values(x,real_vect))
+
 			else:
 				tmp_real_indices = best_scenarios[event.name].apply(get_real_str_as_int)
-				best_scenarios_real[event.name] = tmp_real_indices.apply(lambda x: real_vect[x])
+			best_scenarios_real[event.name] = tmp_real_indices.apply(lambda x: real_vect[x])
+
+			#Return mismatches as a list of positions
+			best_scenarios_real['Mismatches'] = best_scenarios['Mismatches'].apply(lambda x:get_str_asarray(x,dtype=int,boundaries_char = ["(",")"],sep = ','))
 
 
 			if drop_alleles and (event.event_type == "GeneChoice"):
@@ -50,8 +53,4 @@ def get_real_str_as_int(real_str):
     else:
         return None
 
-def get_real_list_values(x,real_vect):
-	new_list = []
-	for elmt in x:
-		new_list.append(real_vect[x])
-	return new_list
+
