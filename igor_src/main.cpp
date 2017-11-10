@@ -36,6 +36,14 @@ int main(int argc , char* argv[]){
 	size_t carg_i = 1;
 	//cout<<argv[argc-1]<<endl;
 
+	// Test if some commands were supplied to IGoR
+	if(argc<2){
+		cerr<<"The user did not supply IGoR any command."<<endl;
+		cerr<<"Use \"man igor\", \"igor -help\" or visit "<<PACKAGE_URL<<" to see available commands and their effects."<<endl;
+		cerr<<"Terminating IGoR..."<<endl;
+		return EXIT_FAILURE;
+	}
+
 	//Task variables
 	bool run_demo = false;
 	bool align = false;
