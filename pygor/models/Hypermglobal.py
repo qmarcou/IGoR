@@ -1,3 +1,5 @@
+from numpy import *
+
 class Hypermutationglobal
 
 def read_hyper_model(filename):

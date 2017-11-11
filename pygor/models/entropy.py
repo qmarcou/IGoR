@@ -1,4 +1,6 @@
 import copy
+from numpy import *
+
 def compute_cross_entropy_subparts( event_name , model1 , model2 , debug_output = False ):
     #Compute -sum(p_model1*log(p_model2)) for one element of the model
 

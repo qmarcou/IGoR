@@ -1,3 +1,6 @@
+import pandas as pd
+from ..utils import utils
+
 def compute_mutation_frequency(x,threshold=2000.0): #=800
     fraction_list = []
     for cov,err in zip(x.coverage,x.errors):
@@ -7,9 +10,7 @@ def compute_mutation_frequency(x,threshold=2000.0): #=800
             fraction_list.append(np.NaN)
     return fraction_list
 
-#Read gene coverage and errors data
 
-import pandas as pd
 
 def get_str_asarray(full_str,dtype=float,boundaries_char = ["(",")"],sep = ','):
     full_array = []
@@ -31,6 +32,7 @@ def get_str_asarray(full_str,dtype=float,boundaries_char = ["(",")"],sep = ','):
         full_array.append(float(full_str[comma_index+1:]))     
     return full_array
 
+#Read gene coverage and errors data
 def read_coverage_and_errors_file(filename,get_diag_of_N_dim=None):
     raw_read = pd.read_csv(filename,sep=';')
     
@@ -47,8 +49,8 @@ def read_coverage_and_errors_file(filename,get_diag_of_N_dim=None):
             #print(len(tmp_cov))
 
             #Get the diagonal
-            tmp_cov.iloc[i] = list(asarray(tmp_cov.iloc[i]).reshape(reshape_tuple).diagonal())
-            tmp_err.iloc[i] = list(asarray(tmp_err.iloc[i]).reshape(reshape_tuple).diagonal())
+            tmp_cov.iloc[i] = list(np.asarray(tmp_cov.iloc[i]).reshape(reshape_tuple).diagonal())
+            tmp_err.iloc[i] = list(np.asarray(tmp_err.iloc[i]).reshape(reshape_tuple).diagonal())
     
     raw_read.coverage = tmp_cov
     raw_read.errors = tmp_err
