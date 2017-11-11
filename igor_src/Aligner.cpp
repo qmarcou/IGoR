@@ -1254,7 +1254,7 @@ unordered_map<string,size_t> read_gene_anchors_csv(string filename , string sep)
 Matrix<double> read_substitution_matrix(const string& filename , string sep/*=","*/){
 	ifstream infile(filename);
 	if(!infile){
-		throw runtime_error("File not found: "+filename + " in read_substitution_matrix()");
+		throw runtime_error("File not found: \""+filename + "\" in read_substitution_matrix()");
 	}
 	vector<double> tmp_vect;
 	string temp_str;
