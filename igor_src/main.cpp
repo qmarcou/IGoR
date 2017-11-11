@@ -44,6 +44,14 @@ int terminate_IGoR_with_error_message(string error_message){
 	return terminate_IGoR_with_error_message(forward_list<string>(1,error_message));
 }
 
+// Output both the exception handling message and the actual exception message
+int terminate_IGoR_with_error_message(string error_message, exception& e){
+	forward_list<string> error_messages;
+	error_messages.emplace_front(e.what());
+	error_messages.emplace_front(error_message);
+	return terminate_IGoR_with_error_message(error_messages);
+}
+
 int main(int argc , char* argv[]){
 
 	//Command line argument iterator
@@ -298,10 +306,19 @@ int main(int argc , char* argv[]){
 		else if(string(argv[carg_i]) == "-set_custom_model"){
 			custom_cl_parms = true;
 			++carg_i;
-			cl_model_parms.read_model_parms(string(argv[carg_i]));
+			try{
+				cl_model_parms.read_model_parms(string(argv[carg_i]));
+			}catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading custom model parms after \"-set_custom_model\"",  e);
+			}
 			++carg_i;
 			cl_model_marginals = Model_marginals(cl_model_parms);
-			cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+			try{
+				cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading custom marginals after \"-set_custom_model\"",  e);
+			}
 
 			//Check if the model contains a D gene event in order to load the alignments
 			auto events_map = cl_model_parms.get_events_map();
@@ -316,12 +333,12 @@ int main(int argc , char* argv[]){
 		}
 
 		else if(string(argv[carg_i]) == "-run_demo"){
-			clog<<"running demo code"<<endl;
+			clog<<"Running demo code"<<endl;
 			run_demo = true;
 		}
 
 		else if(string(argv[carg_i]) == "-run_custom"){
-			clog<<"running custom code"<<endl;
+			clog<<"Running custom code"<<endl;
 			custom = true;
 		}
 
@@ -401,11 +418,9 @@ int main(int argc , char* argv[]){
 								}
 							}
 							catch(exception& e){
-								forward_list<string> error_messages;
-								error_messages.emplace_front(e.what());
-								error_messages.emplace_front("Exception caught while reading the provided substitution matrix for gene: " + gene_str_val);
-								return terminate_IGoR_with_error_message(error_messages);
+								return terminate_IGoR_with_error_message("Exception caught while reading the provided substitution matrix for gene: " + gene_str_val,  e);
 							}
+
 						}
 						else if(string(argv[carg_i]) == "---gap_penalty"){
 							//Read the gap penalty
@@ -850,16 +865,44 @@ int main(int argc , char* argv[]){
 		if(chain_arg_str == "alpha"){
 			has_D = false;
 			chain_path_str = "tcr_alpha";
-			v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRA V genomic templates.",  e);
+			}
 
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRA J genomic templates.",  e);
+			}
 		}
 		else if(chain_arg_str == "beta"){
 			has_D = true;
 			chain_path_str = "tcr_beta";
-			v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
-			j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRB V genomic templates.",  e);
+			}
+
+			try{
+				d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRB D genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRB J genomic templates.",  e);
+			}
+
 		}
 		else if(chain_arg_str == "light"){
 			forward_list<string> error_messages;
@@ -871,10 +914,26 @@ int main(int argc , char* argv[]){
 		else if( (chain_arg_str == "heavy_naive") or (chain_arg_str == "heavy_memory") ){
 			has_D = true;
 			chain_path_str = "bcr_heavy";
-			v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
-			j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGH V genomic templates.",  e);
+			}
 
+			try{
+				d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGH D genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGH J genomic templates.",  e);
+			}
 			if( chain_arg_str == "heavy_naive" ){
 				//Use a single error rate
 			}
@@ -885,28 +944,64 @@ int main(int argc , char* argv[]){
 			}
 		}
 		//Read CDR3 anchors(cystein, tryptophan/phenylalanin indices)
-		v_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
-		j_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/J_gene_CDR3_anchors.csv");
+		try{
+			v_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading V CDR3 anchors.",  e);
+		}
+
+		try{
+			j_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/J_gene_CDR3_anchors.csv");
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading J CDR3 anchors.",  e);
+		}
 	}
 
 	//Read custom genomic templates if some custom ones were specified
 	if(custom_v){
-		v_genomic = read_genomic_fasta(custom_v_path);
+		try{
+			v_genomic = read_genomic_fasta(custom_v_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom V genomic templates.",  e);
+		}
 	}
 	if(custom_d){
 		has_D = true;
-		d_genomic = read_genomic_fasta(custom_d_path);
+		try{
+			d_genomic = read_genomic_fasta(custom_d_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom D genomic templates.",  e);
+		}
 	}
 	if(custom_j){
-		j_genomic = read_genomic_fasta(custom_j_path);
+		try{
+			j_genomic = read_genomic_fasta(custom_j_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom J genomic templates.",  e);
+		}
 	}
 
 	//Read custom CDR3
 	if(custom_v_anchors){
-		v_CDR3_anchors = read_gene_anchors_csv(custom_v_anchors_path);
+		try{
+			v_CDR3_anchors = read_gene_anchors_csv(custom_v_anchors_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom V CDR3 anchors",  e);
+		}
 	}
 	if(custom_j_anchors){
-		j_CDR3_anchors = read_gene_anchors_csv(custom_j_anchors_path);
+		try{
+			j_CDR3_anchors = read_gene_anchors_csv(custom_j_anchors_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom J CDR3 anchors",  e);
+		}
 	}
 
 	//Make sure passed arguments are unambiguous
@@ -929,7 +1024,7 @@ int main(int argc , char* argv[]){
 			}
 		}
 		catch(exception& e){
-			return terminate_IGoR_with_error_message("Failed to load last inferred model, please check that the model exists");
+			return terminate_IGoR_with_error_message("Exception caught while loading last inferred model, please check that the model exists",e);
 		}
 	}
 
@@ -938,10 +1033,20 @@ int main(int argc , char* argv[]){
 	 */
 	if( ((not custom_cl_parms) and (not load_last_inferred_parms))
 			and (infer or evaluate or generate)){
-		clog<<"read some model parms"<<endl;
-		cl_model_parms.read_model_parms(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
+		clog<<"Read some model parms"<<endl;
+		try{
+			cl_model_parms.read_model_parms(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading IGoR's model parameters.",e);
+		}
 		cl_model_marginals = Model_marginals(cl_model_parms);
-		cl_model_marginals.txt2marginals(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
+		try{
+			cl_model_marginals.txt2marginals(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading IGoR's model marginals.",e);
+		}
 	}
 
 
@@ -1429,9 +1534,7 @@ int main(int argc , char* argv[]){
 				}
 				catch(exception& e){
 					forward_list<string> error_messages;
-					error_messages.emplace_front(e.what());
-					error_messages.emplace_front("Exception caught trying to subsample input files sequences to indexed sequences:");
-					return terminate_IGoR_with_error_message(error_messages);
+					return terminate_IGoR_with_error_message("Exception caught trying to subsample input files sequences to indexed sequences:",e);
 				}
 			}
 
@@ -1439,17 +1542,20 @@ int main(int argc , char* argv[]){
 		}
 
 		if(align){
-			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+			vector<pair<const int, const string>> indexed_seqlist;
+			try{
+				indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading indexed sequences file sequences before alignment. Make sure indexed sequence file has previously been created using \"-read_seqs\" with similar path parameters (working directory, batchname, ...)",e);
+			}
 
 			if(subsample_seqs and not read_seqs){
 				try{
 					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
 				}
 				catch(exception& e){
-					forward_list<string> error_messages;
-					error_messages.emplace_front(e.what());
-					error_messages.emplace_front("Exception caught trying to subsample input files sequences before alignment:");
-					return terminate_IGoR_with_error_message(error_messages);
+					return terminate_IGoR_with_error_message("Exception caught trying to subsample input files sequences before alignment:",e);
 				}
 			}
 
@@ -1458,8 +1564,12 @@ int main(int argc , char* argv[]){
 				clog<<"Performing V alignments...."<<endl;
 				Aligner v_aligner = Aligner(v_subst_matrix , v_gap_penalty , V_gene);
 				v_aligner.set_genomic_sequences(v_genomic);
-
-				v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+				try{
+					v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught upon aligning V genomic templates.",e);
+				}
 			}
 
 
@@ -1468,16 +1578,24 @@ int main(int argc , char* argv[]){
 				clog<<"Performing D alignments...."<<endl;
 				Aligner d_aligner = Aligner(d_subst_matrix , d_gap_penalty , D_gene);
 				d_aligner.set_genomic_sequences(d_genomic);
-
-				d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
+				try{
+					d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught upon aligning D genomic templates.",e);
+				}
 			}
 
 			if(align_j){
 				clog<<"Performing J alignments...."<<endl;
 				Aligner j_aligner (j_subst_matrix , j_gap_penalty , J_gene);
 				j_aligner.set_genomic_sequences(j_genomic);
-
-				j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+				try{
+					j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught upon aligning J genomic templates.",e);
+				}
 			}
 
 		}
@@ -1487,25 +1605,44 @@ int main(int argc , char* argv[]){
 			GenModel genmodel(cl_model_parms,cl_model_marginals,cl_counters_list);
 
 			//Reading alignments
-			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+			vector<pair<const int, const string>> indexed_seqlist;
+			try{
+				indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading indexed sequences file sequences before inference/evaluation. Make sure indexed sequence file has previously been created using \"-read_seqs\" with similar path parameters (working directory, batchname, ...)",e);
+			}
 
 			if(subsample_seqs and not align){
 				try{
 					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
 				}
 				catch(exception& e){
-					forward_list<string> error_messages;
-					error_messages.emplace_front(e.what());
-					error_messages.emplace_front("Exception caught trying to subsample indexed sequences before inference/evaluation:");
-					return terminate_IGoR_with_error_message(error_messages);
+					return terminate_IGoR_with_error_message("Exception caught trying to subsample indexed sequences before inference/evaluation:",e);
 				}
 			}
-
-			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
-			if(has_D){
-				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + d_align_filename, D_gene , 35 , false , indexed_seqlist , sorted_alignments);
+			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments;
+			try{
+				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
 			}
-			sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading V alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --V\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+			}
+
+			if(has_D){
+				try{
+					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + d_align_filename, D_gene , 35 , false , indexed_seqlist , sorted_alignments);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading D alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --D\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+				}
+			}
+			try{
+				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading J alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --J\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+			}
 
 			vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
@@ -1525,7 +1662,7 @@ int main(int argc , char* argv[]){
 			}
 		}
 		else if(infer and evaluate){
-			terminate_IGoR_with_error_message("Cannot infer and evaluate in a single command, please split in two commands (otherwise the model used to evaluate is ambiguous)");
+			return terminate_IGoR_with_error_message("Cannot infer and evaluate in a single command, please split in two commands (otherwise the model used to evaluate is ambiguous)");
 		}
 
 		if(generate){
