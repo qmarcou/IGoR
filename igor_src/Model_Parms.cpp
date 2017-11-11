@@ -518,7 +518,7 @@ void Model_Parms::read_model_parms(string filename){
 	ifstream infile(filename);
 	if(!infile){
 		//Throw exception
-		throw runtime_error("File not found : "+filename);
+		throw runtime_error("File not found : \""+filename + "\"");
 	}
 	string line_str;
 	getline(infile,line_str);
@@ -534,7 +534,7 @@ void Model_Parms::read_model_parms(string filename){
 				event_class = str2GeneClass(event_class_str);
 			}
 			catch(exception& e){
-				throw runtime_error("Unknown Gene_class\""+event_class_str +"\" in model file: " + filename);
+				throw runtime_error("Unknown Gene_class\""+event_class_str +"\" in model file: \"" + filename + "\"");
 			}
 
 			semicolon_index = next_semicolon_index;
@@ -545,7 +545,7 @@ void Model_Parms::read_model_parms(string filename){
 				event_side = str2SeqSide(event_side_str);
 			}
 			catch(exception& e){
-				throw runtime_error("Unknown Seq_side\""+event_side_str +"\" in file: " + filename);
+				throw runtime_error("Unknown Seq_side\""+event_side_str +"\" in file: \"" + filename + "\"");
 			}
 
 

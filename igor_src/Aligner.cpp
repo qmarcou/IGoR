@@ -318,12 +318,12 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 			}
 		}
 		catch(exception& except){
-			cout<<"Exception caught calling align_seq() on sequence:"<<endl;
-			cout<<(*seq_it).first<<";"<<(*seq_it).second<<endl;
-			cout<<endl;
-			cout<<"Throwing exception now..."<<endl<<endl;
-			cout<<except.what()<<endl;
-			throw;
+			cerr<<"Exception caught calling align_seq() on sequence:"<<endl;
+			cerr<<(*seq_it).first<<";"<<(*seq_it).second<<endl;
+			cerr<<endl;
+			cerr<<"Throwing exception now..."<<endl<<endl;
+			cerr<<except.what()<<endl;
+			throw except;
 		}
 
 
