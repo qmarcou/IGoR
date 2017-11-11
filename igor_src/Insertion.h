@@ -20,7 +20,15 @@
 #include <random>
 #include <map>
 
-
+/**
+ * \class Insertion Insertion.h
+ * \brief Insertion recombination events.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ *  The Insertion RecEvent models the distribution of junctional insertion length during the V(D)J recombination process.
+ *
+ */
 class Insertion: public Rec_Event {
 public:
 	//Constructors

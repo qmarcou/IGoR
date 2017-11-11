@@ -10,6 +10,15 @@
 
 #include "Counter.h"
 
+/**
+ * \class Errors_counter Errorscounter.h
+ * \brief Counter recording the number of genomic nucleotides and errors/mismatch per scenario
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Counter recording the number of genomic nucleotides and errors/mismatch per scenario.
+ * This information can either be recorded for the N best scenarios or be aggregated to extract individual sequence posterior error/mutation load.
+ */
 class Errors_counter: public Counter {
 public:
 	Errors_counter();

@@ -24,7 +24,23 @@
 #include "IntStr.h"
 
 
-
+/**
+ * \class Alignment_data Aligner.h
+ * \brief Stores information on the alignment of one genomic template against the target
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Stores information on the alignment of one genomic template against the target.
+ * It contains:
+ * - the gene name
+ * - the offset of the alignment (index on the target sequence on which the first letter of the FULL genomic template aligns (can be negative or lie outside the target)
+ * - 5' and 3' offset positions of the best alignment first and last aligned nucleotide
+ * - insertions : indices on the TARGET of inserted nucleotides
+ * - deletions : indices on the GENOMIC TEMPLATE of deleted nucleotides
+ * - alignment length
+ * - list of mismatches (that lie event outside the best alignment to allow IGoR to know mismatch positions in advance while exploring different deletions numbers)
+ * - the alignment score
+ */
 struct Alignment_data {
 	std::string gene_name;
 	int offset;
@@ -48,6 +64,17 @@ struct Alignment_data {
 
 };
 
+/**
+ * \class Aligner Aligner.h
+ * \brief A modified Smith-Waterman alignment class
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * The Aligner class allows to perform SW alignments according to the parameters (substitution matrix,gap penalty) supplied upon construction of the object.
+ * The SW alignments matrix has been altered for V and J in order to allow for deletions on the deleted side only.
+ * Alignments can be made in parallel using openMP
+ *
+ */
 class Aligner {
 public:
 	Aligner();

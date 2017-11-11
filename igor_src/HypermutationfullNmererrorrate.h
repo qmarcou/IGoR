@@ -16,6 +16,17 @@
 #include <math.h>
 #include <memory>
 
+/**
+ * \class Hypermutation_full_Nmer_errorrate HypermutationfullNmererrorrate.h
+ * \brief A non-additive context dependent hypermutation model.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * A specialization of the ErrorRate class.
+ * Implements a context dependent hypermutation/error model with tunable context size.
+ * A different mutation probability is recorded for each context of size N, leading to 4^N parameters.
+ * This model is inspired from the S5F mutability model. The identity of the resulting nucleotide after mutation is assumed to follow a uniform distribution.
+ */
 class Hypermutation_full_Nmer_errorrate: public Error_rate {
 public:
 public:

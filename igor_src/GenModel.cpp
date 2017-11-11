@@ -413,7 +413,7 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 	return 0;
 }
 /**
- * \deprecated ?
+ * \deprecated This function used to store generated sequences in memory, and quickly overloaded it for large number of generated sequences.
  */
 forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int number_seq , bool generate_errors){
 

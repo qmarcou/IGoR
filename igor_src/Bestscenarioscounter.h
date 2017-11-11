@@ -18,7 +18,15 @@
 #include "Insertion.h"
 
 
-
+/**
+ * \class Best_scenarios_counter Bestscenarioscounter.h
+ * \brief Records the N best scenarios realizations and mismatches.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Implementation of the Counter abstract class.
+ * Records the N most likely scenario realizations and mismatches and append it to a semicolon separated file.
+ */
 class Best_scenarios_counter: public Counter {
 public:
 	Best_scenarios_counter();

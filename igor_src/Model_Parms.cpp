@@ -161,14 +161,13 @@ list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(shared_ptr<Rec_Event> eve
 }
 /**
  * \brief Get all ancestors of the supplied event
- *
- * Get all ancestors of the supplied event. Ancestors are all events higher than the considered event
- *  in the genealogy and with link of any degree to it
- *
  * \author Q.Marcou
  * \version 1.0
  * \param[in] event_name The event whom we seek the ancestors
  * \return The list of the event ancestors
+ *
+ *  Get all ancestors of the supplied event. Ancestors are all events higher than the considered event
+ *  in the genealogy and with link of any degree to it
  */
 list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(Rec_Event_name event_name) const{
 	set<shared_ptr<Rec_Event>> ancestor_set;

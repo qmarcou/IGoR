@@ -11,6 +11,15 @@
 #include "Counter.h"
 #include <unordered_map>
 
+/**
+ * \class Pgen_counter Pgencounter.h
+ * \brief Estimates sequences generation probability.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * This Counter implements an estimator for the generation probability of evaluated sequences.
+ * Alternatively the counter can record the probability of generation of putative ancestor (unmutated/error free) sequences and their associated posterior probability.
+ */
 class Pgen_counter: public Counter {
 public:
 	Pgen_counter();

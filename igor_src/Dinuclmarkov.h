@@ -22,6 +22,18 @@
 #include "Errorrate.h"
 #include <random>
 
+/**
+ * \class Dinucl_markov Dinucl_markov.h
+ * \brief Dinucleotide insertion Markov model.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Models a Markov chain dictating the identity of inserted nucleotides in the inserted region.
+ * We assume a low error frequency and almost flat dinucleotide model regime such that we use an euristic to extract the most likely realization.
+ * This choice has been made because the full handling through a forward algorithm would not be able to cope with e.g context dependent errors.
+ *
+ * By construction the Insertion event must have been explored first
+ */
 class Dinucl_markov: public Rec_Event {
 public:
 	//Constructors

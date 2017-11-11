@@ -19,7 +19,18 @@
 #include <gsl/gsl_blas.h>
 #include <memory>
 
-
+/**
+ * \class Hypermutation_global_errorrate Hypermutationglobalerrorrate.h
+ * \brief An additive (independent site) context dependent hypermutation model.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * A specialization of the ErrorRate class.
+ * Implements a context dependent hypermutation/error model with tunable context size.
+ * Nucleotide from the context are assumed to contribute independently to the mutability of the context through an additive logarithmic score.
+ * Such a model contains only 3N+1 parameters and allows to probe large context sizes.
+ * The identity of the resulting nucleotide after mutation is assumed to follow a uniform distribution.
+ */
 class Hypermutation_global_errorrate: public Error_rate {
 
 public:

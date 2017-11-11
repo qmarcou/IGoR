@@ -118,6 +118,16 @@ struct gen_CDR3_data{
 	}
 };
 
+/**
+ * \class GenModel GenModel.h
+ * \brief High level V(D)J generative model.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Highest level class to model the V(D)J recombination and subsequent processes.
+ * It contains the model's graph structure (Model_Parms), the associated probability distribution (Model_Marginals).
+ * The GenModel class provides high level functions to perform inference / sequence annotation as well as generating random sequences from the model.
+ */
 class GenModel {
 public:
 	GenModel(const Model_Parms&);

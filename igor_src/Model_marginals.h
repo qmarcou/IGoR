@@ -28,7 +28,15 @@
 
 
 
-
+/**
+ * \class Model_marginals Model_marginals.h
+ * \brief Encapsulates the marginal probabilities/posterior frequency for each recombination event's realization.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Model_Marginals central component is a giant array containing all the marginal probabilities (or posterior frequencies during the inference) for each event realization.
+ * The class supplies various methods to navigate into this array and as well methods handling normalization and other various transformation.
+ */
 class Model_marginals {
 public:
 	Model_marginals();
