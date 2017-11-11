@@ -2,12 +2,12 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([igor], [1.0.0.2], [quentin.marcou@lpt.ens.fr])
+AC_INIT([igor], [1.0.0.2], [quentin.marcou@lpt.ens.fr],[igor],[https://bitbucket.org/qmarcou/igor])
 
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 #AC_CONFIG_SRCDIR([igor_src/Deletion.h])
-#AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 #INIT LIBTOOL
 AC_CONFIG_MACRO_DIRS([m4])

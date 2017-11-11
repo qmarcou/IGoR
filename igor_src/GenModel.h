@@ -118,6 +118,16 @@ struct gen_CDR3_data{
 	}
 };
 
+/**
+ * \class GenModel GenModel.h
+ * \brief High level V(D)J generative model.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Highest level class to model the V(D)J recombination and subsequent processes.
+ * It contains the model's graph structure (Model_Parms), the associated probability distribution (Model_Marginals).
+ * The GenModel class provides high level functions to perform inference / sequence annotation as well as generating random sequences from the model.
+ */
 class GenModel {
 public:
 	GenModel(const Model_Parms&);
@@ -131,7 +141,7 @@ public:
 	bool infer_model(const std::vector<std::tuple<int,std::string,std::unordered_map<Gene_class , std::vector<Alignment_data>>>>& sequences ,const  int iterations ,const std::string path, bool fast_iter , double likelihood_threshold , bool viterbi_like , double proba_threshold_factor , double mean_number_seq_err_thresh = INFINITY);
 
 	std::forward_list<std::pair<std::string , std::queue<std::queue<int>>>> generate_sequences (int,bool);
-	void generate_sequences(int,bool,std::string,std::string,std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>> = std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>>(),bool output_only_func = false);
+	void generate_sequences(int,bool,std::string,std::string,std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>> = std::list<std::pair<gen_seq_trans,std::shared_ptr<void>>>(),bool output_only_func = false , int=-1);
 	bool load_genmodel();
 	bool write2txt ();
 	bool readtxt ();
@@ -144,7 +154,7 @@ private:
 	Model_Parms model_parms;
 	Model_marginals model_marginals;
 	std::map<size_t,std::shared_ptr<Counter>> counters_list;//Size_t is a unique identifier for the Counter(useful for adding them up)
-	std::pair<std::string , std::queue<std::queue<int>>> generate_unique_sequence(std::queue<std::shared_ptr<Rec_Event>> , std::unordered_map<Rec_Event_name,int> , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::default_random_engine& );
+	std::pair<std::string , std::queue<std::queue<int>>> generate_unique_sequence(std::queue<std::shared_ptr<Rec_Event>> , std::unordered_map<Rec_Event_name,int> , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::default_random_engine& , bool =true);
 	Model_marginals compute_marginals(std::list<std::string> sequences);
 	Model_marginals compute_seq_marginals (std::string sequence);
 	Model_marginals compute_seq_marginals (std::string sequence , std::list<std::list<std::string> > allowed_scenarios );

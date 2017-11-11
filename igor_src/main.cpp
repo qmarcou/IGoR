@@ -5,6 +5,7 @@
  *      Author: quentin
  */
 
+#include "../config.h"
 #include "Deletion.h"
 #include "Insertion.h"
 #include "Genechoice.h"
@@ -20,19 +21,47 @@
 #include "Coverageerrcounter.h"
 #include "Bestscenarioscounter.h"
 #include "Pgencounter.h"
+#include "Errorscounter.h"
 #include "Utils.h"
 #include <chrono>
-#include<set>
+#include <set>
 
 
 using namespace std;
 
+int terminate_IGoR_with_error_message(const forward_list<string> error_messages){
+	string igor_error_prefix = "[IGoR] ERROR: ";
+	for(string error_message : error_messages){
+		cerr<<igor_error_prefix<<error_message<<endl;
+	}
+	cerr<<igor_error_prefix<<"Use \"man igor\", \"igor -help\" or visit "<<PACKAGE_URL<<" to see available commands and their effects."<<endl;
+	cerr<<igor_error_prefix<<"Please report any bug to: "<<PACKAGE_BUGREPORT<<endl;
+	cerr<<igor_error_prefix<<"Terminating IGoR..."<<endl;
+	return EXIT_FAILURE;
+}
+
+int terminate_IGoR_with_error_message(string error_message){
+	return terminate_IGoR_with_error_message(forward_list<string>(1,error_message));
+}
+
+// Output both the exception handling message and the actual exception message
+int terminate_IGoR_with_error_message(string error_message, exception& e){
+	forward_list<string> error_messages;
+	error_messages.emplace_front(e.what());
+	error_messages.emplace_front(error_message);
+	return terminate_IGoR_with_error_message(error_messages);
+}
 
 int main(int argc , char* argv[]){
 
 	//Command line argument iterator
 	size_t carg_i = 1;
 	//cout<<argv[argc-1]<<endl;
+
+	// Test if some commands were supplied to IGoR
+	if(argc<2){
+		return terminate_IGoR_with_error_message("The user did not supply IGoR any command.");
+	}
 
 	//Task variables
 	bool run_demo = false;
@@ -97,6 +126,8 @@ int main(int argc , char* argv[]){
 	size_t generate_n_seq;
 	bool generate_werr = true;
 	bool gen_output_CDR3_data = false;
+	string gen_filename_prefix="";
+	int gen_random_engine_seed=-1; //-1 will cause IGoR to generate a time stamp based seed
 
 	//Inference parms
 	bool viterbi_inference = false;
@@ -116,8 +147,24 @@ int main(int argc , char* argv[]){
 	double proba_threshold_ratio_evaluate = 1e-5;
 
 	//Alignment parameters
-	double heavy_pen_nuc44_vect [] = {5,-14,-14,-14 , -14 ,5,-14,-14 , -14,-14,5,-14 , -14,-14,-14,5};
-	Matrix<double> heavy_pen_nuc44_sub_matrix(4,4,heavy_pen_nuc44_vect);
+	double heavy_pen_nuc44_vect [] = { // A,C,G,T,R,Y,K,M,S,W,B,D,H,V,N
+	        5,-14,-14,-14,-14,2,-14,2,2,-14,-14,1,1,1,0,
+	        -14,5,-14,-14,-14,2,2,-14,-14,2,1,-14,1,1,0,
+	        -14,-14,5,-14,2,-14,2,-14,2,-14,1,1,-14,1,0,
+	        -14,-14,-14,5,2,-14,-14,2,-14,2,1,1,1,-14,0,
+	        -14,-14,2,2,1.5,-14,-12,-12,-12,-12,1,1,-13,-13,0,
+	        2,2,-14,-14,-14,1.5,-12,-12,-12,-12,-13,-13,1,1,0,
+	        -14,2,2,-14,-12,-12,1.5,-14,-12,-12,1,-13,-13,1,0,
+	        2,-14,-14,2,-12,-12,-14,1.5,-12,-12,-13,1,1,-13,0,
+	        2,-14,2,-14,-12,-12,-12,-12,1.5,-14,-13,1,-13,1,0,
+	        -14,2,-14,2,-12,-12,-12,-12,-14,1.5,1,-13,1,-13,0,
+	        -14,1,1,1,1,-13,1,-13,-13,1,0.5,-12,-12,-12,0,
+	        1,-14,1,1,1,-13,-13,1,1,-13,-12,0.5,-12,-12,0,
+	        1,1,-14,1,-13,1,-13,1,-13,1,-12,-12,0.5,-12,0,
+	        1,1,1,-14,-13,1,1,-13,1,-13,-12,-12,-12,0.5,0,
+	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+	Matrix<double> heavy_pen_nuc44_sub_matrix(15,15,heavy_pen_nuc44_vect);
 
 		//V alignment vars
 		bool align_v = false;
@@ -152,15 +199,34 @@ int main(int argc , char* argv[]){
 
 	while(carg_i<argc){
 
+		//Command line argument asking for help
+		if(string(argv[carg_i]) == string("-h")
+				or string(argv[carg_i]) == string("-help")){
+			// Show the manual using man and installed manpages
+			system(&("man igor")[0]);
+			// End the program without error
+			return 0;
+		}
+
+		//Command line argument asking for help
+		if(string(argv[carg_i]) == string("-v")
+				or string(argv[carg_i]) == string("-version")){
+			// Display IGoR's version
+			cout<<"IGoR version "<<PACKAGE_VERSION<<endl;
+			clog<<"Visit "<<PACKAGE_URL<<" to check the latest version!"<<endl;
+			// End the program without error
+			return 0;
+		}
+
 		//Command line argument setting the number of threads
 		if(string(argv[carg_i]) == string("-threads")){
 			omp_set_num_threads(std::stoi(argv[++carg_i]));
-			cout<<"Setting number of threads to: "<<argv[carg_i]<<endl;
+			clog<<"Setting number of threads to: "<<argv[carg_i]<<endl;
 		}
 
 		//Command line to redirect the standard output to a file
 		else if(string(argv[carg_i]) == string("-stdout_f")){
-			cout<<"Redirecting output to file: "<<argv[carg_i+1]<<endl;
+			clog<<"Redirecting output to file: "<<argv[carg_i+1]<<endl;
 			freopen(argv[++carg_i],"a+",stdout);
 		}
 
@@ -170,7 +236,7 @@ int main(int argc , char* argv[]){
 			if(batchname[batchname.size()-1] != '_'){
 				batchname.append("_");
 			}
-			cout<<"Batch name set to: "<<batchname<<endl;
+			clog<<"Batch name set to: "<<batchname<<endl;
 		}
 
 		//Set custom genomic template
@@ -198,14 +264,14 @@ int main(int argc , char* argv[]){
 					custom_j_path = string(argv[carg_i]);
 				}
 				else{
-					throw invalid_argument("Unknown gene argument \"" + string(argv[carg_i]) +"\" to set genomic templates");
+					return terminate_IGoR_with_error_message("Unknown gene argument \"" + string(argv[carg_i]) +"\" to set genomic templates");
 				}
 			}
 
 			if((not custom_v)
 					and (not custom_d)
 					and (not custom_j)){
-				throw runtime_error("No gene argument was passed after -set_genomic");
+				return terminate_IGoR_with_error_message("No gene argument was passed after -set_genomic");
 			}
 		}
 
@@ -227,23 +293,40 @@ int main(int argc , char* argv[]){
 					custom_j_anchors_path = string(argv[carg_i]);
 				}
 				else{
-					throw invalid_argument("Unknown gene argument \"" + string(argv[carg_i]) +"\" to set CDR3 anchors");
+					return terminate_IGoR_with_error_message("Unknown gene argument \"" + string(argv[carg_i]) +"\" to set CDR3 anchors");
 				}
 			}
 
 			if((not custom_v_anchors)
 					and (not custom_j_anchors)){
-				throw runtime_error("No gene argument was passed after -set_CDR3_anchors");
+				return terminate_IGoR_with_error_message("No gene argument was passed after -set_CDR3_anchors");
 			}
 		}
 
 		else if(string(argv[carg_i]) == "-set_custom_model"){
 			custom_cl_parms = true;
 			++carg_i;
-			cl_model_parms.read_model_parms(string(argv[carg_i]));
-			++carg_i;
+			try{
+				cl_model_parms.read_model_parms(string(argv[carg_i]));
+			}catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading custom model parms after \"-set_custom_model\"",  e);
+			}
 			cl_model_marginals = Model_marginals(cl_model_parms);
-			cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+			if((carg_i+1)<argc
+					and (string(argv[carg_i+1]).substr(0,1)!=string("-"))){
+				++carg_i;
+				//Check if the next argument is a new command or the corresponding marginal file
+				try{
+					cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading custom marginals after \"-set_custom_model\"",  e);
+				}
+			}
+			else{
+				clog<<"No model marginals file was provided with the custom model parameters, initializing corresponding marginals to a uniform distribution!"<<endl;
+				cl_model_marginals.uniform_initialize(cl_model_parms);
+			}
 
 			//Check if the model contains a D gene event in order to load the alignments
 			auto events_map = cl_model_parms.get_events_map();
@@ -258,13 +341,24 @@ int main(int argc , char* argv[]){
 		}
 
 		else if(string(argv[carg_i]) == "-run_demo"){
-			cout<<"running demo code"<<endl;
+			clog<<"Running demo code"<<endl;
 			run_demo = true;
 		}
 
 		else if(string(argv[carg_i]) == "-run_custom"){
-			cout<<"running custom code"<<endl;
+			clog<<"Running custom code"<<endl;
 			custom = true;
+		}
+
+		else if(string(argv[carg_i]) == "-subsample"){
+			subsample_seqs = true;
+			++carg_i;
+			try{
+				n_subsample_seqs = stoi(argv[carg_i]);
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Expected an integer for the number of sequences to subsample, received: \"" + string(argv[carg_i]) + "\"");
+			}
 		}
 
 		else if(string(argv[carg_i]) == "-align"){
@@ -312,16 +406,29 @@ int main(int argc , char* argv[]){
 								thresh_value = stod(string(argv[carg_i]));
 							}
 							catch (exception& e) {
-								cout<<"Expected a float for the alignment score threshold, received: \"" + string(argv[carg_i]) + "\""<<endl;
-								cout<<"Terminating and throwing exception now..."<<endl;
-								throw e;
+								return terminate_IGoR_with_error_message("Expected a float for the alignment score threshold, received: \"" + string(argv[carg_i]) + "\"");
 							}
 							thresh_provided = true;
 						}
 						else if(string(argv[carg_i]) == "---matrix"){
 							//Read the substitution matrix from a file
-							//TODO code this
-							throw invalid_argument("Support for a changing the substitution matrix from a file is not coded yet");
+							++carg_i;
+							string matrix_filename = string(argv[carg_i]);
+							try{
+								if((gene_str_val == "--V") or (gene_str_val == "--all")){
+									v_subst_matrix = read_substitution_matrix(matrix_filename);
+								}
+								if((gene_str_val == "--D") or (gene_str_val == "--all")){
+									d_subst_matrix = read_substitution_matrix(matrix_filename);
+								}
+								if((gene_str_val == "--J") or (gene_str_val == "--all")){
+									j_subst_matrix = read_substitution_matrix(matrix_filename);
+								}
+							}
+							catch(exception& e){
+								return terminate_IGoR_with_error_message("Exception caught while reading the provided substitution matrix for gene: " + gene_str_val,  e);
+							}
+
 						}
 						else if(string(argv[carg_i]) == "---gap_penalty"){
 							//Read the gap penalty
@@ -330,9 +437,7 @@ int main(int argc , char* argv[]){
 								gap_penalty = stod(string(argv[carg_i]));
 							}
 							catch (exception& e) {
-								cout<<"Expected a float for the alignment gap penalty, received: \"" + string(argv[carg_i]) + "\""<<endl;
-								cout<<"Terminating and throwing exception now..."<<endl;
-								throw e;
+								return terminate_IGoR_with_error_message("Expected a float for the alignment gap penalty, received: \"" + string(argv[carg_i]) + "\"");
 							}
 							gap_penalty_provided = true;
 						}
@@ -346,7 +451,7 @@ int main(int argc , char* argv[]){
 								best_only = false;
 							}
 							else{
-								throw invalid_argument("Unkown argument received\"" + string(argv[carg_i]) + "\"to set best alignment only boolean, existing values are: true, false");
+								return terminate_IGoR_with_error_message("Unkown argument received\"" + string(argv[carg_i]) + "\"to set best alignment only boolean, existing values are: true, false");
 							}
 							best_only_provided = true;
 
@@ -358,9 +463,7 @@ int main(int argc , char* argv[]){
 								left_offset_bound = stoi(string(argv[carg_i]));
 							}
 							catch (exception& e) {
-								cout<<"Expected an integer for the left offset bound, received: \"" + string(argv[carg_i]) + "\""<<endl;
-								cout<<"Terminating and throwing exception now..."<<endl;
-								throw e;
+								return terminate_IGoR_with_error_message("Expected an integer for the left offset bound, received: \"" + string(argv[carg_i]) + "\"");
 							}
 
 							++carg_i;
@@ -368,19 +471,17 @@ int main(int argc , char* argv[]){
 								right_offset_bound = stoi(string(argv[carg_i]));
 							}
 							catch (exception& e) {
-								cout<<"Expected an integer for the right offset bound, received: \"" + string(argv[carg_i]) + "\""<<endl;
-								cout<<"Terminating and throwing exception now..."<<endl;
-								throw e;
+								return terminate_IGoR_with_error_message("Expected an integer for the right offset bound, received: \"" + string(argv[carg_i]) + "\"");
 							}
 							offset_bounds_provided = true;
 						}
 						else{
-							throw invalid_argument("Unknown parameter\"" + string(argv[carg_i]) +"\" for gene " + gene_str_val + " in -align " );
+							return terminate_IGoR_with_error_message("Unknown parameter\"" + string(argv[carg_i]) +"\" for gene " + gene_str_val + " in -align " );
 						}
 					}
 				}
 				else{
-					throw invalid_argument("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
+					return terminate_IGoR_with_error_message("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
 				}
 
 				//Now assign back the values to the correct variables
@@ -478,9 +579,7 @@ int main(int argc , char* argv[]){
 						l_thresh = stod(string(argv[carg_i]));
 					}
 					catch(exception& e){
-						cout<<"Expected a float for the likelihood threshold, received: \"" + string(argv[carg_i]) + "\""<<endl;
-						cout<<"Terminating and throwing exception now..."<<endl;
-						throw e;
+						return terminate_IGoR_with_error_message("Expected a float for the likelihood threshold, received: \"" + string(argv[carg_i]) + "\"");
 					}
 
 					if(infer){
@@ -505,9 +604,7 @@ int main(int argc , char* argv[]){
 						p_ratio = stod(string(argv[carg_i]));
 					}
 					catch(exception& e){
-						cout<<"Expected a float for the probability ratio threshold, received: \"" + string(argv[carg_i]) + "\""<<endl;
-						cout<<"Terminating and throwing exception now..."<<endl;
-						throw e;
+						return terminate_IGoR_with_error_message("Expected a float for the probability ratio threshold, received: \"" + string(argv[carg_i]) + "\"");
 					}
 
 					if(infer){
@@ -525,13 +622,11 @@ int main(int argc , char* argv[]){
 							n_iter_inference = stoi(string(argv[carg_i]));
 						}
 						catch(exception& e){
-							cout<<"Expected an integer for the number of iterations to perform for the inference, received: \"" + string(argv[carg_i]) + "\""<<endl;
-							cout<<"Terminating and throwing exception now..."<<endl;
-							throw e;
+							return terminate_IGoR_with_error_message("Expected an integer for the number of iterations to perform for the inference, received: \"" + string(argv[carg_i]) + "\"");
 						}
 					}
 					else{
-						throw invalid_argument("Invalid argument \"--N_iter\" for -evaluate");
+						return terminate_IGoR_with_error_message("Invalid argument \"--N_iter\" for -evaluate");
 					}
 				}
 				else if( (string(argv[carg_i]) == "--infer_only") or (string(argv[carg_i]) == "--not_infer")){
@@ -555,20 +650,10 @@ int main(int argc , char* argv[]){
 				else if(string(argv[carg_i]) == "--fix_err"){
 					fix_err_rate = true;
 				}
-				else if(string(argv[carg_i]) == "--subsample"){
-					subsample_seqs = true;
-					++carg_i;
-					try{
-						n_subsample_seqs = stoi(argv[carg_i]);
-					}
-					catch(exception& e){
-						cout<<"Expected an integer for the number of sequences to subsample, received: \"" + string(argv[carg_i]) + "\""<<endl;
-						cout<<"Terminating and throwing exception now..."<<endl;
-						throw e;
-					}
-				}
+
+
 				else{
-					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify inference/evaluate parameters");
+					return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify inference/evaluate parameters");
 				}
 			}
 		}
@@ -585,10 +670,10 @@ int main(int argc , char* argv[]){
 					or (string(argv[carg_i]) == "heavy_naive")
 					or (string(argv[carg_i]) == "heavy_memory")){
 				chain_arg_str = string(argv[carg_i]);
-				cout<<"Chain parameter set to: "<<chain_arg_str<<endl;
+				clog<<"Chain parameter set to: "<<chain_arg_str<<endl;
 			}
 			else{
-				throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: alpha, beta, heavy_naive , heavy_memory , light");
+				return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: alpha, beta, heavy_naive , heavy_memory , light");
 			}
 		}
 
@@ -597,7 +682,7 @@ int main(int argc , char* argv[]){
 			species_provided = true;
 			++carg_i;
 			species_str = string(argv[carg_i]);
-			cout<<"Species parameter set to: "<<species_str<<endl;
+			clog<<"Species parameter set to: "<<species_str<<endl;
 		}
 
 		/*
@@ -615,7 +700,7 @@ int main(int argc , char* argv[]){
 			}
 
 			if( not cl_counters_list.empty()){
-				throw invalid_argument("Working directory needs to be set before declaring the counters, please re-order the arguments");
+				return terminate_IGoR_with_error_message("Working directory needs to be set before declaring the counters, please re-order the arguments");
 			}
 		}
 
@@ -642,13 +727,11 @@ int main(int argc , char* argv[]){
 						n_record_scenarios = stoi(string(argv[carg_i]));
 					}
 					catch(exception& e){
-						cout<<"Expected the number of scenarios to be recorded by the best scenario counter, received: \"" + string(argv[carg_i]) + "\""<<endl;
-						cout<<"Terminating and throwing exception now..."<<endl;
-						throw e;
+						return terminate_IGoR_with_error_message("Expected the number of scenarios to be recorded by the best scenario counter, received: \"" + string(argv[carg_i]) + "\"");
 					}
 
 					if(n_record_scenarios<=0){
-						throw invalid_argument("Number of scenarios to be recorded must be greater than zero");
+						return terminate_IGoR_with_error_message("Number of scenarios to be recorded must be greater than zero");
 					}
 
 					shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , cl_path + "output/" ,true));
@@ -661,7 +744,7 @@ int main(int argc , char* argv[]){
 						chosen_gc = str2GeneClass(string(argv[carg_i]));
 					}
 					catch(exception& e){
-						throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify coverage target!\n Supported arguments are: V_gene, VD_genes, D_gene, DJ_gene, VJ_gene, J_gene, VDJ_genes");
+						return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify coverage target!\n Supported arguments are: V_gene, VD_genes, D_gene, DJ_gene, VJ_gene, J_gene, VDJ_genes");
 					}
 					shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter(cl_path + "output/",chosen_gc,1,false,true));
 					cl_counters_list.emplace(cl_counters_list.size(),coverage_counter_ptr);
@@ -681,9 +764,7 @@ int main(int argc , char* argv[]){
 				generate_n_seq = stoi(string(argv[carg_i]));
 			}
 			catch(exception& e){
-				cout<<"Expected the number of sequences to generate, received: \"" + string(argv[carg_i]) + "\""<<endl;
-				cout<<"Terminating and throwing exception now..."<<endl;
-				throw e;
+				return terminate_IGoR_with_error_message("Expected the number of sequences to generate, received: \"" + string(argv[carg_i]) + "\"");
 			}
 
 			while( (carg_i+1<argc)
@@ -698,8 +779,28 @@ int main(int argc , char* argv[]){
 				else if(string(argv[carg_i]) == "--CDR3"){
 					gen_output_CDR3_data = true;
 				}
+				else if(string(argv[carg_i]) == "--name"){
+					++carg_i;
+					gen_filename_prefix = string(argv[carg_i])+"_";
+				}
+				else if(string(argv[carg_i]) == "--seed"){
+
+					++carg_i;
+					try{
+						double tmp_seed = stod(string(argv[carg_i]));
+						//Make sure the passed value is a positive integer
+						if(tmp_seed<0
+								or ((int) tmp_seed - tmp_seed)!=0.0){
+							return terminate_IGoR_with_error_message("The random generator seed after \"--seed\" must be a positive integer");
+						}
+					}
+					catch(exception& e){
+						return terminate_IGoR_with_error_message("Expected a positive integer after \"--seed\" for sequence generation's seed, received: \"" + string(argv[carg_i]) + "\"");
+					}
+					gen_random_engine_seed = stoi(string(argv[carg_i]));
+				}
 				else{
-					throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
+					return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify sequence generation parameters");
 				}
 			}
 
@@ -719,29 +820,29 @@ int main(int argc , char* argv[]){
 				transform(tmp_str.begin(),tmp_str.end(),tmp_str.begin(),::tolower);
 				if( tmp_str == ".fasta" ){
 					seqs_fileformat = FASTA_f;
-					cout<<"FASTA extension detected for the input sequence file"<<endl;
+					clog<<"FASTA extension detected for the input sequence file"<<endl;
 				}
 				else if(tmp_str == ".csv"){
 					seqs_fileformat = CSV_f;
-					cout<<"CSV extension detected for the input sequence file"<<endl;
+					clog<<"CSV extension detected for the input sequence file"<<endl;
 				}
 				else if(tmp_str == ".txt"){
 					seqs_fileformat = TXT_f;
-					cout<<"TXT extension detected for the input sequence file"<<endl;
+					clog<<"TXT extension detected for the input sequence file"<<endl;
 				}
 				else{
-					throw runtime_error("Unknown file extension \"" + tmp_str + "\" for input sequences file! ");
+					return terminate_IGoR_with_error_message("Unknown file extension \"" + tmp_str + "\" for input sequences file! ");
 				}
 			}
 			else{
-				cout<<"No extension detected for the input sequence file assuming a text file without header"<<endl;
+				clog<<"No extension detected for the input sequence file assuming a text file without header"<<endl;
 				seqs_fileformat = TXT_f;
 			}
 		}
 
 		//If the argument does not correspond to any previous section throw an exception
 		else{
-			throw invalid_argument("Unknown argument \""+string(argv[carg_i])+"\" ");
+			return terminate_IGoR_with_error_message("Unknown IGoR command line argument \""+string(argv[carg_i])+"\" ");
 		}
 
 		//Read the next command line argument
@@ -752,11 +853,19 @@ int main(int argc , char* argv[]){
 	if(not wd){
 		cl_path = "/tmp/";
 	}
-	cout<<"Working directory set to: \""+cl_path+"\""<<endl;
+	clog<<"Working directory set to: \""+cl_path+"\""<<endl;
 
 	//Check that both species and chain have been provided
 	if(chain_provided xor species_provided){
-		throw ("Both species and chain must be provided when using a predefined model!");
+		forward_list<string> error_messages;
+		if(chain_provided){
+			error_messages.emplace_front("Only chain argument was provided by the user");
+		}
+		else{
+			error_messages.emplace_front("Only species argument was provided by the user");
+		}
+		error_messages.emplace_front("Both species and chain must be provided when using a predefined model!");
+		return terminate_IGoR_with_error_message(error_messages);
 	}
 
 
@@ -764,29 +873,75 @@ int main(int argc , char* argv[]){
 		if(chain_arg_str == "alpha"){
 			has_D = false;
 			chain_path_str = "tcr_alpha";
-			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRA V genomic templates.",  e);
+			}
 
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRA J genomic templates.",  e);
+			}
 		}
 		else if(chain_arg_str == "beta"){
 			has_D = true;
 			chain_path_str = "tcr_beta";
-			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			d_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
-			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRB V genomic templates.",  e);
+			}
+
+			try{
+				d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRB D genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading TRB J genomic templates.",  e);
+			}
+
 		}
 		else if(chain_arg_str == "light"){
-			cout<<"Support for light chains in command line is not ready yet due to the lack of genomic templates and suitable model"<<endl;
-			cout<<"If you wish to use IGoR on light chains please contact us so we can work on incorporating a light chain model to IGoR"<<endl;
-			throw invalid_argument("Light chains support does not exist yet for command line");
+			forward_list<string> error_messages;
+			error_messages.emplace_front("If you wish to use IGoR on light chains please contact us so we can work on incorporating a light chain model to IGoR.");
+			error_messages.emplace_front("Support for light chains in command line is not ready yet due to the lack of genomic templates and suitable model.");
+			error_messages.emplace_front("Light chains support does not exist yet for command line!");
+			return terminate_IGoR_with_error_message(error_messages);
 		}
 		else if( (chain_arg_str == "heavy_naive") or (chain_arg_str == "heavy_memory") ){
 			has_D = true;
 			chain_path_str = "bcr_heavy";
-			v_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
-			d_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
-			j_genomic = read_genomic_fasta("../models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGH V genomic templates.",  e);
+			}
 
+			try{
+				d_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicDs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGH D genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGH J genomic templates.",  e);
+			}
 			if( chain_arg_str == "heavy_naive" ){
 				//Use a single error rate
 			}
@@ -797,38 +952,74 @@ int main(int argc , char* argv[]){
 			}
 		}
 		//Read CDR3 anchors(cystein, tryptophan/phenylalanin indices)
-		v_CDR3_anchors = read_gene_anchors_csv("../models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
-		j_CDR3_anchors = read_gene_anchors_csv("../models/"+species_str+"/"+chain_path_str+"/ref_genome/J_gene_CDR3_anchors.csv");
+		try{
+			v_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading V CDR3 anchors.",  e);
+		}
+
+		try{
+			j_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/J_gene_CDR3_anchors.csv");
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading J CDR3 anchors.",  e);
+		}
 	}
 
 	//Read custom genomic templates if some custom ones were specified
 	if(custom_v){
-		v_genomic = read_genomic_fasta(custom_v_path);
+		try{
+			v_genomic = read_genomic_fasta(custom_v_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom V genomic templates.",  e);
+		}
 	}
 	if(custom_d){
 		has_D = true;
-		d_genomic = read_genomic_fasta(custom_d_path);
+		try{
+			d_genomic = read_genomic_fasta(custom_d_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom D genomic templates.",  e);
+		}
 	}
 	if(custom_j){
-		j_genomic = read_genomic_fasta(custom_j_path);
+		try{
+			j_genomic = read_genomic_fasta(custom_j_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom J genomic templates.",  e);
+		}
 	}
 
 	//Read custom CDR3
 	if(custom_v_anchors){
-		v_CDR3_anchors = read_gene_anchors_csv(custom_v_anchors_path);
+		try{
+			v_CDR3_anchors = read_gene_anchors_csv(custom_v_anchors_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom V CDR3 anchors",  e);
+		}
 	}
 	if(custom_j_anchors){
-		j_CDR3_anchors = read_gene_anchors_csv(custom_j_anchors_path);
+		try{
+			j_CDR3_anchors = read_gene_anchors_csv(custom_j_anchors_path);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading user's custom J CDR3 anchors",  e);
+		}
 	}
 
 	//Make sure passed arguments are unambiguous
 	if(custom_cl_parms and load_last_inferred_parms){
-		throw invalid_argument("Setting a custom model and loading the last inferred model in the same command is ambiguous!");
+		return terminate_IGoR_with_error_message("Setting a custom model and loading the last inferred model in the same command is ambiguous!");
 	}
 
 	//Load last inferred model
 	if(load_last_inferred_parms){
-		cout<<"Loading last inferred model..."<<endl;
+		clog<<"Loading last inferred model..."<<endl;
 		try{
 			cl_model_parms.read_model_parms(cl_path +  batchname + "inference/final_parms.txt");
 			cl_model_marginals = Model_marginals(cl_model_parms);
@@ -841,9 +1032,7 @@ int main(int argc , char* argv[]){
 			}
 		}
 		catch(exception& e){
-			cout<<"Failed to load last inferred model, please check that the model exists"<<endl;
-			cout<<"Throwing exception now..."<<endl;
-			throw e;
+			return terminate_IGoR_with_error_message("Exception caught while loading last inferred model, please check that the model exists",e);
 		}
 	}
 
@@ -852,10 +1041,20 @@ int main(int argc , char* argv[]){
 	 */
 	if( ((not custom_cl_parms) and (not load_last_inferred_parms))
 			and (infer or evaluate or generate)){
-		cout<<"read some model parms"<<endl;
-		cl_model_parms.read_model_parms("../models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
+		clog<<"Read some model parms"<<endl;
+		try{
+			cl_model_parms.read_model_parms(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_parms.txt");
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading IGoR's model parameters.",e);
+		}
 		cl_model_marginals = Model_marginals(cl_model_parms);
-		cl_model_marginals.txt2marginals("../models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
+		try{
+			cl_model_marginals.txt2marginals(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/models/model_marginals.txt",cl_model_parms);
+		}
+		catch(exception& e){
+			return terminate_IGoR_with_error_message("Exception caught while reading IGoR's model marginals.",e);
+		}
 	}
 
 
@@ -1002,7 +1201,7 @@ int main(int argc , char* argv[]){
 			 */
 			cl_model_marginals = Model_marginals(cl_model_parms);
 			cl_model_marginals.uniform_initialize(cl_model_parms);
-			cout<<"Not all custom genomic templates were found in the loaded Model parameters, Model marginals are thus reinitialized to a uniform distribution!"<<endl;
+			clog<<"Not all custom genomic templates were found in the loaded Model parameters, Model marginals are thus reinitialized to a uniform distribution!"<<endl;
 		}
 
 	}
@@ -1011,7 +1210,7 @@ int main(int argc , char* argv[]){
 	 * Once model parms have been read fix the events requested
 	 */
 	if(infer_only and no_infer){
-		throw invalid_argument("Cannot use both \"--infer_only\" and \"--not_infer\" since they are somewhat redundant");
+		return terminate_IGoR_with_error_message("Cannot use both \"--infer_only\" and \"--not_infer\" since they are somewhat redundant");
 	}
 	if((infer_only or no_infer)
 		and (infer or evaluate or generate)){
@@ -1054,6 +1253,26 @@ int main(int argc , char* argv[]){
 		counter_int_pair_ptr.second->set_path_to_files(new_path);
 	}
 
+	//Output warnings on the use of the subsample command as it may have different effects depending on the command used
+	if(subsample_seqs){
+		if(read_seqs){
+			clog<<"Subsampling "<<n_subsample_seqs<<" sequences from the input sequence file, the resulting indexed sequence will be a subsample."<<endl;
+		}
+		else if(align){
+			if((infer or evaluate)){
+				clog<<"Subsampling "<<n_subsample_seqs<<" sequences for alignments and evaluation/inference"<<endl;
+			}
+			else{
+				clog<<"Subsampling "<<n_subsample_seqs<<" sequences for alignments without an -evaluate or -infer command supplied."<<endl;
+				clog<<"/!\\ Because -subsample N makes a random sample do not further re-use the command with -evaluate or -infer /!\\ "<<endl;
+			}
+		}
+		else if((infer or evaluate)){
+			clog<<"Subsampling "<<n_subsample_seqs<<" sequences for evaluation/inference without an -align command supplied."<<endl;
+			clog<<"/!\\ Because -subsample N makes a random sample make sure you have not used this command during alignment, otherwise the resulting sample will be the intersection of the two random samples! The resulting sample size cannot be guaranteed /!\\ "<<endl;
+		}
+	}
+
 
 
 
@@ -1083,17 +1302,32 @@ int main(int argc , char* argv[]){
 			path+="/";
 		}*/
 
-		cout<<"Reading genomic templates"<<endl;
+		clog<<"Reading genomic templates"<<endl;
 
-		vector<pair<string,string>> v_genomic = read_genomic_fasta( string("../demo/genomicVs_with_primers.fasta"));
+		vector<pair<string,string>> v_genomic = read_genomic_fasta( string(IGOR_DATA_DIR) + "/demo/genomicVs_with_primers.fasta");
 
-		vector<pair<string,string>> d_genomic = read_genomic_fasta( string("../demo/genomicDs.fasta"));
+		vector<pair<string,string>> d_genomic = read_genomic_fasta( string(IGOR_DATA_DIR) + "/demo/genomicDs.fasta");
 
-		vector<pair<string,string>> j_genomic = read_genomic_fasta( string("../demo/genomicJs_all_curated.fasta"));
+		vector<pair<string,string>> j_genomic = read_genomic_fasta( string(IGOR_DATA_DIR) + "/demo/genomicJs_all_curated.fasta");
 
 		//Declare substitution matrix used for alignments(nuc44 here)
-		double nuc44_vect [] = {5,-14,-14,-14 , -14 ,5,-14,-14 , -14,-14,5,-14 , -14,-14,-14,5};
-		Matrix<double> nuc44_sub_matrix(4,4,nuc44_vect);
+		double nuc44_vect [] = { // A,C,G,T,R,Y,K,M,S,W,B,D,H,V,N
+		        5,-14,-14,-14,-14,2,-14,2,2,-14,-14,1,1,1,0,
+		        -14,5,-14,-14,-14,2,2,-14,-14,2,1,-14,1,1,0,
+		        -14,-14,5,-14,2,-14,2,-14,2,-14,1,1,-14,1,0,
+		        -14,-14,-14,5,2,-14,-14,2,-14,2,1,1,1,-14,0,
+		        -14,-14,2,2,1.5,-14,-12,-12,-12,-12,1,1,-13,-13,0,
+		        2,2,-14,-14,-14,1.5,-12,-12,-12,-12,-13,-13,1,1,0,
+		        -14,2,2,-14,-12,-12,1.5,-14,-12,-12,1,-13,-13,1,0,
+		        2,-14,-14,2,-12,-12,-14,1.5,-12,-12,-13,1,1,-13,0,
+		        2,-14,2,-14,-12,-12,-12,-12,1.5,-14,-13,1,-13,1,0,
+		        -14,2,-14,2,-12,-12,-12,-12,-14,1.5,1,-13,1,-13,0,
+		        -14,1,1,1,1,-13,1,-13,-13,1,0.5,-12,-12,-12,0,
+		        1,-14,1,1,1,-13,-13,1,1,-13,-12,0.5,-12,-12,0,
+		        1,1,-14,1,-13,1,-13,1,-13,1,-12,-12,0.5,-12,0,
+		        1,1,1,-14,-13,1,1,-13,1,-13,-12,-12,-12,0.5,0,
+		        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+		Matrix<double> nuc44_sub_matrix(15,15,nuc44_vect);
 
 		//Instantiate aligner with substitution matrix declared above and gap penalty of 50
 		Aligner v_aligner = Aligner(nuc44_sub_matrix , 50 , V_gene);
@@ -1105,39 +1339,41 @@ int main(int argc , char* argv[]){
 		Aligner j_aligner (nuc44_sub_matrix , 50 , J_gene);
 		j_aligner.set_genomic_sequences(j_genomic);
 
-		cout<<"Reading sequences and aligning"<<endl;
+		clog<<"Reading sequences and aligning"<<endl;
 		typedef std::chrono::system_clock myclock;
 		myclock::time_point begin_time, end_time;
 
 		begin_time = myclock::now();
 
 
-		vector<pair<const int, const string>> indexed_seqlist = read_txt( string("../demo/murugan_naive1_noncoding_demo_seqs.txt") ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
+		vector<pair<const int, const string>> indexed_seqlist = read_txt( string(IGOR_DATA_DIR) + "/demo/murugan_naive1_noncoding_demo_seqs.txt" ); //Could also read a FASTA file <code>read_fasta()<\code> or indexed sequences <code>read_indexed_seq_csv()<\code>
 
+		cl_path+="igor_demo/";
+		system(&("mkdir " + cl_path )[0]);
 
-		v_aligner.align_seqs( string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
+		v_aligner.align_seqs( string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"),indexed_seqlist,50,true,INT16_MIN,-155);
 		//v_aligner.write_alignments_seq_csv(path + string("alignments_V.csv") , v_alignments);
 
-		d_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"),indexed_seqlist,0,false);
+		d_aligner.align_seqs(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"),indexed_seqlist,0,false);
 		//d_aligner.write_alignments_seq_csv(path + string("alignments_D.csv") , d_alignments);
 
-		j_aligner.align_seqs(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
+		j_aligner.align_seqs(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"),indexed_seqlist,10,true,42,48);
 
 		end_time= myclock::now();
 		chrono::duration<double> elapsed = end_time - begin_time;
-		cout<<"Alignments procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
-		cout<<"for "<<indexed_seqlist.size()<<" TCRb sequences of 60bp(from murugan and al), against ";
-		cout<<v_genomic.size()<<" Vs,"<<d_genomic.size()<<" Ds, and "<<j_genomic.size()<<" Js full sequences"<<endl;
+		clog<<"Alignments procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
+		clog<<"for "<<indexed_seqlist.size()<<" TCRb sequences of 60bp(from murugan and al), against ";
+		clog<<v_genomic.size()<<" Vs,"<<d_genomic.size()<<" Ds, and "<<j_genomic.size()<<" Js full sequences"<<endl;
 
 		//unordered_map<int,forward_list<Alignment_data>> j_alignments = j_aligner.align_seqs(indexed_seqlist,10,true,42,48);
 		//j_aligner.write_alignments_seq_csv(path + string("alignments_J.csv") , j_alignments);
 
 
-		write_indexed_seq_csv(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_indexed_seq.csv") , indexed_seqlist);
+		write_indexed_seq_csv(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_indexed_seq.csv") , indexed_seqlist);
 
 
 
-		cout<<"Construct the model"<<endl;
+		clog<<"Construct the model"<<endl;
 		//Construct a TCRb model
 		Gene_choice v_choice(V_gene,v_genomic);
 		v_choice.set_nickname("v_choice");
@@ -1215,32 +1451,35 @@ int main(int argc , char* argv[]){
 
 		parms.set_error_ratep(&error_rate);
 
-		cout<<"Write and read back the model"<<endl;
+		clog<<"Write and read back the model"<<endl;
 		//Write the model_parms into a file
-		parms.write_model_parms(string("../demo/demo_write_model_parms.txt"));
+		parms.write_model_parms(string(cl_path + "/demo_write_model_parms.txt"));
 
 		//Write the marginals into a file
-		model_marginals.write2txt(string("../demo/demo_write_model_marginals.txt"),parms);
+		model_marginals.write2txt(string(cl_path + "/demo_write_model_marginals.txt"),parms);
 
 		//Read a model and marginal pair
 		Model_Parms read_model_parms;
-		read_model_parms.read_model_parms(string("../demo/demo_write_model_parms.txt"));
+		read_model_parms.read_model_parms(string(cl_path + "/demo_write_model_parms.txt"));
 		Model_marginals read_model_marginals(read_model_parms);
-		read_model_marginals.txt2marginals(string("../demo/demo_write_model_marginals.txt"),read_model_parms);
+		read_model_marginals.txt2marginals(string(cl_path + "/demo_write_model_marginals.txt"),read_model_parms);
 
 		//Instantiate a Counter
 		map<size_t,shared_ptr<Counter>> counters_list;
 		 //Collect gene coverage and errors
-		shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter("../demo/run_demo/",VJ_genes,1,false,false));
+		shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter(cl_path + "/run_demo/",VJ_genes,1,false,false));
 		counters_list.emplace(0,coverage_counter_ptr);
 
 		 //Collect 10 best scenarios per sequence during the last iteration
-		shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , "../demo/run_demo/" ,true ));
+		shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , cl_path + "/run_demo/" ,true ));
 		counters_list.emplace(1,best_sc_ptr);
 
 		 //Collect sequence generation probability during last iteration
-		shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter ("../demo/run_demo/"));
+		shared_ptr<Counter> pgen_counter_ptr(new Pgen_counter (cl_path + "/run_demo/"));
 		counters_list.emplace(2,pgen_counter_ptr);
+
+		shared_ptr<Counter> errors_counter(new Errors_counter (10,string(cl_path + "/run_demo/")));
+		counters_list.emplace(3,errors_counter);
 
 		//Instantiate the high level GenModel class
 		//This class allows to make most useful high level operations(model inference/Pgen computation , sequence generation)
@@ -1251,28 +1490,28 @@ int main(int argc , char* argv[]){
 
 		//Read alignments
 		//vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(path+ string(argv[2]) + string("indexed_seq.csv"));
-		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"), V_gene , 55 , false , indexed_seqlist  );//40//35
-		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"), D_gene , 35 , false , indexed_seqlist , sorted_alignments);//30//15
-		sorted_alignments = read_alignments_seq_csv_score_range(string("../demo/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"), J_gene , 10 , false , indexed_seqlist , sorted_alignments);//30//20
+		unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_V.csv"), V_gene , 55 , false , indexed_seqlist  );//40//35
+		sorted_alignments = read_alignments_seq_csv_score_range(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_D.csv"), D_gene , 35 , false , indexed_seqlist , sorted_alignments);//30//15
+		sorted_alignments = read_alignments_seq_csv_score_range(string(cl_path + "/murugan_naive1_noncoding_demo_seqs") + string("_alignments_J.csv"), J_gene , 10 , false , indexed_seqlist , sorted_alignments);//30//20
 
 		vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
 		//Infer the model
-		cout<<"Infer model"<<endl;
+		clog<<"Infer model"<<endl;
 
 		begin_time = myclock::now();
-
-		gen_model.infer_model(sorted_alignments_vec , 4 , string("../demo/run_demo/") , true ,1e-35,0.0001);
+		system(&("mkdir " + cl_path + "run_demo")[0]);
+		gen_model.infer_model(sorted_alignments_vec , 4 , string(cl_path + "/run_demo/") , true ,1e-35,0.0001);
 
 		end_time= myclock::now();
 		elapsed = end_time - begin_time;
-		cout<<"Model inference procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
+		clog<<"Model inference procedure lasted: "<<elapsed.count()<<" seconds"<<endl;
 
 
 		//Generate sequences
-		cout<<"Generate sequences"<<endl;
+		clog<<"Generate sequences"<<endl;
 		auto generated_seq =  gen_model.generate_sequences(100,false);//Without errors
-		gen_model.write_seq_real2txt(string("../demo/generated_seqs_indexed_demo.csv"), string("../demo/generated_seqs_realizations_demo.csv") , generated_seq);//Member function will be changed
+		gen_model.write_seq_real2txt(string(cl_path + "/generated_seqs_indexed_demo.csv"), string(cl_path + "/generated_seqs_realizations_demo.csv") , generated_seq);//Member function will be changed
 
 	}
 
@@ -1291,43 +1530,80 @@ int main(int argc , char* argv[]){
 				indexed_seqlist = read_txt(input_seqs_file);
 				break;
 			default:
-				throw runtime_error("Unknown file format for input seqs file!");
+				return terminate_IGoR_with_error_message("Unknown file format for input seqs file!");
 			}
 
 			//create the directory
 			system(&("mkdir " + cl_path + "aligns")[0]);
 
+			if(subsample_seqs){
+				try{
+					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+				}
+				catch(exception& e){
+					forward_list<string> error_messages;
+					return terminate_IGoR_with_error_message("Exception caught trying to subsample input files sequences to indexed sequences:",e);
+				}
+			}
+
 			write_indexed_seq_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv",indexed_seqlist);
 		}
 
 		if(align){
-			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+			vector<pair<const int, const string>> indexed_seqlist;
+			try{
+				indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading indexed sequences file sequences before alignment. Make sure indexed sequence file has previously been created using \"-read_seqs\" with similar path parameters (working directory, batchname, ...)",e);
+			}
+
+			if(subsample_seqs and not read_seqs){
+				try{
+					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught trying to subsample input files sequences before alignment:",e);
+				}
+			}
 
 			if(align_v){
 				//Performs V alignments
-				cout<<"Performing V alignments...."<<endl;
+				clog<<"Performing V alignments...."<<endl;
 				Aligner v_aligner = Aligner(v_subst_matrix , v_gap_penalty , V_gene);
 				v_aligner.set_genomic_sequences(v_genomic);
-
-				v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+				try{
+					v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught upon aligning V genomic templates.",e);
+				}
 			}
 
 
 			if(has_D and align_d){
 				//Performs D alignments if the chain contains a D
-				cout<<"Performing D alignments...."<<endl;
+				clog<<"Performing D alignments...."<<endl;
 				Aligner d_aligner = Aligner(d_subst_matrix , d_gap_penalty , D_gene);
 				d_aligner.set_genomic_sequences(d_genomic);
-
-				d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
+				try{
+					d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught upon aligning D genomic templates.",e);
+				}
 			}
 
 			if(align_j){
-				cout<<"Performing J alignments...."<<endl;
+				clog<<"Performing J alignments...."<<endl;
 				Aligner j_aligner (j_subst_matrix , j_gap_penalty , J_gene);
 				j_aligner.set_genomic_sequences(j_genomic);
-
-				j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+				try{
+					j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught upon aligning J genomic templates.",e);
+				}
 			}
 
 		}
@@ -1337,17 +1613,44 @@ int main(int argc , char* argv[]){
 			GenModel genmodel(cl_model_parms,cl_model_marginals,cl_counters_list);
 
 			//Reading alignments
-			vector<pair<const int, const string>> indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
-
-			if(subsample_seqs){
-				indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+			vector<pair<const int, const string>> indexed_seqlist;
+			try{
+				indexed_seqlist = read_indexed_csv(cl_path + "aligns/" + batchname + "indexed_sequences.csv");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading indexed sequences file sequences before inference/evaluation. Make sure indexed sequence file has previously been created using \"-read_seqs\" with similar path parameters (working directory, batchname, ...)",e);
 			}
 
-			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
+			if(subsample_seqs and not align){
+				try{
+					indexed_seqlist = sample_indexed_seq(indexed_seqlist,n_subsample_seqs);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught trying to subsample indexed sequences before inference/evaluation:",e);
+				}
+			}
+			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments;
+			try{
+				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading V alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --V\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+			}
+
 			if(has_D){
-				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + d_align_filename, D_gene , 35 , false , indexed_seqlist , sorted_alignments);
+				try{
+					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + d_align_filename, D_gene , 35 , false , indexed_seqlist , sorted_alignments);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading D alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --D\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+				}
 			}
-			sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+			try{
+				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading J alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --J\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+			}
 
 			vector<tuple<int,string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments_vec = map2vect(sorted_alignments);
 
@@ -1367,7 +1670,7 @@ int main(int argc , char* argv[]){
 			}
 		}
 		else if(infer and evaluate){
-			cout<<"Cannot infer and evaluate in a single command, please split in two commands (otherwise the model used to evaluate is ambiguous)"<<endl;
+			return terminate_IGoR_with_error_message("Cannot infer and evaluate in a single command, please split in two commands (otherwise the model used to evaluate is ambiguous)");
 		}
 
 		if(generate){
@@ -1418,9 +1721,9 @@ int main(int argc , char* argv[]){
 			}
 
 			genmodel.generate_sequences(generate_n_seq,generate_werr,
-					cl_path +  batchname + "generated/" +"generated_seqs_" + w_err_str + ".csv",
-					cl_path + "generated/" + batchname +"generated_realizations_" + w_err_str + ".csv",
-					func_data_pairs_list);
+					cl_path +  batchname + "generated/" + gen_filename_prefix +"generated_seqs_" + w_err_str + ".csv",
+					cl_path + batchname + "generated/" + gen_filename_prefix +"generated_realizations_" + w_err_str + ".csv",
+					func_data_pairs_list,false,gen_random_engine_seed);
 		}
 
 	}
@@ -1432,8 +1735,7 @@ int main(int argc , char* argv[]){
 
 
 
-	return 0;
-
+	return EXIT_SUCCESS;
 
 }
 

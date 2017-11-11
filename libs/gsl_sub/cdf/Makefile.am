@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 noinst_LTLIBRARIES = libgslcdf.la
 
-pkginclude_HEADERS= gsl_cdf.h 
+noinst_HEADERS= gsl_cdf.h 
 
 AM_CPPFLAGS = -I$(top_srcdir)
 

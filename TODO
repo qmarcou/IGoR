@@ -1,0 +1,39 @@
+- add -trace_command command line
+- add all gene anchors 
+- handling of ambiguous nucleotides for correlated Dinucleotide Markov Model
+- handling of ambiguous nucleotides for hypermutation models (background counting and generation)
+- alignment speed up by sequence truncation
+- CDR3 inference/evaluation
+- primers information for alignment (ask max)
+- enable use of other softwares alignments information
+- reduce output to some debug outputs
+- fast initilization of proba bounds
+- add pygor
+- fill doxygen documentation
+- more bash examples
+- forum? issues? (github collaboration like?)
+- memory BCR?
+- autocompletion
+- increment Doxygen version number automatically
+- gitignore doxygen stuff
+- put up license files etc (GNU standards)
+- better formating for doxygen documentation + better graphs?
+- output to stdout (generation,counters)
+- make sure all commands integers are indeed integers (e.g seed)
+- check existence of installed data
+- redirect err/log output
+- check alignments vs model agreement in GenModel infer (otherwise map base at exception)
+- make igor error message prefix variable global
+- fix model_pars / marginals ambiguity
+- realizations pruning before each iteration
+- record inference/evaluation time, nprocs etc (can we access the actual computation time?) 
+- CDR3 extraction from alignments/evaluation
+- % to introduce the error rate values (how to deal with retrocompatibility issues?)
+- command line event realizations add/remove
+- genomic template inference
+- cython interface
+- github integration for better dialogue with users
+- command line autocompletion
+- add a DEBUG global variable to toggle debug output
+- make a "latest" version release in doxygen documentation so it can be processed in bash upon making the release
+- organize todo in easy/hard high,mid,low priority

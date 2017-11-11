@@ -28,6 +28,9 @@ enum Seq_side{ Five_prime =0 , Three_prime = 1 , Undefined_side = 2 };
 enum Seq_type {V_gene_seq = 0 , VD_ins_seq = 1 , D_gene_seq = 2 , DJ_ins_seq = 3 , J_gene_seq = 4 , VJ_ins_seq = 5};
 enum Gene_class{V_gene=0 , VD_genes=1 , D_gene=2 , DJ_genes=3 , J_gene=4 , VJ_genes=5 , VDJ_genes=6 ,Undefined_gene=7 };
 enum Fileformat{CSV_f,FASTA_f,TXT_f};
+enum Int_nt { int_A = 0 , int_C = 1 , int_G = 2 , int_T = 3 , int_R = 4 , int_Y = 5 , int_K = 6 , int_M = 7 , int_S = 8 ,
+				int_W = 9 , int_B = 10 , int_D = 11 , int_H = 12 , int_V = 13 , int_N = 14};
+
 
 Gene_class str2GeneClass(std::string);
 Seq_side str2SeqSide(std::string);
@@ -80,6 +83,11 @@ public:
 			array_p[i] = arr[i];
 		}
 	}
+	Matrix(int m , int n , std::vector<T> vect):rows(m) , cols(n) , array_p(new T [m*n]){
+		for(size_t i = 0 ; i != m*n ; i++){
+			array_p[i] = vect.at(i);
+		}
+	}
 	Matrix(const Matrix<T>& other){
 		//Provides deep copy of a matrix
 		this->rows = other.rows;
@@ -103,7 +111,7 @@ public:
 		}
 	}
 
-	T& operator()(int i ,int j ){
+	T& operator()(const int& i ,const int& j ){
 		if( (i>rows-1) || (j>cols-1) ){
 			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
 			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
@@ -111,7 +119,15 @@ public:
 		return array_p[i + rows*j];
 	}
 
-	T get_field(int i ,int j ) const{
+	const T& operator()(const int& i ,const int& j ) const{
+		if( (i>rows-1) || (j>cols-1) ){
+			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
+			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
+		}
+		return array_p[i + rows*j];
+	}
+
+	T get_field(const int& i ,const int& j ) const{
 		if( (i>rows-1) || (j>cols-1) ){
 			throw std::length_error("Cannot access indices ["+std::to_string(i)+","+std::to_string(j)+"] with matrix dimensions ["+std::to_string(rows)+","+std::to_string(cols)+"]");
 			std::cout<<"out_of range matrix coordinates: "<<rows<<"<"<<i<<" or "<<cols<<"<"<<j<<std::endl;
@@ -616,7 +632,7 @@ typedef Enum_fast_memory_dual_key_map<Seq_type,Seq_side,Seq_Offset> Seq_offsets_
 	 }
  };
 
-
+std::vector<std::string> extract_string_fields(std::string,std::string);
 
 
 #endif /* UTILS_H_ */

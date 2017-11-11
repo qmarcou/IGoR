@@ -22,6 +22,18 @@
 #include "Errorrate.h"
 #include <random>
 
+/**
+ * \class Dinucl_markov Dinucl_markov.h
+ * \brief Dinucleotide insertion Markov model.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Models a Markov chain dictating the identity of inserted nucleotides in the inserted region.
+ * We assume a low error frequency and almost flat dinucleotide model regime such that we use an euristic to extract the most likely realization.
+ * This choice has been made because the full handling through a forward algorithm would not be able to cope with e.g context dependent errors.
+ *
+ * By construction the Insertion event must have been explored first
+ */
 class Dinucl_markov: public Rec_Event {
 public:
 	//Constructors
@@ -41,6 +53,7 @@ public:
 	void ind_normalize(Marginal_array_p&,size_t) const;
 	void initialize_event( std::unordered_set<Rec_Event_name>& , const std::unordered_map<std::tuple<Event_type,Gene_class,Seq_side>, std::shared_ptr<Rec_Event>>& , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , Downstream_scenario_proba_bound_map& , Seq_type_str_p_map& , Safety_bool_map& , std::shared_ptr<Error_rate> , Mismatch_vectors_map&,Seq_offsets_map&,Index_map&);
 	void add_to_marginals(long double , Marginal_array_p&) const;
+	void update_event_internal_probas(const Marginal_array_p& , const std::unordered_map<Rec_Event_name,int>&);
 
 
 	double* get_updated_ptr();
@@ -55,6 +68,7 @@ public:
 private:
 
 	double* updated_upper_bound_proba; //This points to a double modified by the Insertion event given the number of insertion
+	Matrix<double> dinuc_proba_matrix;
 
 	int total_nucl_count;
 	//Int_Str vd_seq;//&

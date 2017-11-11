@@ -33,6 +33,7 @@ install-sh
 libtool
 m4
 missing
+config.h
 
 # Ignore jemalloc generated material
 libs/jemalloc/VERSION
@@ -53,3 +54,24 @@ libs/gsl_sub/gsl.pc
 libs/gsl_sub/gsl/*.h
 libs/jemalloc/lib
 libs/jemalloc/src/*.sym
+
+#Ignore documentation generated files
+docs/README.html
+docs/html/
+docs/latex/
+docs/IGoR_CPP_manual.pdf
+igor.1
+libs/gsl_sub/config.h.in~
+stamp-h1
+
+#Ignore documentation demo generated files
+demo/aligns_info.out
+demo/demo_write_model_marginals.txt
+demo/demo_write_model_parms.txt
+demo/generated_seqs_indexed_demo.csv
+demo/generated_seqs_realizations_demo.csv
+demo/murugan_naive1_noncoding_demo_seqs_alignments_D.csv
+demo/murugan_naive1_noncoding_demo_seqs_alignments_J.csv
+demo/murugan_naive1_noncoding_demo_seqs_alignments_V.csv
+demo/murugan_naive1_noncoding_demo_seqs_indexed_seq.csv
+demo/run_demo/

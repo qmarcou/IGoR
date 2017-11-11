@@ -27,6 +27,16 @@
 //Forward declare Rec_event
 class Rec_Event;
 
+/**
+ * \class Error_rate Error_rate.h
+ * \brief Abstract class for generic error models behavior.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Base class for defining different error models such as additive or non-additive hypermutation models.
+ * Errors are assessed when all RecEvent iterate have been processed (terminal leaf of the scenario tree)
+ *
+ */
 class Error_rate {
 public:
 	Error_rate();

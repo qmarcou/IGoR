@@ -27,17 +27,35 @@
 #include "Singleerrorrate.h"
 #include "Dinuclmarkov.h"
 #include "Hypermutationglobalerrorrate.h"
+#include "HypermutationfullNmererrorrate.h"
 #include <stdexcept>
 #include <memory>
 
 //class Rec_Event;
 
-
+/**
+ * \struct Adjacency_list Model_Parms.h
+ * \brief IGoR's Bayesian Network adjacency list
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Contains a list of smart pointers pointing to an event parents and children (i.e adjacent nodes)
+ */
 struct Adjacency_list{
 	std::list<std::shared_ptr<Rec_Event>> children;
 	std::list<std::shared_ptr<Rec_Event>> parents;
 };
 
+/**
+ * \class Model_Parms Model_Parms.h
+ * \brief Implements IGoR's Bayesian Network structure.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Implements IGoR's Bayesian Network structure through an acyclic directed graph.
+ * Together with the recombination model topology it also contains the error model.
+ *	This class implements various methods to extract information from the graph structure such as the order in which RecEvents must be processed provided the topological constraints.
+ */
 class Model_Parms {
 public:
 	Model_Parms();
@@ -47,7 +65,7 @@ public:
 
 	virtual ~Model_Parms();
 
-	bool is_cyclic(); // adapt an algorithm to find cycles in oriented graphs
+	//bool is_cyclic(); // adapt an algorithm to find cycles in oriented graphs
 
 	std::list <std::shared_ptr<Rec_Event>> get_children(Rec_Event* ) const;
 	std::list<std::shared_ptr<Rec_Event>> get_children(std::shared_ptr<Rec_Event>) const;

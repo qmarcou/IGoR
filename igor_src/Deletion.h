@@ -20,9 +20,21 @@
 #include <random>
 #include <math.h>
 
+/**
+ * \class Deletion Deletion.h
+ * \brief Deletion recombination event
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * The Deletion RecEvent models deletions of one genomic fragment on a given side.
+ * Deletions can be either positive or negative (= Palindromic insertions)
+ *
+ * By construction the corresponding GeneChoice must have been explored first.
+ */
 class Deletion: public Rec_Event {
 	friend class Coverage_err_counter;//Grant friendship to access the current number of deletion
 	friend class Hypermutation_global_errorrate;//Grant friendship to access the current number of deletion
+	friend class Hypermutation_full_Nmer_errorrate;//Same
 
 public:
 	//Constructor

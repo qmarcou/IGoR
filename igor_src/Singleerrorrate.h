@@ -15,6 +15,14 @@
 //Debug
 #include <iostream>
 
+/**
+ * \class Single_error_rate Singleerrorrate.h
+ * \brief Independent single nucleotide error model.
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * Simplest instance of the ErrorRate family. Models errors/mutations as a Bernouilli process with a global rate independent of position and context.
+ */
 class Single_error_rate: public Error_rate {
 public:
 	Single_error_rate();

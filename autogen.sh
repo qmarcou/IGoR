@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #First need to build the configure script for jemalloc using autogen
 cd libs/jemalloc
@@ -21,3 +21,16 @@ if [ -e "./libs/jemalloc/configure.ac_tmp" ]
 then
 mv ./libs/jemalloc/configure.ac_tmp ./libs/jemalloc/configure.ac
 fi
+
+# Create a man page and html README from the markdown manual using Pandoc
+#adapted from :https://stackoverflow.com/questions/7599447/less-style-markdown-viewer-for-unix-systems#7603703
+pandoc -s -f markdown -t html README.md -o docs/README.html
+pandoc -s -f markdown -t man README.md -o igor.1
+
+# Create the Doxygen documentation
+doxygen doxygen.config
+cd ./docs/latex/
+make all
+cd ../..
+mv ./docs/latex/refman.pdf ./docs/IGoR_CPP_manual.pdf
+

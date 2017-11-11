@@ -18,7 +18,14 @@
 #include "Utils.h"
 
 
-
+/**
+ * \class Counter Counter.h
+ * \brief Scenario statistics recording abstract class
+ * \author Q.Marcou
+ * \version 1.0
+ *
+ * The Counter abstract class provides an interface to collect individual scenarios statistics and aggregate them in various ways.
+ */
 class Counter {
 public:
 	Counter();

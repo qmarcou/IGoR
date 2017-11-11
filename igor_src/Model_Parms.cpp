@@ -161,14 +161,13 @@ list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(shared_ptr<Rec_Event> eve
 }
 /**
  * \brief Get all ancestors of the supplied event
- *
- * Get all ancestors of the supplied event. Ancestors are all events higher than the considered event
- *  in the genealogy and with link of any degree to it
- *
  * \author Q.Marcou
  * \version 1.0
  * \param[in] event_name The event whom we seek the ancestors
  * \return The list of the event ancestors
+ *
+ *  Get all ancestors of the supplied event. Ancestors are all events higher than the considered event
+ *  in the genealogy and with link of any degree to it
  */
 list<shared_ptr<Rec_Event>> Model_Parms::get_ancestors(Rec_Event_name event_name) const{
 	set<shared_ptr<Rec_Event>> ancestor_set;
@@ -518,7 +517,7 @@ void Model_Parms::read_model_parms(string filename){
 	ifstream infile(filename);
 	if(!infile){
 		//Throw exception
-		throw runtime_error("File not found : "+filename);
+		throw runtime_error("File not found : \""+filename + "\"");
 	}
 	string line_str;
 	getline(infile,line_str);
@@ -534,7 +533,7 @@ void Model_Parms::read_model_parms(string filename){
 				event_class = str2GeneClass(event_class_str);
 			}
 			catch(exception& e){
-				throw runtime_error("Unknown Gene_class\""+event_class_str +"\" in model file: " + filename);
+				throw runtime_error("Unknown Gene_class\""+event_class_str +"\" in model file: \"" + filename + "\"");
 			}
 
 			semicolon_index = next_semicolon_index;
@@ -545,7 +544,7 @@ void Model_Parms::read_model_parms(string filename){
 				event_side = str2SeqSide(event_side_str);
 			}
 			catch(exception& e){
-				throw runtime_error("Unknown Seq_side\""+event_side_str +"\" in file: " + filename);
+				throw runtime_error("Unknown Seq_side\""+event_side_str +"\" in file: \"" + filename + "\"");
 			}
 
 
@@ -664,6 +663,8 @@ void Model_Parms::read_model_parms(string filename){
 			this->error_rate = err_rate_p;
 		}
 		else if(errrate == string("#Hypermutationglobalerrorrate")){
+
+			//Get the general attributes for the hypermutation model (size,learn_on,apply_on)
 			size_t next_semicolon_index = line_str.find(";",semicolon_index+1);
 			size_t mutation_Nmer_size = stoi(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
 			semicolon_index = next_semicolon_index;
@@ -685,9 +686,11 @@ void Model_Parms::read_model_parms(string filename){
 				throw runtime_error("Unknown Gene_class\""+ line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)) +"\" for Hypermutationglobalerrorrate in model file: " + filename);
 			}
 
+			//Get the global rate
 			getline(infile,line_str);
 			double R = stod(line_str);
 
+			//Get the contributions
 			getline(infile,line_str);
 			semicolon_index = 0;
 			next_semicolon_index = line_str.find(";");
@@ -703,6 +706,47 @@ void Model_Parms::read_model_parms(string filename){
 				next_semicolon_index = line_str.find(";",semicolon_index+1);
 			}
 			shared_ptr<Hypermutation_global_errorrate> err_rate_p = shared_ptr<Hypermutation_global_errorrate> (new Hypermutation_global_errorrate(mutation_Nmer_size, learn_on , apply_on , R , ei_contributions));
+			this->set_error_ratep(err_rate_p);
+		}
+		else if(errrate == string("#HypermutationfullNmererrorrate")){
+			//Get the general attributes for the hypermutation model (size,learn_on,apply_on)
+			size_t next_semicolon_index = line_str.find(";",semicolon_index+1);
+			size_t mutation_Nmer_size = stoi(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			semicolon_index = next_semicolon_index;
+			next_semicolon_index = line_str.find(";",semicolon_index+1);
+			Gene_class learn_on;
+			try{
+				learn_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			}
+			catch(exception& e){
+				throw runtime_error("Unknown Gene_class\""+ line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)) +"\" for Hypermutationglobalerrorrate in model file: " + filename);
+			}
+			semicolon_index = next_semicolon_index;
+			next_semicolon_index = line_str.find(";",semicolon_index+1);
+			Gene_class apply_on;
+			try{
+				apply_on = str2GeneClass(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)));
+			}
+			catch(exception& e){
+				throw runtime_error("Unknown Gene_class\""+ line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1)) +"\" for Hypermutationglobalerrorrate in model file: " + filename);
+			}
+
+			//Get the mutation probas
+			getline(infile,line_str);
+			semicolon_index = 0;
+			next_semicolon_index = line_str.find(";");
+			vector<double> mutation_probas ;
+			while( semicolon_index!=string::npos ){
+				if(semicolon_index==0){
+					mutation_probas.push_back(stod(line_str.substr(semicolon_index , (next_semicolon_index - semicolon_index ))));
+				}
+				else{
+					mutation_probas.push_back(stod(line_str.substr(semicolon_index+1 , (next_semicolon_index - semicolon_index -1))));
+				}
+				semicolon_index = next_semicolon_index;
+				next_semicolon_index = line_str.find(";",semicolon_index+1);
+			}
+			shared_ptr<Hypermutation_full_Nmer_errorrate> err_rate_p = shared_ptr<Hypermutation_full_Nmer_errorrate> (new Hypermutation_full_Nmer_errorrate(mutation_Nmer_size, learn_on , apply_on , mutation_probas));
 			this->set_error_ratep(err_rate_p);
 		}
 		else{

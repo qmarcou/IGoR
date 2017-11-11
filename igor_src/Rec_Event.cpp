@@ -197,7 +197,12 @@ void Rec_Event::set_upper_bound_proba(double proba){
 	this->event_upper_bound_proba = proba;
 }
 
-
+/**
+ * Does nothing since in general events will not need to perform any operation on the marginal probabilities
+ */
+void Rec_Event::update_event_internal_probas(const Marginal_array_p& marginal_array , const unordered_map<Rec_Event_name,int>& index_map){
+	//Do nothing
+}
 
 /*
  * This method initialize the scenario probability upper bound for each event

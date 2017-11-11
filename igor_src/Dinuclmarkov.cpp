@@ -21,6 +21,8 @@ Dinucl_markov::Dinucl_markov(Gene_class gene): Rec_Event()  ,  total_nucl_count(
 
 	updated = true;
 	updated_upper_bound_proba = new double;
+
+	dinuc_proba_matrix = Matrix<double>(15,15);
 	this->update_event_name();
 
 }
@@ -202,7 +204,8 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 		if(inserted_seq[0]=='I'){
 			rand = distribution(generator);
 			prob_count = 0;
-			int offset;
+			/*THIS WAS REMOVED WHEN INTRODUCING AMBIGUOUS NUCLEOTIDES SUPPORT
+			 * int offset;
 			try{
 				offset = event_realizations.at(previous_seq.substr(previous_seq.size()-1,1)).index*event_realizations.size();
 			}
@@ -210,8 +213,11 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 				cout<<"exception caught in DinucMarkov draw random common, key used: "<<previous_seq.substr(previous_seq.size()-1,1);
 				throw except;
 			}
+			*/
+			int prev_nt = nt2int(previous_seq.substr(previous_seq.size()-1,1)).at(0);
 			for(unordered_map<string,Event_realization>::const_iterator iter = event_realizations.begin() ; iter != event_realizations.end() ; ++iter){
-				prob_count += model_marginals_p[index + offset + (*iter).second.index];
+				//prob_count += model_marginals_p[index + offset + (*iter).second.index];
+				prob_count += this->dinuc_proba_matrix(prev_nt,(*iter).second.index);
 				if(prob_count>=rand){
 					inserted_seq[0] = (*iter).second.value_str[0];
 					realization_queue.push((*iter).second.index);
@@ -221,7 +227,7 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 		}
 		for(size_t i=1 ; i!=inserted_seq.size() ; ++i){
 			if(inserted_seq[i]=='I'){
-
+				/*THIS WAS REMOVED WHEN INTRODUCING AMBIGUOUS NUCLEOTIDES SUPPORT
 				int offset;
 				try{
 					offset = event_realizations.at(inserted_seq.substr(i-1,1)).index*event_realizations.size();
@@ -230,11 +236,15 @@ queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string
 					cout<<"exception caught, key used: "<<inserted_seq.substr(i-1,1)<<",ins seq: "<<inserted_seq<<",i = "<<i<<", previous rand: "<<rand<<", previous prob_count: "<<prob_count<<endl;
 					throw except;
 				}
+				*/
+				int prev_nt = nt2int(inserted_seq.substr(i-1,1)).at(0);
+
 				rand = distribution(generator);
 				prob_count = 0;
 
 				for(unordered_map<string,Event_realization>::const_iterator iter = event_realizations.begin() ; iter != event_realizations.end() ; ++iter){
-					prob_count += model_marginals_p[index + offset + (*iter).second.index];
+					//prob_count += model_marginals_p[index + offset + (*iter).second.index];
+					prob_count += this->dinuc_proba_matrix(prev_nt,(*iter).second.index);
 					if(prob_count>=rand){
 						inserted_seq[i] = (*iter).second.value_str[0];
 						realization_queue.push((*iter).second.index);
@@ -273,10 +283,18 @@ void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_
 			current_realizations_index_vec.emplace_back( sec_nt_index );
 
 			//For this Dinucl_Markov model the values on the marginal array represents the conditional probability of a couple of nucleotides (N2 | N1)
-			offset =  first_nt_index*event_realizations.size();
-			realization_final_index = base_index + offset + sec_nt_index;
-			proba_contribution*= model_parameters_point[realization_final_index];///compute_nt_freq(base_index+offset , model_parameters_point);
-			indices_array[0] = realization_final_index;
+			if((first_nt_index<4) & (sec_nt_index<4)){
+				offset =  first_nt_index*event_realizations.size();
+				realization_final_index = base_index + offset + sec_nt_index;
+				proba_contribution*= model_parameters_point[realization_final_index];///compute_nt_freq(base_index+offset , model_parameters_point);
+				indices_array[0] = realization_final_index;
+			}
+			else{
+				//If an ambiguous nucleotide is present we take the average probability over possible underlying nts
+				proba_contribution*=dinuc_proba_matrix(first_nt_index,sec_nt_index);
+				indices_array[0] = -1;
+			}
+
 			ins_seq.at(0) = data_seq_substr.at(0);
 			total_nucl_count+=1;
 		}
@@ -294,10 +312,18 @@ void Dinucl_markov::iterate_common( int* indices_array , int& previous_assigned_
 				current_realizations_index_vec.emplace_back( sec_nt_index );
 
 				//For this Dinucl_Markov model the values on the marginal array represents the joint probability of a couple of nucleotides (N1 , N2)
-				offset =  first_nt_index*event_realizations.size();
-				realization_final_index = base_index + offset + sec_nt_index;
-				proba_contribution*= model_parameters_point[base_index + offset + sec_nt_index];///compute_nt_freq(base_index+offset , model_parameters_point);
-				indices_array[i] = realization_final_index;
+				if((first_nt_index<4) & (sec_nt_index<4)){
+					offset =  first_nt_index*event_realizations.size();
+					realization_final_index = base_index + offset + sec_nt_index;
+					proba_contribution*= model_parameters_point[base_index + offset + sec_nt_index];///compute_nt_freq(base_index+offset , model_parameters_point);
+					indices_array[i] = realization_final_index;
+				}
+				else{
+					//If an ambiguous nucleotide is present we take the average probability over possible underlying nts
+					proba_contribution*=dinuc_proba_matrix(first_nt_index,sec_nt_index);
+					indices_array[i] = -1;
+				}
+
 				ins_seq.at(i) = data_seq_substr.at(i);
 				total_nucl_count+=1;
 			}
@@ -381,7 +407,9 @@ void Dinucl_markov::initialize_event( unordered_set<Rec_Event_name>& processed_e
 
 }
 
-
+/**
+ * \bug Will only count realizations of unambiguous nucleotides (realization indices>=0 since they are set to -1 in iterate_common)
+ */
 void Dinucl_markov::add_to_marginals(long double scenario_proba , Marginal_array_p& updated_marginals) const{
 	if(viterbi_run){
 		for(size_t i=0 ; i!=this->event_marginal_size ; ++i){
@@ -392,17 +420,50 @@ void Dinucl_markov::add_to_marginals(long double scenario_proba , Marginal_array
 
 	if(event_class == VD_genes || event_class == VDJ_genes){
 		for(size_t i = 0 ; i != vd_seq_size ; ++i){
-			updated_marginals[vd_realizations_indices[i]] +=scenario_proba;
+			if(vd_realizations_indices[i]>=0){
+				updated_marginals[vd_realizations_indices[i]] +=scenario_proba;
+			}
 		}
 	}
 	if(event_class == DJ_genes || event_class == VDJ_genes){
 		for(size_t i = 0 ; i != dj_seq_size ; ++i){
-			updated_marginals[dj_realizations_indices[i]] +=scenario_proba;
+			if(dj_realizations_indices[i]>=0){
+				updated_marginals[dj_realizations_indices[i]] +=scenario_proba;
+			}
 		}
 	}
 	if(event_class == VJ_genes){
 		for(size_t i = 0 ; i != vj_seq_size ; ++i){
-			updated_marginals[vj_realizations_indices[i]] +=scenario_proba;
+			if(vj_realizations_indices[i]>=0){
+				updated_marginals[vj_realizations_indices[i]] +=scenario_proba;
+			}
+		}
+	}
+}
+
+/**
+ * Update probability values contained in a matrix where coordinates >=4 indicates ambiguous nucleotides
+ * We simply take the average probability over the different possible nucleotides.
+ */
+void Dinucl_markov::update_event_internal_probas(const Marginal_array_p& marginal_array , const unordered_map<Rec_Event_name,int>& index_map){
+	Int_nt const all_nt_vals [] = {int_A , int_C , int_G  , int_T , int_R , int_Y  , int_K , int_M , int_S ,int_W , int_B , int_D , int_H , int_V , int_N};
+	size_t event_index = index_map.at(this->get_name());
+	for(size_t i=0 ; i!=15 ; ++i){
+		for(size_t j=0 ; j!=15 ; ++j){
+			list<Int_nt> previous_list = get_ambiguous_nt_list(all_nt_vals[i]);
+			list<Int_nt> next_list = get_ambiguous_nt_list(all_nt_vals[j]);
+
+			//Reset the dinuc proba matrix
+			this->dinuc_proba_matrix(i,j) = 0;
+
+			for(Int_nt prev_nt: previous_list){
+				for(Int_nt next_nt : next_list){
+					this->dinuc_proba_matrix(i,j) += marginal_array[event_index + i*event_realizations.size() + j];
+					//TODO This is risky in case teh code evolves to ahve more than realizations
+				}
+			}
+			//By taking the average we assume all nucleotides underlying the ambiguous one are  equally probable
+			this->dinuc_proba_matrix(i,j) /= (double)(previous_list.size() * next_list.size());
 		}
 	}
 }
