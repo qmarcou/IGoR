@@ -32,4 +32,5 @@ doxygen doxygen.config
 cd ./docs/latex/
 make all
 cd ../..
+mv ./docs/latex/refman.pdf ./docs/IGoR_CPP_manual.pdf
 
