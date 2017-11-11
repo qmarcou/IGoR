@@ -311,13 +311,21 @@ int main(int argc , char* argv[]){
 			}catch(exception& e){
 				return terminate_IGoR_with_error_message("Exception caught while reading custom model parms after \"-set_custom_model\"",  e);
 			}
-			++carg_i;
 			cl_model_marginals = Model_marginals(cl_model_parms);
-			try{
-				cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+			if((carg_i+1)<argc
+					and (string(argv[carg_i+1]).substr(0,1)!=string("-"))){
+				++carg_i;
+				//Check if the next argument is a new command or the corresponding marginal file
+				try{
+					cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading custom marginals after \"-set_custom_model\"",  e);
+				}
 			}
-			catch(exception& e){
-				return terminate_IGoR_with_error_message("Exception caught while reading custom marginals after \"-set_custom_model\"",  e);
+			else{
+				clog<<"No model marginals file was provided with the custom model parameters, initializing corresponding marginals to a uniform distribution!"<<endl;
+				cl_model_marginals.uniform_initialize(cl_model_parms);
 			}
 
 			//Check if the model contains a D gene event in order to load the alignments
