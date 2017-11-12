@@ -1,25 +1,20 @@
 import pandas
+import re as regex
+from ..utils.utils import get_str_asarray
 
 def extract_best_aligns(aligns_df):
+	"""Extracts alignments with highest score from the provided alignments dataframe.""" 
 	mask=aligns_df.groupby('seq_index').agg({'score':'idxmax'}) #get /!\ FIRST /!\ index of max align score for each sequence
 	aligns_df_best= aligns_df.loc[mask['score']].reset_index(drop=True)
 	return aligns_df_best
 
 def get_misinsdel_asarray(misinsdel_str):
-    misinsdel_array = []
-    if(len(misinsdel_str)>2):
-        misinsdel_str = misinsdel_str[1:-1]
-        next_comma_index = misinsdel_str.find(',')
-        comma_index = -1
-        while next_comma_index!=-1:
-             misinsdel_array.append(int(misinsdel_str[comma_index+1:next_comma_index]))
-             comma_index = next_comma_index
-             next_comma_index = misinsdel_str.find(',',next_comma_index+1)
-        misinsdel_array.append(int(misinsdel_str[comma_index+1:]))     
-    return misinsdel_array
+	"""Convert a string with comma separated mismatches indices to an array of integers."""   
+	return get_str_asarray(misinsdel_str,dtype=int,boundaries_char = ["{","}"],sep = ',')
 
 
 def read_alignments(filename):
+	"""Reads IGoR's alignments file as a panda DataFrame."""
 	aligns = pandas.read_csv(filename,delimiter=';')
 	#Convert the string of insertions into an array of integers
 	tmp = aligns.apply(lambda x: get_misinsdel_asarray(x.insertions),axis=1);
@@ -30,12 +25,12 @@ def read_alignments(filename):
 	#Convert the string of mismatches into an array of integers
 	tmp = aligns.apply(lambda x: get_misinsdel_asarray(x.mismatches),axis=1);
 	aligns.mismatches = tmp
-	
+
 	return aligns
 
 def read_best_alignments(filename):
+	"""Reads IGoR's top score alignments from file as a panda DataFrame."""
 	#Not efficient just faster to code
-
 	aligns = pandas.read_csv(filename,delimiter=';')
 	aligns = extract_best_aligns(aligns)
 
@@ -48,12 +43,12 @@ def read_best_alignments(filename):
 	#Convert the string of mismatches into an array of integers
 	tmp = aligns.mismatches.apply(get_misinsdel_asarray);
 	aligns.mismatches = tmp
-	
+
 	return aligns
 
 #Import genomic template sequences
-import re as regex
 def read_FASTA_strings(filename):
+	"""Returns a dictionnary whose entry keys are sequence labels and values are sequences."""
 	seq = regex.compile('>')
 	line = regex.compile('\n')
 	with open(filename) as file:
@@ -66,5 +61,10 @@ def read_FASTA_strings(filename):
 
 	
 def has_mismatches(x):
-    tmp = asarray(x.mismatches)
-    return any(multiply(tmp>= x["5_p_align_offset"],tmp<=x["3_p_align_offset"]))	
+	"""Assess whether the SW alignment contains mismatches.
+
+	Because IGoR's inference module uses mismatches outside the best SW alignment, not all reported mismatches are contained in the SW alignment.
+	This function filters them before assessing whether the actual SW alignment contains any mismatch.	
+	"""
+	tmp = asarray(x.mismatches)
+	return any(multiply(tmp>= x["5_p_align_offset"],tmp<=x["3_p_align_offset"]))	
