@@ -1,7 +1,8 @@
 import pandas as pd
-from ..utils import utils
+from ..utils.utils import get_str_asarray
 
-def compute_mutation_frequency(x,threshold=2000.0): #=800
+def compute_mutation_frequency(x,threshold): 
+	"""Computes mutation frequency for positions with coverage larger than threshold."""
     fraction_list = []
     for cov,err in zip(x.coverage,x.errors):
         if(cov>threshold):
@@ -11,29 +12,12 @@ def compute_mutation_frequency(x,threshold=2000.0): #=800
     return fraction_list
 
 
-
-def get_str_asarray(full_str,dtype=float,boundaries_char = ["(",")"],sep = ','):
-    full_array = []
-    if(len(full_str)>(len(boundaries_char[0])+len(boundaries_char[1]))):
-        
-        #Check if the beginning and end of the string indeed match the boundaries characters 
-        if full_str.find(boundaries_char[0])!=0:
-            print("Beginning char cannot be found")
-        elif full_str.find(boundaries_char[1])!=(len(full_str)-len(boundaries_char[1])):
-            print("Ending char cannot be found")
-            
-        full_str = full_str[len(boundaries_char[0]):-len(boundaries_char[1])]
-        next_comma_index = full_str.find(sep)
-        comma_index = -1
-        while next_comma_index!=-1:
-             full_array.append(dtype(full_str[comma_index+1:next_comma_index]))
-             comma_index = next_comma_index
-             next_comma_index = full_str.find(',',next_comma_index+1)
-        full_array.append(float(full_str[comma_index+1:]))     
-    return full_array
-
 #Read gene coverage and errors data
 def read_coverage_and_errors_file(filename,get_diag_of_N_dim=None):
+	"""Reads coverage and error counter file as pandas.DataFrame
+
+	For Ndimensional joint coverage and errors the diagonal(equivalent to 1D) can be extracted by passing the number of dimensions as an argument.
+	"""
     raw_read = pd.read_csv(filename,sep=';')
     
     #Convert coverage strings into arrays
