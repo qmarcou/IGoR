@@ -144,8 +144,8 @@ If you are working on datasets not present in this list refer to the *Advanced u
 | `-chain chainname` | Selects a model and a set of genomic template according to the value. Possible values for `chainname` are: `alpha`, `beta`, `light`, `heavy_naive`, and `heavy_memory`. **This needs to be set in order to use provided genomic templates/model**|
 | `-species speciesname`| Selects a species from the set of predefined species. Possible values are: `human`.**This needs to be set in order to use provided genomic templates/model** |
 | `-set_genomic --*gene* /path/to/file.fasta`| Set a set of custom genomic templates for gene *gene* (possible values are --V,--D and --J) with a list of genomic templates contained in the file */path/to/file.fasta* in fasta format. If the set of provided genomic templates is already fully contained (same name and same sequence) in the loaded model (default, custom, last_inferred), the missing ones will be set to zero probability keeping the ratios of the others. For instance providing only one already known genomic template will result in a model with the considered gene usage to be 1.0, all others set to 0.0. **When using this option and introducing new/modified genomic templates, the user will need to re-infer a model since the genomic templates will no longer correspond to the ones contained in the reference models, the model parameters are thus automatically reset to a uniform distribution.** |
-| `-set_CDR3_anchors --*gene*` | Load a CSV file containing the index of the CDR3 anchors for the *gene*(--V or --J). The index should correspond to the first letter of the cystein(for V) or tryptophane/phenylalanin (for J) for the nucleotide sequence of the gene. |
-| `-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt` | Use a custom model as a baseline for inference or evaluation. **Note that this will override  custom genomic templates for inference and evaluation**. Alternatively, providing only the model parameters file will lead IGoR to create model maginals initialized to a uniform distribution. |
+| `-set_CDR3_anchors --*gene*` | Load a CSV file containing the index of the CDR3 anchors for the *gene*(--V or --J). The index should correspond to the first letter of the cysteine (for V) or tryptophan/phenylalanin (for J) for the nucleotide sequence of the gene. |
+| `-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt` | Use a custom model as a baseline for inference or evaluation. **Note that this will override  custom genomic templates for inference and evaluation**. Alternatively, providing only the model parameters file will lead IGoR to create model marginals initialized to a uniform distribution. |
 | `-load_last_inferred`| Using this command will load the last inferred model (folder *inference/final_xx.txt*) as a basis for a new inference, evaluation or generation of synthetic sequences |
 | `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
 | `-run_custom` |  Runs the code inside the custom section of the main.cpp file |
@@ -238,7 +238,7 @@ The different sections of the files are delimited by an `@` symbol, each further
 #### Model marginals files
 *\*_marginals.txt* files contain information to create Model_Marginals C++ objects.
 It encapsulates the probabilities for each recombination event's realization.
-As for the model parameters files, the marginals files are are sectionned by special characters as follows:
+As for the model parameters files, the marginals files are are sectioned by special characters as follows:
 
 - `@` introduces the recombination event's nickname the following probabilities are referring to.
 - `$Dim` introduces the dimensions of the event and its conditional dimensions probability array. By convention the last dimension refers to the considered event dimension.
@@ -364,7 +364,7 @@ $MYCOMMANDS -batch bar -generate 100 #Generate
 
 
 # Advanced usage
-The set of command lines above allows to use predefined models or their topology to study a new dataset. Additionaly the user can define new models directly using the model parameters file interface. For instance, in order to investigate a conditional dependence between two recombination events, the user can simply add or remove an edge in the graph following the syntax defined earlier.
+The set of command lines above allows to use predefined models or their topology to study a new dataset. Additionally the user can define new models directly using the model parameters file interface. For instance, in order to investigate a conditional dependence between two recombination events, the user can simply add or remove an edge in the graph following the syntax defined earlier.
 
 In order to change the set of realizations associated with an event the user can also directly modify a recombination parameters file. Adding or removing realizations should be done with great care as IGoR will use the associated indices to read the corresponding probabilities on the probability array. These indices should be contiguous ranging from 0 to the (total number of realizations -1). Any change in these indices will make the corresponding model marginals file void, and a new one should be automatically created by passing only the model parameters filename to the `-set_custom_model` command.
 
