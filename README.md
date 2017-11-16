@@ -20,7 +20,7 @@ The following paper describes the methodology, performance tests and some new bi
 
 [igor_bioarxiv]: https://arxiv.org/abs/1705.08246
 
-Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures. 
+Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures.
 
 ### Version ###
 Latest released version: 1.1.0
@@ -32,22 +32,22 @@ Latest released version: 1.1.0
 # Dependencies
 
 + a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread) such as GCC
-+ [GSL library](https://www.gnu.org/software/gsl/) : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies 
++ [GSL library](https://www.gnu.org/software/gsl/) : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies
 + [jemalloc](http://jemalloc.net/) (optional although recommended for full parallel proficiency) memory allocation library: also shipped with IGoR to avoid dependencies issues (requires a pthreads compatible compiler)
 + bash
 + autotools suite if building from unpackaged sources
 
 # Install
-IGoR uses the autotools suite for compilation and installation in order to ensure portability to many systems. 
+IGoR uses the autotools suite for compilation and installation in order to ensure portability to many systems.
 
 *Installing from package releases (recommended)*
 
-First download the latest released package on the download page (on the left). Extract the files from the archive. 
+First download the latest released package on the download page (on the left). Extract the files from the archive.
 
 *Installing from unpackaged sources*
 
 For this you will have to get git, the autotools suite, pandoc, doxygen and the latex suite software installed. Note that this is the most convenient way to keep IGoR up-to-date but involves a bit more installation steps.
-Using *git*, clone the repository where you desire. Go in the created directory and run the *autogen.sh* bash script. This will create the *configure* script. Upon this stage the installation rules are the same as for packaged developper sources.
+Using *git*, clone the repository where you desire. Go in the created directory and run the *autogen.sh* bash script. This will create the *configure* script. Upon this stage the installation rules are the same as for packaged developer sources.
 From *git* you can chose among two branches: the *master* branch corresponds to the latest stable (packaged) release, the dev branch is the most up to date branch including current developpments until they are issued in the next release. The *dev* branch is therefore more bug prone, however this is the natural branch for people ready to help with developpment (even only by functionality testing).
 
 A (sadly) non exhaustive list of potential installation troubleshoots follows in the next section. If your problem is not referenced there please [contact](<quentin.marcou@lpt.ens.fr> "myadress") us. If you end up finding a solution by yourself please help us append it to the following list and help the user community.
@@ -57,12 +57,12 @@ Widely tested on several Debian related distros.
 Install gcc/g++ if not already installed (note that another compiler could be used).
 With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Many options can be appended to ./configure such as `./configure CC=gcc CXX=g++` to enforce the use of gcc as compiler. Once over, type `make` to compile the sources (this will take a few minutes). **IGoR's executable will appear in the igor_src folder**
 
-Finally in order to access all IGoR's features, install IGoR by typing `make install`. This will install IGoR's executable, supplied models and manual on your system. If you do not have administrator privileges, IGoR can be installed locally in the folder of your choice by passing **--prefix=/your/custom/path** upon calling the configure script (e.g `./configure --prefix=$HOME`). Other configure options can be accessed using ./configure -h. 
+Finally in order to access all IGoR's features, install IGoR by typing `make install`. This will install IGoR's executable, supplied models and manual on your system. If you do not have administrator privileges, IGoR can be installed locally in the folder of your choice by passing **--prefix=/your/custom/path** upon calling the configure script (e.g `./configure --prefix=$HOME`). Other configure options can be accessed using ./configure -h.
 
 ## MacOS
 MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc (through name aliasing) and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports or Homebrew and install gcc from there.
 
-First if not already present on your system install XCode through the application store. 
+First if not already present on your system install XCode through the application store.
 
 Macports can be found [here][macports_site]. Download and install the version corresponding to your MacOS version.
 [macports_site]: https://www.macports.org/install.php
@@ -86,7 +86,7 @@ Then install GCC using the following command:
 
 `brew install gcc`
 
-**Note: if you decide to use Homebrew you should apparently refrain yourself from assigning the newly installed gcc to the `gcc` command(see [this page](http://docs.brew.sh/Custom-GCC-and-cross-compilers.html) for more details). You will thus have to pass the correct compiler instructions to the configure script with the *CC* and *CXX* flags.** 
+**Note: if you decide to use Homebrew you should apparently refrain yourself from assigning the newly installed gcc to the `gcc` command(see [this page](http://docs.brew.sh/Custom-GCC-and-cross-compilers.html) for more details). You will thus have to pass the correct compiler instructions to the configure script with the *CC* and *CXX* flags.**
 
 Once done, as for Linux simply go to IGoR's root folder and type `./configure` to create the appropriate makefiles and compile using `make` (this will take a few minutes). Finally install IGoR using the `make install` command.
 
@@ -94,7 +94,7 @@ Once done, as for Linux simply go to IGoR's root folder and type `./configure` t
 ## Windows (not tested)
 The configure script relies on bash to work. A first step would be to download a bash interpreter (such as Cygwin or MinGW) and a compiler. Open the command line of the one of your choice and use `./configure;make`
 
-## Troubleshoots 
+## Troubleshoots
 Here is a list of some install troubleshoots that have been reported and their corresponding solution
 
 | Issue | Reason | Solution |
@@ -106,9 +106,9 @@ Here is a list of some install troubleshoots that have been reported and their c
 | *src/jemalloc.c:241:1: error: initializer element is not constant* ; *static malloc_mutex_t init_lock = MALLOC_MUTEX_INITIALIZER;* | Might be related to MacOS Sierra? | Unknown |
 
 # Workflow
-As a preprocessing step IGoR first needs to align the genomic templates to the read (`-align`) before exploring all putative recombination scenarios for this read. 
+As a preprocessing step IGoR first needs to align the genomic templates to the read (`-align`) before exploring all putative recombination scenarios for this read.
 After aligning IGoR can be used to infer a recombination model (`-infer`), evaluate sequences statistics (`-evaluate`) using an already inferred model.
-Synthetic sequences can be generated from a learned model (as one supplied by IGoR, or one inferred de novo through the `-infer` command) with the `-generate` command. 
+Synthetic sequences can be generated from a learned model (as one supplied by IGoR, or one inferred de novo through the `-infer` command) with the `-generate` command.
 
 # Command line tools
 Although the full flexibility of IGoR is reachable through C++ highlevel functions (*see next section*) we provide some command line options to perform most frequent tasks on immune receptor sequences.
@@ -121,11 +121,11 @@ Command options are nested arguments, the general organization of the commands f
 IGoR is shipped with a set of genomic templates and already inferred models from [[1][igor_bioarxiv]].
 
 **In order to use the predefined models and demo IGoR must have been installed on your system.**
- 
+
 Available options are listed below:
 
 | Species | Chains |
-| :------------- | :------------------------------ | 
+| :------------- | :------------------------------ |
 | human | alpha,beta,heavy |
 
 If you are working on datasets not present in this list refer to the *Advanced usage section* and/or contact us for assistance. Help us filling this database for other users and share the resulting models with us!
@@ -144,12 +144,12 @@ If you are working on datasets not present in this list refer to the *Advanced u
 | `-chain chainname` | Selects a model and a set of genomic template according to the value. Possible values for `chainname` are: `alpha`, `beta`, `light`, `heavy_naive`, and `heavy_memory`. **This needs to be set in order to use provided genomic templates/model**|
 | `-species speciesname`| Selects a species from the set of predefined species. Possible values are: `human`.**This needs to be set in order to use provided genomic templates/model** |
 | `-set_genomic --*gene* /path/to/file.fasta`| Set a set of custom genomic templates for gene *gene* (possible values are --V,--D and --J) with a list of genomic templates contained in the file */path/to/file.fasta* in fasta format. If the set of provided genomic templates is already fully contained (same name and same sequence) in the loaded model (default, custom, last_inferred), the missing ones will be set to zero probability keeping the ratios of the others. For instance providing only one already known genomic template will result in a model with the considered gene usage to be 1.0, all others set to 0.0. **When using this option and introducing new/modified genomic templates, the user will need to re-infer a model since the genomic templates will no longer correspond to the ones contained in the reference models, the model parameters are thus automatically reset to a uniform distribution.** |
-| `-set_CDR3_anchors --*gene*` | Load a CSV file containing the index of the CDR3 anchors for the *gene*(--V or --J). The index should correspond to the first letter of the cystein(for V) or tryptophane/phenylalanin (for J) for the nucleotide sequence of the gene. |
-| `-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt` | Use a custom model as a baseline for inference or evaluation. **Note that this will override  custom genomic templates for inference and evaluation**. Alternatively, providing only the model parameters file will lead IGoR to create model maginals initialized to a uniform distribution. |
+| `-set_CDR3_anchors --*gene*` | Load a CSV file containing the index of the CDR3 anchors for the *gene*(--V or --J). The index should correspond to the first letter of the cysteine (for V) or tryptophan/phenylalanin (for J) for the nucleotide sequence of the gene. |
+| `-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt` | Use a custom model as a baseline for inference or evaluation. **Note that this will override  custom genomic templates for inference and evaluation**. Alternatively, providing only the model parameters file will lead IGoR to create model marginals initialized to a uniform distribution. |
 | `-load_last_inferred`| Using this command will load the last inferred model (folder *inference/final_xx.txt*) as a basis for a new inference, evaluation or generation of synthetic sequences |
 | `-run_demo`  |  Runs the demo code on 300 sequences of 60bp TCRs (mostly a sanity run check) |
 | `-run_custom` |  Runs the code inside the custom section of the main.cpp file |
-| `-subsample N` | Perform actions on a random subsample of *N* sequences. **This flag will have different effects depending on the supplied commands:** if the `-read_seqs` command is used, the resulting indexed sequence file will be a subsample of sequences contained in the original file. Else, if the `-align` command is used the alignments will be performed on a subsample of the indexed sequences. Else, if the `-evaluate` or `-infer` command is used the inference will be run on a subsample of the indexed sequences. *Obviously N should be < to the total number of sequences available. The `-subsample` flag should be used in only one command of a pipeline, see the Command example section for details.* | 
+| `-subsample N` | Perform actions on a random subsample of *N* sequences. **This flag will have different effects depending on the supplied commands:** if the `-read_seqs` command is used, the resulting indexed sequence file will be a subsample of sequences contained in the original file. Else, if the `-align` command is used the alignments will be performed on a subsample of the indexed sequences. Else, if the `-evaluate` or `-infer` command is used the inference will be run on a subsample of the indexed sequences. *Obviously N should be < to the total number of sequences available. The `-subsample` flag should be used in only one command of a pipeline, see the Command example section for details.* |
 
 ### Working directory
 This is where all IGoR outputs will appear. Specific folders will be created for alignments, inference, evaluation and outputs.
@@ -161,7 +161,7 @@ This is where all IGoR outputs will appear. Specific folders will be created for
 Performs Smith-Waterman alignments of the genomic templates. Using a slight alteration of the Smith-Waterman score matrix, we enforce that V can only be deleted on the 3' side and J on the 5' side (thus enforcing the alignment on the other side until the end of the read or of the genomic template). D is aligned using a classical Smith-Waterman local alignment approach allowing gene deletions on both sides.
 
 ### Alignment commands summary
- 
+
 Alignment of the sequences is performed upon detection of the `-align` switch in the command line. For each gene, alignment parameters can be set using `--V`,`--D` or `--J`. **Specifying any of those three argument will cause to align only the specified genes**. In order to specify a set of parameters for all genes or force to align all genes the argument `--all` should be passed. The arguments for setting the different parameters are given in the table below.
 
 | Command line argument | Description                    |
@@ -194,7 +194,7 @@ Alignment files are semicolon separated files. For each alignment of a genomic t
 ## Inference and evaluation
 
 ### Inference and evaluation commands
-The inference is reached using the command `-infer`. Logs and models parameters values for each iteration will be created in the folder *inference* of the working directory (or *batchname_inference* if a batchname was supplied). 
+The inference is reached using the command `-infer`. Logs and models parameters values for each iteration will be created in the folder *inference* of the working directory (or *batchname_inference* if a batchname was supplied).
 
 Sequence evaluation is reached using the command `-evaluate`. This is the same as performing an iteration of the Expectation-Maximization on the whole dataset and thus accepts the same arguments as `-infer` for arguments related to the precision of the algorithm. The logs of the sequences evaluation are created in the folder *evaluate* (or *batchname_evaluate* if a batchname was supplied).
 
@@ -219,33 +219,31 @@ Upon inferring or evaluating several files will be created in the corresponding 
 #### Model parameters files
 *\*_parms.txt* files contain information to create Model_Parms C++ objects.
 It encapsulates information on the individual model events, their possible realizations, the model's graph structure encoding events conditional dependences and the error model information. All fields are semi colon separated.
-The different sections of the files are delimited by an *\"@\"* symbol, each further subdivided as follows:
+The different sections of the files are delimited by an `@` symbol, each further subdivided as follows:
 
-- *\"@Event_list\"* introduces the section in which the recombination events (i.e the Bayesian Network/graph nodes) are defined. 
-	- *\"#\"* introduces a new recombination event (or node). The line contains 4 fields: 
+- `@Event_list` introduces the section in which the recombination events (i.e the Bayesian Network/graph nodes) are defined.
+	- `#` introduces a new recombination event (or node). The line contains 4 fields:
 		- the event type (*GeneChoice*, *Deletion*, *Insertion*, *DinucMarkov*)
 		- the targeted genes (*V_gene*, *VD_genes*, *D_gene*, *DJ_genes*, *J_gene*, *VJ_genes*)
 		- the gene side (*Five_prime*, *Three_prime*, *Undefined_side*)
 		- the event priority: an integer influencing the order in which events are processed during the inference such that events with high priority are preferentially processed earlier.
 		- the event nickname
-	- *\"%\"* introduces a new event realization. Depending on the recombination event, the first fields will define the realization name and/or values (e.g gene name and gene sequence for *GeneChoice* or number of deletions for *Deletion*) while the final field always denotes the realization's index on the probability array. **This index is automatically assigned by IGoR upon addition of an event realization, changing it will cause undefined behavior.** See the *Advanced usage* section of this README for more information on how to add/remove events realizations.
-- \"@Edges\" introduces the section in which the conditionnal dependencies (i.e graph directed edges) are defined.
-	- *\"%parent;child\"* introduces a new directed edge/conditional dependence between the parent and child event.
-- \"@ErrorRate\" introduces the section in which the error model is defined.
-	- *\"#\"* introduces a new error model, the first field defining the error model type and subsequent fields other meta parameters of the error model 
-		- *\"%\"* introduces the parameters values linked to the actual error/mutation rate.
-
-
+	- `%` introduces a new event realization. Depending on the recombination event, the first fields will define the realization name and/or values (e.g gene name and gene sequence for *GeneChoice* or number of deletions for *Deletion*) while the final field always denotes the realization's index on the probability array. **This index is automatically assigned by IGoR upon addition of an event realization, changing it will cause undefined behavior.** See the *Advanced usage* section of this README for more information on how to add/remove event realizations.
+- `@Edges` introduces the section in which the conditional dependencies (i.e graph directed edges) are defined.
+	- `%parent;child` introduces a new directed edge/conditional dependence between the parent and child event.
+- `@ErrorRate` introduces the section in which the error model is defined.
+	- `#` introduces a new error model, the first field defining the error model type and subsequent fields other meta parameters of the error model
+		- `%` introduces the parameters values linked to the actual error/mutation rate.
 
 #### Model marginals files
 *\*_marginals.txt* files contain information to create Model_Marginals C++ objects.
-It encapsulates the probabilities for each recombination event's realization. 
-As for the model parameters files, the marginals files are are sectionned by special characters as follows:
+It encapsulates the probabilities for each recombination event's realization.
+As for the model parameters files, the marginals files are are sectioned by special characters as follows:
 
-- *\"@\"* introduces the recombination event's nickname the following probabilities are referring to.
-- *\"$Dim\"* introduces the dimensions of the event and its conditional dimensions probability array. By convention the last dimension refers to the considered event dimension.
-- *\"#\" introduces the indices of the realizations of the parent events and their nickname corresponding to the following 1D probability array
-- *\"%\" introduces the 1D probability array for all of the considered event realizations for fixed realizations of the parents events whose indices were given in the previous line.
+- `@` introduces the recombination event's nickname the following probabilities are referring to.
+- `$Dim` introduces the dimensions of the event and its conditional dimensions probability array. By convention the last dimension refers to the considered event dimension.
+- `#` introduces the indices of the realizations of the parent events and their nickname corresponding to the following 1D probability array
+- `%` introduces the 1D probability array for all of the considered event realizations for fixed realizations of the parents events whose indices were given in the previous line.
 
 Python functions are provided to read such files along with the corresponding model parameters file within the GenModel object.
 
@@ -253,7 +251,7 @@ Python functions are provided to read such files along with the corresponding mo
 *inference_info.out* contains the inference parameters/date/time for traceability and potential error messages.
 
 #### Inference logs file
-*inference_logs.txt* contains some information on each sequence for each iteration. This is a useful tool to debug inference troubleshoots. 
+*inference_logs.txt* contains some information on each sequence for each iteration. This is a useful tool to debug inference troubleshoots.
 
 #### Model likelihood file
 *likelihoods.out* contains the likelihood information for a given dataset.
@@ -261,17 +259,17 @@ Python functions are provided to read such files along with the corresponding mo
 ### Inference and evaluation Troubleshoots
 Although the inference/evaluation generally run smoothly we try to list out some possible troubleshoots and corresponding solutions.
 
-| Issue | Putative solution                    | 
-| :------------- | :------------------------------ | 
+| Issue | Putative solution                    |
+| :------------- | :------------------------------ |
 |map_base::at() exception | This exception is most likely thrown by a Gene_Choice event in the inference. Try/Catch handling is runtime costly thus some checks are not performed on the fly. Explanation: This is most likely the inference receiving a genomic template whose name does not exist in the model realizations. Solution: make sure the genomic templates (and their names) used for alignments correspond to those contained in your model file. |
 | All 0 output | All marginal files contains 0 parameters after one iteration. All sequences have zero likelihood in the *inference_logs.txt* file. Explanation: none of the scenarios had a sufficiently high likelihood to reach the likelihood threshold. Solution: use the `--L_thresh` argument to decrease the likelihood threshold, if the code becomes utterly slow see below. ** In general while inferring one should make sure not too many sequences are assigned a zero likelihood since it would introduce a systematic bias in the learned distribution ** |
 | Extreme slowness | Runtimes are very far from the ones given in [the original article][igor_bioarxiv]. Check the mean number of errors in the *inference_logs.txt* file. If these numbers are higher than you would expect from your data (e.g if you are not studying hypermutated data) check your alignments statistics. A possible explanation would be an incorrect setting of the alignment offsets bounds |
 
 
-## Outputs 
+## Outputs
 Outputs or Counters in the C++ interface are scenario/sequence statistics, each individually presented below. They are all written in the *output* folder (or *batchname_output* if a batchname was supplied).
 
-In order to specify outputs use the `-output` argument, and detail the desired list of outputs. Outputs are tied to the exploration of scenarios and thus require to have `-infer` or `-evaluate` in the same command. Note that although it might be interesting to track some outputs during the inference for debugging purposes, best practice would be to use it along with evaluation. 
+In order to specify outputs use the `-output` argument, and detail the desired list of outputs. Outputs are tied to the exploration of scenarios and thus require to have `-infer` or `-evaluate` in the same command. Note that although it might be interesting to track some outputs during the inference for debugging purposes, best practice would be to use it along with evaluation.
 
 The different outputs are detailed in the next sections.
 
@@ -282,12 +280,12 @@ Python utility functions are provided to analyze these outputs in the pygor.coun
 
 Use command `--scenarios N`
 
-The output of this Counter is a semicolon separated values file with one field for each event realization, associated mismatches/errors/mutations indices on the read, the scenario rank, its associated probability and the sequence index. 
+The output of this Counter is a semicolon separated values file with one field for each event realization, associated mismatches/errors/mutations indices on the read, the scenario rank, its associated probability and the sequence index.
 
 
 ### Generation probability
 *Estimates the probability of generation of the error free/unmutated ancestor sequence*
-By default only outputs an estimator of the probability of generation of the ancestor sequence underlying each sequencing read. See [IGoR's paper][igor_bioarxiv] for details. 
+By default only outputs an estimator of the probability of generation of the ancestor sequence underlying each sequencing read. See [IGoR's paper][igor_bioarxiv] for details.
 
 Use command `--Pgen`
 
@@ -326,7 +324,7 @@ WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working
 
 #We first read the sequences contained in a text file inside the demo folder
 #This will create the align folder in the working directory and the mydemo_indexed_seqs.csv file.
-./igor -set_wd $WDPATH -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt 
+./igor -set_wd $WDPATH -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt
 
 #Now let's align the sequences against the provided human beta chain genomic templates with default parameters
 #This will create foo_V_alignments.csv, foo_D_alignments.csv and foo_J_alignments.csv files inside the align folder.
@@ -342,11 +340,11 @@ WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working
 
 ```
 Since all these commands use several time the same arguments here is some syntactic sugar using more Bash syntax for the exact same workflow with a lighter syntax:
- 
+
 ```
 #!bash
 WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working directory
-MYCOMMANDS=./igor -set_wd $WDPATH 
+MYCOMMANDS=./igor -set_wd $WDPATH
 
 $MYCOMMANDS -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt #Read seqs
 MYCOMMANDS=$MYCOMMANDS -species human -chain beta #Add chain and species commands
@@ -366,11 +364,11 @@ $MYCOMMANDS -batch bar -generate 100 #Generate
 
 
 # Advanced usage
-The set of command lines above allows to use predefined models or their topology to study a new dataset. Additionnaly the user can define new models directly using the model parameters file interface. For instance, in order to investigate a conditionnal dependence between two recombination events, the user can simply add or remove an edge in the graph following the syntax defined earlier.
+The set of command lines above allows to use predefined models or their topology to study a new dataset. Additionally the user can define new models directly using the model parameters file interface. For instance, in order to investigate a conditional dependence between two recombination events, the user can simply add or remove an edge in the graph following the syntax defined earlier.
 
-In order to change the set of realizations associated with an event the user can also directly modify a recombination parameters file. Adding or removing realizations should be done with great care as IGoR will use the associated indices to read the corresponding probabilities on the probability array. These indices should be contiguous ranging from 0 to the (total number of realizations -1). Any change in these indices will make the corresponding model marginals file void, and a new one should be automatically created by passing only the model parameters filename to the `-set_custom_model` command. 
+In order to change the set of realizations associated with an event the user can also directly modify a recombination parameters file. Adding or removing realizations should be done with great care as IGoR will use the associated indices to read the corresponding probabilities on the probability array. These indices should be contiguous ranging from 0 to the (total number of realizations -1). Any change in these indices will make the corresponding model marginals file void, and a new one should be automatically created by passing only the model parameters filename to the `-set_custom_model` command.
 
-Note that changing the GeneChoice realizations can be done automatically (without manually editing the recombination parameter file) by supplying the desired set of genomic templates to IGoR using the `-set_genomic` command. This could be used e.g to define a model for a chain in a species for which IGoR does not supply a model starting from of model for this chain from another species. 
+Note that changing the GeneChoice realizations can be done automatically (without manually editing the recombination parameter file) by supplying the desired set of genomic templates to IGoR using the `-set_genomic` command. This could be used e.g to define a model for a chain in a species for which IGoR does not supply a model starting from of model for this chain from another species.
 
 # C++
 Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions on which all previous command lines are built. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-run_custom` command line when launching IGoR from the shell. An example of the high level workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
@@ -382,10 +380,10 @@ A set of Python codes are shipped with Igor in order to parse IGoR's outputs (al
 
 # Contribute
 
-* Your feedbacks are valuable, please send your comments about usability, bug reports and new features you would like to see  
+* Your feedbacks are valuable, please send your comments about usability, bug reports and new features you would like to see
 * Code contribution: IGoR was designed to be modular and evolve, please get in touch if you would like to do something new with your data and would like some more guidance on the code structure
 
 
-# Contact 
+# Contact
 
 For any question please email <quentin.marcou@lpt.ens.fr>
