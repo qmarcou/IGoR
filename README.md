@@ -310,10 +310,10 @@ Reached using the command `-generate N` where *N* is the number of sequences to 
 | `--seed X`  | Impose *X* as a seed for the random sequence generator. By default a random seed is obtained from the system. |
 
 ## Command examples
-First as a sanity check try and run the demo code (this will run for a few minutes on all cores available):
+First as a sanity after installation check try and run the demo code (this will run for a few minutes on all cores available):
 ```
 #!bash
-./igor -run_demo
+igor -run_demo
 ```
 
 Here we give an example with a few commands illustrating a typical workflow. In this example we assume to be executing IGoR from the directory containing the executable.
@@ -324,19 +324,19 @@ WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working
 
 #We first read the sequences contained in a text file inside the demo folder
 #This will create the align folder in the working directory and the mydemo_indexed_seqs.csv file.
-./igor -set_wd $WDPATH -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt
+igor -set_wd $WDPATH -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt
 
 #Now let's align the sequences against the provided human beta chain genomic templates with default parameters
 #This will create foo_V_alignments.csv, foo_D_alignments.csv and foo_J_alignments.csv files inside the align folder.
-./igor -set_wd $WDPATH -batch foo -species human -chain beta -align --all
+igor -set_wd $WDPATH -batch foo -species human -chain beta -align --all
 
 #Now use the provided beta chain model to get the 10 best scenarios per sequence
 #This will create the foo_output and foo_evaluate and the corresponding files inside
-./igor -set_wd $WDPATH -batch foo -species human -chain beta -evaluate -output --scenarios 10
+igor -set_wd $WDPATH -batch foo -species human -chain beta -evaluate -output --scenarios 10
 
 #Now generate 100 synthetic sequences from the provided human beta chain model
 #This will create the directory bar_generate with the corresponding files containing the generated sequences and their realizations
-./igor -set_wd $WDPATH -batch bar -species human -chain beta -generate 100
+igor -set_wd $WDPATH -batch bar -species human -chain beta -generate 100
 
 ```
 Since all these commands use several time the same arguments here is some syntactic sugar using more Bash syntax for the exact same workflow with a lighter syntax:
