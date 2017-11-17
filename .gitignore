@@ -13,6 +13,10 @@
 #Ignore generated Makefiles
 Makefile
 
+#Ignore python generated files
+*.pyc
+*.py~
+
 # Ignore autoconf stuff
 **/.deps
 **/.libs
