@@ -52,6 +52,12 @@ int terminate_IGoR_with_error_message(string error_message, exception& e){
 	return terminate_IGoR_with_error_message(error_messages);
 }
 
+// Output both the exception handling message and the actual exception message
+int terminate_IGoR_with_error_message(forward_list<string> error_messages, exception& e){
+	error_messages.emplace_front(e.what());
+	return terminate_IGoR_with_error_message(error_messages);
+}
+
 int main(int argc , char* argv[]){
 
 	//Command line argument iterator
@@ -320,7 +326,11 @@ int main(int argc , char* argv[]){
 					cl_model_marginals.txt2marginals(string(argv[carg_i]),cl_model_parms);
 				}
 				catch(exception& e){
-					return terminate_IGoR_with_error_message("Exception caught while reading custom marginals after \"-set_custom_model\"",  e);
+					forward_list<string> error_messages;
+					error_messages.emplace_front("If you have altered the default model structure corresponding marginals will be created if no model marginals file is passed.");
+					error_messages.emplace_front("Make sure file exist or that supplied Model_Parms and Model_Marginals match.");
+					error_messages.emplace_front("Exception caught while reading custom marginals after \"-set_custom_model\"");
+					return terminate_IGoR_with_error_message(error_messages, e);
 				}
 			}
 			else{
