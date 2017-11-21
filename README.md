@@ -366,7 +366,9 @@ $MYCOMMANDS -batch bar -generate 100 #Generate
 # Advanced usage
 The set of command lines above allows to use predefined models or their topology to study a new dataset. Additionally the user can define new models directly using the model parameters file interface. For instance, in order to investigate a conditional dependence between two recombination events, the user can simply add or remove an edge in the graph following the syntax defined earlier.
 
-In order to change the set of realizations associated with an event the user can also directly modify a recombination parameters file. Adding or removing realizations should be done with great care as IGoR will use the associated indices to read the corresponding probabilities on the probability array. These indices should be contiguous ranging from 0 to the (total number of realizations -1). Any change in these indices will make the corresponding model marginals file void, and a new one should be automatically created by passing only the model parameters filename to the `-set_custom_model` command.
+In order to change the set of realizations associated with an event the user can also directly modify a recombination parameters file. Adding or removing realizations should be done with great care as IGoR will use the associated indices to read the corresponding probabilities on the probability array. These indices should be contiguous ranging from 0 to the (total number of realizations -1).
+
+*Any change in these indices or to the graph structure will make the corresponding model marginals file void, and a new one should be automatically created by passing only the model parameters filename to the `-set_custom_model` command.*
 
 Note that changing the GeneChoice realizations can be done automatically (without manually editing the recombination parameter file) by supplying the desired set of genomic templates to IGoR using the `-set_genomic` command. This could be used e.g to define a model for a chain in a species for which IGoR does not supply a model starting from of model for this chain from another species.
 
