@@ -13,7 +13,8 @@ demo_DATA = demo/genomicVs_with_primers.fasta demo/genomicDs.fasta demo/genomicJ
 man_MANS = igor.1
 
 install-data-local:
-	cp -r models/ $(pkgdatadir)
+	mkdir $(pkgdatadir)/models
+	cp -r models/* $(pkgdatadir)/models
 
 uninstall-local:
 	rm -rf $(pkgdatadir)/models 

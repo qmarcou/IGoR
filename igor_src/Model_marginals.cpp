@@ -1122,26 +1122,46 @@ void Model_marginals::write2txt_iteration(list<pair<shared_ptr<const Rec_Event>,
 }
 
 void Model_marginals::txt2marginals(string filename, const Model_Parms& parms){
-	ifstream infile(filename);
-	if(!infile){
+	ifstream testfilestream(filename);
+	if(!testfilestream){
 		throw runtime_error("Unknown file: "+filename);
 	}
 	string line_str;
+	//First count the marginals' size
+	int size_counter = 0;
+	while(getline(testfilestream,line_str)){
+		if(line_str[0]=='%'){
+			size_t semicolon_index =  line_str.find(",");
+			++size_counter;
+			while(semicolon_index!=string::npos){
+				size_t next_comma_index = line_str.find(",", (semicolon_index+1) );
+				semicolon_index = next_comma_index;
+				++size_counter;
+			}
+		}
+	}
+	size_t current_marginals_size = this->compute_size(parms);
+	if(size_counter!=current_marginals_size){
+		throw runtime_error("Marginals contained in file \"" +filename+ "\" and supplied Model_Parms do not match in size. Make sure the Bayesian Network structure/event realizations  and the marginals are coherent.");
+	}
+
+	//Now read the actual marginals values
+	ifstream infile(filename);
 	int index = 0;
 	while(getline(infile,line_str)){
 		if(line_str[0]=='%'){
 			size_t semicolon_index =  line_str.find(",");
-			marginal_array_smart_p[index] = stod(line_str.substr(1,(semicolon_index)));
+			this->marginal_array_smart_p[index] = stod(line_str.substr(1,(semicolon_index)));
 			++index;
 			while(semicolon_index!=string::npos){
 				size_t next_comma_index = line_str.find(",", (semicolon_index+1) );
-				marginal_array_smart_p[index] = stod(line_str.substr( (semicolon_index+1) , (next_comma_index - semicolon_index -1) ));
+				this->marginal_array_smart_p[index] = stod(line_str.substr( (semicolon_index+1) , (next_comma_index - semicolon_index -1) ));
 				semicolon_index = next_comma_index;
 				++index;
 			}
 		}
 	}
-	this->marginal_arr_size = index;
+	//this->marginal_arr_size = index;
 
 	//Make sure marginals are normalized (deals with problem of float precision output from the text file)
 	queue<shared_ptr<Rec_Event>> model_queue = parms.get_model_queue();
