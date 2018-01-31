@@ -1,3 +1,8 @@
+# Ignore Eclipse config files
+.cproject
+.project
+.settings/*
+
 # Ignore the compiled object files
 *.o
 *.gcno
