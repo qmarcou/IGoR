@@ -110,6 +110,15 @@ As a preprocessing step IGoR first needs to align the genomic templates to the r
 After aligning IGoR can be used to infer a recombination model (`-infer`), evaluate sequences statistics (`-evaluate`) using an already inferred model.
 Synthetic sequences can be generated from a learned model (as one supplied by IGoR, or one inferred de novo through the `-infer` command) with the `-generate` command.
 
+# Runtimes
+As runtimes may evolve with IGoR's maturation, below is a table recapitulating the latest per sequence runtimes for different tasks on different chains:
+
+| Chain/Read | (Pre)Alignments time (seconds) | Probabilistic treatment time (seconds) |
+| :------------- | :------------------------------ | :------------------------------ |
+| TRA 100bp | 0.3 | $10^{-4}$ |
+| TRB 60bp | 0.1 | 0.1 |
+| IGH 130bp | 0.2 | 0.2 |
+
 # Command line tools
 Although the full flexibility of IGoR is reachable through C++ highlevel functions (*see next section*) we provide some command line options to perform most frequent tasks on immune receptor sequences.
 
