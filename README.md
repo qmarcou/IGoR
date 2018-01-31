@@ -35,29 +35,29 @@ Latest released version: 1.1.0
 + [GSL library](https://www.gnu.org/software/gsl/) : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies
 + [jemalloc](http://jemalloc.net/) (optional although recommended for full parallel proficiency) memory allocation library: also shipped with IGoR to avoid dependencies issues (requires a pthreads compatible compiler)
 + bash
-+ autotools suite if building from unpackaged sources
++ autotools suite, pandoc, doxygen and the latex suite if building from unpackaged sources
 
 # Install
 IGoR uses the autotools suite for compilation and installation in order to ensure portability to many systems.
 
 *Installing from package releases (recommended)*
 
-First download the latest released package on the download page (on the left). Extract the files from the archive.
+First download the latest released package on the [Release page](<https://github.com/qmarcou/IGoR/releases> "release_page"). Extract the files from the archive.
 
-*Installing from unpackaged sources*
+*Installing from unpackaged sources (by cloning or direct download of the repository)*
 
 For this you will have to get git, the autotools suite, pandoc, doxygen and the latex suite software installed. Note that this is the most convenient way to keep IGoR up-to-date but involves a bit more installation steps.
 Using *git*, clone the repository where you desire. Go in the created directory and run the *autogen.sh* bash script. This will create the *configure* script. Upon this stage the installation rules are the same as for packaged developer sources.
 From *git* you can chose among two branches: the *master* branch corresponds to the latest stable (packaged) release, the dev branch is the most up to date branch including current developpments until they are issued in the next release. The *dev* branch is therefore more bug prone, however this is the natural branch for people ready to help with developpment (even only by functionality testing).
 
-A (sadly) non exhaustive list of potential installation troubleshoots follows in the next section. If your problem is not referenced there please [contact](<quentin.marcou@lpt.ens.fr> "myadress") us. If you end up finding a solution by yourself please help us append it to the following list and help the user community.
+A (sadly) non exhaustive list of potential installation troubleshoots follows in the next section. If your problem is not referenced there please open a GitHub [issue](<https://github.com/qmarcou/IGoR/issues> "issue_page") or [contact](<quentin.marcou@lpt.ens.fr> "myadress") us. If you end up finding a solution by yourself please help us append it to the following list and help the user community.
 
 ## Linux
 Widely tested on several Debian related distros.
 Install gcc/g++ if not already installed (note that another compiler could be used).
 With the command line go to IGoR's root directory and simply type `./configure`. This will make various check on your system and create makefiles compatible with your system configuration. Many options can be appended to ./configure such as `./configure CC=gcc CXX=g++` to enforce the use of gcc as compiler. Once over, type `make` to compile the sources (this will take a few minutes). **IGoR's executable will appear in the igor_src folder**
 
-Finally in order to access all IGoR's features, install IGoR by typing `make install`. This will install IGoR's executable, supplied models and manual on your system. If you do not have administrator privileges, IGoR can be installed locally in the folder of your choice by passing **--prefix=/your/custom/path** upon calling the configure script (e.g `./configure --prefix=$HOME`). Other configure options can be accessed using ./configure -h.
+Finally in order to access all IGoR's features, install IGoR by typing `make install`. This will install IGoR's executable, supplied models and manual in your system's default location (note that depending on this location you might require administrator privileges and use the `sudo` prefix). If you do not have administrator privileges, IGoR can be installed locally in the folder of your choice by passing **--prefix=/your/custom/path** upon calling the configure script (e.g `./configure --prefix=$HOME`). Other configure options can be accessed using ./configure -h.
 
 ## MacOS
 MacOS is shipped with another compiler (Clang) when installing Xcode that is called upon calling gcc (through name aliasing) and is not supporting OpenMP. In order to use gcc and compile with it an OpenMP application you will first need to download Macports or Homebrew and install gcc from there.
@@ -373,12 +373,12 @@ In order to change the set of realizations associated with an event the user can
 Note that changing the GeneChoice realizations can be done automatically (without manually editing the recombination parameter file) by supplying the desired set of genomic templates to IGoR using the `-set_genomic` command. This could be used e.g to define a model for a chain in a species for which IGoR does not supply a model starting from of model for this chain from another species.
 
 # C++
-Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions on which all previous command lines are built. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using `-run_custom` command line when launching IGoR from the shell. An example of the high level workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
+Although a few command line options are supplied for basic use of IGoR, its full modularity can be used through high level C++ functions on which all previous command lines are built. A section of the main.cpp file is dedicated to accept user supplied code and can be executed using the `-run_custom` command line argument when launching IGoR from the shell. An example of the high level workflow is given in the *run demo* section and the full Doxygen generated documentation is available as PDF. For any question please contact us.
 
 Good practice would be to append the C++ code in the main in the scope where "//Write your custom procedure here" is written. This part of the code is reachable using the `-run_custom` command line argument. This is done so that even after appending some custom code the command line interface is still usable.
 
 # Python
-A set of Python codes are shipped with Igor in order to parse IGoR's outputs (alignments,models etc) as the pygor module.
+A set of Python codes are shipped with Igor in order to parse IGoR's outputs (alignments,models etc) as the **pygor** module.
 
 # Contribute
 
@@ -388,4 +388,4 @@ A set of Python codes are shipped with Igor in order to parse IGoR's outputs (al
 
 # Contact
 
-For any question please email <quentin.marcou@lpt.ens.fr>
+For any question or issue please open an [issue](<https://github.com/qmarcou/IGoR/issues> "issue_page") or email <quentin.marcou@lpt.ens.fr>
