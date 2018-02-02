@@ -1,0 +1,20 @@
+Following are change highlights associated with official releases.  Important
+bug fixes are all mentioned, but some internal enhancements are omitted here for
+brevity.  Much more detail can be found in the git revision history:
+
+    https://github.com/qmarcou/IGoR
+
+* X.X.X (Month Day, Year)
+
+  A brief description of the release content's
+
+  New features:
+  - 
+
+  Bug fixes:
+  - 
+
+  Miscellaneous :
+  - make a proper licensing under GNU-GPLv3
+  - create a ChangeLog for better traceability
+  - clean some Eclipse config file from the repo
