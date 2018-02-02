@@ -22,6 +22,8 @@ The following paper describes the methodology, performance tests and some new bi
 
 Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures.
 
+IGoR is a free (as in freedom) software released under the [GNU-GPLv3](<https://www.gnu.org/licenses/quick-guide-gplv3.html> "gnu_gplv3") license.
+
 ### Version ###
 Latest released version: 1.1.0
 
@@ -31,7 +33,7 @@ Latest released version: 1.1.0
 
 # Dependencies
 
-+ a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread) such as GCC
++ a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads (pthread) such as GCC (GNU C Compiler)
 + [GSL library](https://www.gnu.org/software/gsl/) : a subpart of the library is shipped with IGoR and will be statically linked to IGoR's executable to avoid dependencies
 + [jemalloc](http://jemalloc.net/) (optional although recommended for full parallel proficiency) memory allocation library: also shipped with IGoR to avoid dependencies issues (requires a pthreads compatible compiler)
 + bash
