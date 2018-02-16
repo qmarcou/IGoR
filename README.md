@@ -16,9 +16,9 @@ IGoR is a C++ software designed to infer V(D)J recombination related processes f
 
 The following paper describes the methodology, performance tests and some new biological results obtained with IGoR:
 
-[*IGoR: A Tool For High-Throughput Immune Repertoire Analysis.*][igor_bioarxiv] (2017) Quentin Marcou, Thierry Mora, Aleksandra M. Walczak
+[*High-throughput immune repertoire analysis with IGoR*][igor_nat_comms], *Nature Communications*,  (2018) Quentin Marcou, Thierry Mora, Aleksandra M. Walczak
 
-[igor_bioarxiv]: https://arxiv.org/abs/1705.08246
+[igor_nat_comms]: https://www.nature.com/articles/s41467-018-02832-w
 
 Its heavily object oriented and modular style was designed to ensure long term support and evolvability for new tasks in assessing TCR and BCR receptors features using modern parallel architectures.
 
@@ -129,7 +129,7 @@ Command options are nested arguments, the general organization of the commands f
 ## General
 
 ### Using predefined genomic templates and models
-IGoR is shipped with a set of genomic templates and already inferred models from [[1][igor_bioarxiv]].
+IGoR is shipped with a set of genomic templates and already inferred models from [[1][igor_nat_comms]].
 
 **In order to use the predefined models and demo IGoR must have been installed on your system.**
 
@@ -274,7 +274,7 @@ Although the inference/evaluation generally run smoothly we try to list out some
 | :------------- | :------------------------------ |
 |map_base::at() exception | This exception is most likely thrown by a Gene_Choice event in the inference. Try/Catch handling is runtime costly thus some checks are not performed on the fly. Explanation: This is most likely the inference receiving a genomic template whose name does not exist in the model realizations. Solution: make sure the genomic templates (and their names) used for alignments correspond to those contained in your model file. |
 | All 0 output | All marginal files contains 0 parameters after one iteration. All sequences have zero likelihood in the *inference_logs.txt* file. Explanation: none of the scenarios had a sufficiently high likelihood to reach the likelihood threshold. Solution: use the `--L_thresh` argument to decrease the likelihood threshold, if the code becomes utterly slow see below. ** In general while inferring one should make sure not too many sequences are assigned a zero likelihood since it would introduce a systematic bias in the learned distribution ** |
-| Extreme slowness | Runtimes are very far from the ones given in [the original article][igor_bioarxiv]. Check the mean number of errors in the *inference_logs.txt* file. If these numbers are higher than you would expect from your data (e.g if you are not studying hypermutated data) check your alignments statistics. A possible explanation would be an incorrect setting of the alignment offsets bounds |
+| Extreme slowness | Runtimes are very far from the ones given in [the original article][igor_nat_comms]. Check the mean number of errors in the *inference_logs.txt* file. If these numbers are higher than you would expect from your data (e.g if you are not studying hypermutated data) check your alignments statistics. A possible explanation would be an incorrect setting of the alignment offsets bounds |
 
 
 ## Outputs
@@ -296,7 +296,7 @@ The output of this Counter is a semicolon separated values file with one field f
 
 ### Generation probability
 *Estimates the probability of generation of the error free/unmutated ancestor sequence*
-By default only outputs an estimator of the probability of generation of the ancestor sequence underlying each sequencing read. See [IGoR's paper][igor_bioarxiv] for details.
+By default only outputs an estimator of the probability of generation of the ancestor sequence underlying each sequencing read. See [IGoR's paper][igor_nat_comms] for details.
 
 Use command `--Pgen`
 
