@@ -1204,7 +1204,7 @@ void Deletion::iterate(double& scenario_proba , Downstream_scenario_proba_bound_
 	 proba_contribution = (model_parameters_point[base_index+(*iter).index]);
  }
 
- queue<int> Deletion::draw_random_realization( const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+ queue<int> Deletion::draw_random_realization( const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , mt19937_64& generator)const{
 
 	 uniform_real_distribution<double> distribution(0.0,1.0);
 	 double rand = distribution(generator);

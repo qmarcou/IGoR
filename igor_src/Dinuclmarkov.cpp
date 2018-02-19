@@ -159,7 +159,7 @@ void Dinucl_markov::iterate(double& scenario_proba , Downstream_scenario_proba_b
 	}
 }
 
-queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , mt19937_64& generator)const{
 
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	bool correct_class=0;
@@ -213,7 +213,7 @@ queue<int> Dinucl_markov::draw_random_realization(const Marginal_array_p& model_
 	return realization_queue;
 }
 
-queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string& inserted_seq ,const Marginal_array_p& model_marginals_p , int index , uniform_real_distribution<double>&  distribution , default_random_engine& generator)const{
+queue<int> Dinucl_markov::draw_random_common(const string& previous_seq , string& inserted_seq ,const Marginal_array_p& model_marginals_p , int index , uniform_real_distribution<double>&  distribution , mt19937_64& generator)const{
 
 	queue<int> realization_queue;
 	double prob_count;
