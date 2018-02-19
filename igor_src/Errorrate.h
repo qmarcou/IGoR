@@ -78,7 +78,7 @@ public:
 	virtual const double& get_err_rate_upper_bound(size_t,size_t) =0;
 	virtual void build_upper_bound_matrix(size_t,size_t) =0;
 	virtual int get_number_non_zero_likelihood_seqs() const =0;
-	virtual std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const =0;
+	virtual std::queue<int>  generate_errors(std::string& , std::mt19937_64&) const =0;
 	void set_viterbi_run(bool viterbi_like){viterbi_run = viterbi_like;}
 	int debug_number_scenarios;
 

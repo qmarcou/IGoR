@@ -447,7 +447,7 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
 
 	unsigned time_seed = dur.count();
 	//Instantiate random number generator
-	default_random_engine generator =  default_random_engine(time_seed);
+	mt19937_64 generator =  mt19937_64(time_seed);
 	forward_list<pair<string,queue<queue<int>>>> sequence_list =  forward_list<pair<string,queue<queue<int>>>>();
 
 	for(int seq = 0 ; seq != number_seq ; ++seq){
@@ -506,7 +506,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	}
 	cout<<"Seed: "<<time_seed<<endl;
 	//Instantiate random number generator
-	default_random_engine generator =  default_random_engine(time_seed);
+	mt19937_64 generator =  mt19937_64(time_seed);
 
 
 	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
@@ -563,7 +563,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	return;
 }
 
-pair<string,queue<queue<int>>> GenModel::generate_unique_sequence(queue<shared_ptr<Rec_Event>> model_queue , unordered_map<Rec_Event_name,int> index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>>& offset_map , default_random_engine& generator , bool update_event_internal_proba /*= true*/ ){
+pair<string,queue<queue<int>>> GenModel::generate_unique_sequence(queue<shared_ptr<Rec_Event>> model_queue , unordered_map<Rec_Event_name,int> index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event> , int>>>& offset_map , mt19937_64& generator , bool update_event_internal_proba /*= true*/ ){
 	if(update_event_internal_proba){
 		queue<shared_ptr<Rec_Event>> model_queue_copy = model_queue;
 		while(not model_queue_copy.empty()){

@@ -150,7 +150,7 @@ double Single_error_rate::compare_sequences_error_prob (double scenario_probabil
 
 }
 
-queue<int> Single_error_rate::generate_errors(string& generated_seq , default_random_engine& generator) const{
+queue<int> Single_error_rate::generate_errors(string& generated_seq , mt19937_64& generator) const{
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	double rand_err ;// distribution(generator);
 	double rand_trans;

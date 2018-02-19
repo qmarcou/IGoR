@@ -942,7 +942,7 @@ vector<pair<const int , const string>> sample_indexed_seq(vector<pair<const int 
 
 	unsigned time_seed = dur.count();
 	//Instantiate random number generator
-	default_random_engine generator =  default_random_engine(time_seed);
+	mt19937_64 generator =  mt19937_64(time_seed);
 
 	//Need to make a copy because of the constness in indexed_seqs
 	vector<pair< int , string>> indexed_seqs_copy (indexed_seqs.begin(),indexed_seqs.end());

@@ -74,7 +74,7 @@ public:
 	const double& get_err_rate_upper_bound(size_t,size_t) ;
 	void build_upper_bound_matrix(size_t,size_t);
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
-	std::queue<int>  generate_errors(std::string& , std::default_random_engine&) const;
+	std::queue<int>  generate_errors(std::string& , std::mt19937_64&) const;
 	unsigned generate_random_contributions(double);
 
 
@@ -85,7 +85,7 @@ private:
 	double compute_new_model_likelihood(double,gsl_vector*);
 	void increment_base_10_and_4(int& , int*);
 
-	void introduce_uniform_transversion(char&, std::default_random_engine& , std::uniform_real_distribution<double>&) const;
+	void introduce_uniform_transversion(char&, std::mt19937_64& , std::uniform_real_distribution<double>&) const;
 
 	Gene_class learn_on;
 	Gene_class apply_to;

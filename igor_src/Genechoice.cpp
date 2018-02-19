@@ -945,7 +945,7 @@ double Gene_choice::iterate_common(double scenario_proba ,const int& gene_index 
 	return  scenario_proba * model_parameters[base_index+gene_index];
 }
 
-queue<int> Gene_choice::draw_random_realization( const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , default_random_engine& generator)const{
+queue<int> Gene_choice::draw_random_realization( const Marginal_array_p& model_marginals_p , unordered_map<Rec_Event_name,int>& index_map , const unordered_map<Rec_Event_name,vector<pair<shared_ptr<const Rec_Event>,int>>>& offset_map , unordered_map<Seq_type , string>& constructed_sequences , mt19937_64& generator)const{
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	double rand = distribution(generator);
 	double prob_count = 0;

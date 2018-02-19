@@ -860,7 +860,7 @@ double Hypermutation_full_Nmer_errorrate::compare_sequences_error_prob (double s
 
 }
 
-queue<int> Hypermutation_full_Nmer_errorrate::generate_errors(string& generated_seq , default_random_engine& generator) const{
+queue<int> Hypermutation_full_Nmer_errorrate::generate_errors(string& generated_seq , mt19937_64& generator) const{
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	double rand_err ;// distribution(generator);
 	queue<int> errors_indices;
@@ -924,7 +924,7 @@ unsigned Hypermutation_full_Nmer_errorrate::generate_random_mutation_probas(doub
 
 	unsigned time_seed = dur.count();
 	//Instantiate random number generator
-	default_random_engine generator =  default_random_engine(time_seed);
+	mt19937_64 generator =  mt19937_64(time_seed);
 	normal_distribution<double> distribution(mean,std);
 
 	size_t array_size = pow(4,mutation_Nmer_size);
@@ -1188,7 +1188,7 @@ void Hypermutation_full_Nmer_errorrate::write2txt(ofstream& outfile){
 	outfile<<endl;
 }
 
-void Hypermutation_full_Nmer_errorrate::introduce_uniform_transversion(char& nt , std::default_random_engine& generator , std::uniform_real_distribution<double>& distribution) const{
+void Hypermutation_full_Nmer_errorrate::introduce_uniform_transversion(char& nt , std::mt19937_64& generator , std::uniform_real_distribution<double>& distribution) const{
 	double rand_trans = distribution(generator);
 
 	if(nt == 'A'){

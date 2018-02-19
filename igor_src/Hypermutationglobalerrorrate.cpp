@@ -1004,7 +1004,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 }
 
-queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq , default_random_engine& generator) const{
+queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq , mt19937_64& generator) const{
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	double rand_err ;// distribution(generator);
 	queue<int> errors_indices;
@@ -1068,7 +1068,7 @@ unsigned Hypermutation_global_errorrate::generate_random_contributions(double ei
 
 	unsigned time_seed = dur.count();
 	//Instantiate random number generator
-	default_random_engine generator =  default_random_engine(time_seed);
+	mt19937_64 generator =  mt19937_64(time_seed);
 	uniform_real_distribution<double> distribution(-ei_contribution_range,ei_contribution_range);
 
 	for(i = 0 ; i != mutation_Nmer_size ; ++i){
@@ -1793,7 +1793,7 @@ double Hypermutation_global_errorrate::compute_Nmer_unorm_score(int* base_4_addr
 	return unorm_score;
 }
 
-void Hypermutation_global_errorrate::introduce_uniform_transversion(char& nt , std::default_random_engine& generator , std::uniform_real_distribution<double>& distribution) const{
+void Hypermutation_global_errorrate::introduce_uniform_transversion(char& nt , std::mt19937_64& generator , std::uniform_real_distribution<double>& distribution) const{
 	double rand_trans = distribution(generator);
 
 	if(nt == 'A'){

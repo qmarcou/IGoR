@@ -174,7 +174,7 @@ private:
 	Model_Parms model_parms;
 	Model_marginals model_marginals;
 	std::map<size_t,std::shared_ptr<Counter>> counters_list;//Size_t is a unique identifier for the Counter(useful for adding them up)
-	std::pair<std::string , std::queue<std::queue<int>>> generate_unique_sequence(std::queue<std::shared_ptr<Rec_Event>> , std::unordered_map<Rec_Event_name,int> , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::default_random_engine& , bool =true);
+	std::pair<std::string , std::queue<std::queue<int>>> generate_unique_sequence(std::queue<std::shared_ptr<Rec_Event>> , std::unordered_map<Rec_Event_name,int> , const std::unordered_map<Rec_Event_name,std::vector<std::pair<std::shared_ptr<const Rec_Event>,int>>>& , std::mt19937_64& , bool =true);
 	Model_marginals compute_marginals(std::list<std::string> sequences);
 	Model_marginals compute_seq_marginals (std::string sequence);
 	Model_marginals compute_seq_marginals (std::string sequence , std::list<std::list<std::string> > allowed_scenarios );
