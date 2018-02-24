@@ -18,3 +18,4 @@ brevity.  Much more detail can be found in the git revision history:
   - make a proper licensing under GNU-GPLv3
   - create a ChangeLog for better traceability
   - clean some Eclipse config file from the repo
+  - remove events initialization message duplication

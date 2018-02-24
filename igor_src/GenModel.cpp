@@ -278,8 +278,10 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 			for(map<size_t,shared_ptr<Counter>>::iterator iter = single_thread_counter_list.begin() ; iter!=single_thread_counter_list.end() ; ++iter){
 				(*iter).second->initialize_counter(single_thread_model_parms , single_thread_marginals);
 			}
-
-			cout<<"Initializing proba bounds"<<endl;
+			#pragma omp single nowait
+			{
+				cerr<<"Initializing proba bounds"<<endl;
+			}
 			//Compute upper proba bounds for downstream scenarios for each event
 			double downstream_proba_bound = 1 ;
 			forward_list<double*> updated_proba_list ;
@@ -294,9 +296,15 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 				last_proba_init_event->initialize_crude_scenario_proba_bound(downstream_proba_bound , updated_proba_list , events_map);
 
 				last_proba_init_event->initialize_Len_proba_bound(tmp_init_proba_single_thread_model_queue,single_thread_model_marginals.marginal_array_smart_p,index_mapp);
-				cout<<last_proba_init_event->get_name()<<" initialized"<<endl;
+				#pragma omp single nowait
+				{
+					cerr<<last_proba_init_event->get_name()<<" initialized"<<endl;
+				}
 			}
-			cout<<"Initialization of proba bounds over"<<endl;
+			#pragma omp single nowait
+			{
+				cerr<<"Initialization of proba bounds over"<<endl;
+			}
 
 			//Now let all the events in the need of it get their own updated copy of the marginals
 			init_single_thread_model_queue = single_thread_model_queue;
