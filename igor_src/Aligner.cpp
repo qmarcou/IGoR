@@ -38,7 +38,7 @@ Aligner::Aligner() {
  * @gap_pen : sets the gap penalty (the gap penalty is linear)
  * @gene : Gene class of the gene aligned. V gene allows for deletions on the 3' side of the genomic template, J gene on the 5' , D gene and undefined allow deletion on both sides
  */
-Aligner::Aligner(Matrix<double> sub_mat , int gap_pen , Gene_class gene): substitution_matrix(sub_mat) , gap_penalty(gap_pen){
+Aligner::Aligner(Matrix<double> sub_mat , int gap_pen , Gene_class gene): substitution_matrix(sub_mat) , gap_penalty(gap_pen), gene(gene){
 	switch(gene){
 	case V_gene:
 		//Perform best alignment using all the right part of the genomic sequence
@@ -380,7 +380,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 			}
 		}
 	}
-	cerr<<endl;
+	close_progress_bar(cerr, to_string(this->gene)+" alignments",50);
 	return alignment_map;
 }
 
@@ -455,7 +455,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 
 
 	}
-	cerr<<endl;
+	close_progress_bar(cerr, to_string(this->gene)+" alignments",50);
 
 	chrono::duration<double> elapsed_time = chrono::system_clock::now() - begin_time;
 	align_infos_file<<elapsed_time.count()<<" seconds"<<endl;

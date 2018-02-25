@@ -120,7 +120,6 @@ private:
 	std::forward_list<std::pair<std::string,Int_Str>> int_genomic_sequences;
 	Matrix<double> substitution_matrix;
 	int gap_penalty;
-	int score_threshold;
 	Gene_class gene;
 	bool local_align;
 	bool flip_seqs;
