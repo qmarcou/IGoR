@@ -353,6 +353,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
 	int processed_seq_number = 0;
+	double total_number_seqs = sequence_list.size(); //Use a double for float division afterwards
 
 /*
  * Declaring parellel loop using OpenMP 4.0 standards
@@ -370,7 +371,16 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 			//cout<<"Seq "<<processed_seq_number<<" processed"<<endl;
 			processed_seq_number++;
 		}
+
+		if(processed_seq_number%50 == 0){
+			//Output current progress to cerr
+			#pragma omp critical(show_progress_align)
+			{
+				show_progress_bar(cerr,processed_seq_number/total_number_seqs, to_string(this->gene)+" alignments",50);
+			}
+		}
 	}
+	cerr<<endl;
 	return alignment_map;
 }
 
@@ -403,6 +413,8 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	outfile<<"seq_index"<<";"<<"gene_name"<<";"<<"score"<<";"<<"offset"<<";"<<"insertions"<<";"<<"deletions"<<";"<<"mismatches"<<";"<<"length"<<";5_p_align_offset;3_p_align_offset"<<endl;
 
 	int processed_seq_number = 0;
+	double total_number_seqs = sequence_list.size(); //Use a double for float division afterwards
+
 
 /*
  * Declaring parellel loop using OpenMP 4.0 standards
@@ -422,8 +434,17 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 				//cout<<"Seq "<<processed_seq_number<<" processed"<<endl;
 				++processed_seq_number;
 			}
+
+			//Output current progress to cerr
+			if(processed_seq_number%50 == 0){
+				#pragma omp critical(show_progress_align)
+				{
+					show_progress_bar(cerr,processed_seq_number/total_number_seqs,to_string(this->gene)+" alignments",50);
+				}
+			}
 		}
 		catch(exception& except){
+			cerr<<endl;
 			cerr<<"Exception caught calling align_seq() on sequence:"<<endl;
 			cerr<<(*seq_it).first<<";"<<(*seq_it).second<<endl;
 			cerr<<endl;
@@ -434,6 +455,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 
 
 	}
+	cerr<<endl;
 
 	chrono::duration<double> elapsed_time = chrono::system_clock::now() - begin_time;
 	align_infos_file<<elapsed_time.count()<<" seconds"<<endl;
