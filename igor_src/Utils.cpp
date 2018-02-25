@@ -303,4 +303,28 @@ vector<string> extract_string_fields(string total_string ,string separator){
 	return output_vector;
 }
 
-
+/**
+ * \brief A handy function to show/update a progress bar in a stream
+ * \author Q.Marcou
+ * \version 1.2.0
+ *
+ * \param [in,out] output_stream The stream (file or console) to interact with
+ * \param [in] progress the current progress of the considered task. Should be comprised between 0 and 1.
+ * \param [in] prefix_message Prefix message to the progress bar
+ * \param [in] progress_bar_size number of divisions in the progress bar. Default is 50.
+ *
+ * \bug Although not really a bug, no test will be to check that progress is indeed between 0 and 1.
+ *
+ * Note this function's output needs to be terminated by \endl.
+ *
+ */
+void show_progress_bar(std::ostream& output_stream , double progress, std::string prefix_message /*= ""*/, size_t progress_bar_size /*= 50*/){
+	output_stream << prefix_message <<"[";
+	size_t pos = progress_bar_size * progress;
+	for(size_t i=0 ; i!=progress_bar_size ; ++i){
+		if(i<pos) output_stream<<"|";
+		else output_stream<<" ";
+	}
+	output_stream<< "] " << to_string(progress * 100.0).substr(0,4) << " %\r";
+	output_stream.flush();
+}
