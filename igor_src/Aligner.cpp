@@ -539,9 +539,9 @@ unordered_map<int,vector<Alignment_data>> read_alignments_seq_csv(string filenam
 								deletions.push_front(stoi(del_substr));
 							}
 							catch(exception& except){
-								cout<<del_substr<<" cannot be casted as an integer in line:"<<endl;
-								cout<<line_str<<endl;
-								cout<<"Throwing exception now"<<endl;
+								cerr<<del_substr<<" cannot be casted as an integer in line:"<<endl;
+								cerr<<line_str<<endl;
+								cerr<<"Throwing exception now"<<endl;
 								throw except;
 							}
 						}
@@ -683,8 +683,8 @@ Int_Str nt2int(string nt_sequence){
 		else if(nt_sequence[i]=='V'){int_seq.append(int_V);}
 		else if(nt_sequence[i]=='N'){int_seq.append(int_N);}
 		else{
-			cout<<"print:"<<nt_sequence<<endl;
-			cout<<i<<endl;
+			cerr<<"print:"<<nt_sequence<<endl;
+			cerr<<i<<endl;
 			throw runtime_error("Unknown nucleotide: "+to_string(nt_sequence[i]) + "in string " + nt_sequence + "in Aligner::nt2int");
 		}
 	}
