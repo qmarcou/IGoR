@@ -366,7 +366,7 @@ vector<string> extract_string_fields(string total_string ,string separator){
  *
  * \bug Although not really a bug, no test will be to check that progress is indeed between 0 and 1.
  *
- * Note this function's output needs to be terminated by \endl.
+ * Note this function's call should eventually be followed by a call to close_progress_bar
  *
  */
 void show_progress_bar(std::ostream& output_stream , double progress, std::string prefix_message /*= ""*/, size_t progress_bar_size /*= 50*/){
@@ -376,6 +376,29 @@ void show_progress_bar(std::ostream& output_stream , double progress, std::strin
 		if(i<pos) output_stream<<"|";
 		else output_stream<<" ";
 	}
-	output_stream<< "] " << to_string(progress * 100.0).substr(0,4) << " %\r";
+	output_stream<< "] " << to_string(progress * 100.0).substr(0,5) << " %\r";
 	output_stream.flush();
+}
+
+/**
+ * \brief A handy function to show a full progress bar labeled as 'Done'
+ * \author Q.Marcou
+ * \version 1.2.0
+ *
+ * \param [in,out] output_stream The stream (file or console) to interact with
+ * \param [in] prefix_message Prefix message to the progress bar
+ * \param [in] progress_bar_size number of divisions in the progress bar. Default is 50.
+ *
+ *
+ * Note this function's output needs to be terminated by \endl.
+ *
+ */
+void close_progress_bar(std::ostream& output_stream , std::string prefix_message /*= ""*/, size_t progress_bar_size /*= 50*/){
+	output_stream << prefix_message <<"[";
+	for(size_t i=0 ; i!=progress_bar_size ; ++i){
+		output_stream<<"|";
+	}
+	output_stream<< "] " << " Done." << "\r";
+	output_stream.flush();
+	output_stream<<endl;
 }
