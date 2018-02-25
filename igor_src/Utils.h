@@ -658,6 +658,7 @@ typedef Enum_fast_memory_dual_key_map<Seq_type,Seq_side,Seq_Offset> Seq_offsets_
 std::vector<std::string> extract_string_fields(std::string,std::string);
 
 void show_progress_bar(std::ostream&,double, std::string prefix_message = "", size_t progress_bar_size = 70);
+void close_progress_bar(std::ostream&, std::string prefix_message = "", size_t progress_bar_size = 70);
 
 
 #endif /* UTILS_H_ */
