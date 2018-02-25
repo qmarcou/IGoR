@@ -53,9 +53,9 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 
 	//If viterbi like only the best scenario is of interest
 	if(viterbi_like){
-		cout<<"******************************************************************"<<endl;
-		cout<<"*\t\t RUNNING \"VITERBI\" LIKE ALGORITHM \t\t *"<<endl<<"* \t(only the best scenario will be taken into account)\t *"<<endl;
-		cout<<"******************************************************************"<<endl;
+		cerr<<"******************************************************************"<<endl;
+		cerr<<"*\t\t RUNNING \"VITERBI\" LIKE ALGORITHM \t\t *"<<endl<<"* \t(only the best scenario will be taken into account)\t *"<<endl;
+		cerr<<"******************************************************************"<<endl;
 		proba_threshold_factor = 1.0;
 	}
 
@@ -512,7 +512,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	}else{
 		time_seed = seed;
 	}
-	cout<<"Seed: "<<time_seed<<endl;
+	cerr<<"Seed: "<<time_seed<<endl;
 	//Instantiate random number generator
 	mt19937_64 generator =  mt19937_64(time_seed);
 
