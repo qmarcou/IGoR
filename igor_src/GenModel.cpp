@@ -92,6 +92,9 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 	general_logs<<"Proba threshold ratio: "<<proba_threshold_factor<<"\t#(ratio between best scenario and current scenario needed to explore/count the scenario)"<<endl;
 	general_logs<<"Mean #errors threshold: "<<mean_number_seq_err_thresh<<"\t#Needs a very good reason to be set to another value than INFINITY"<<endl;
 
+	//Get the total number of sequences to process
+	const double total_number_seqs = sequences.size(); //Use a double for float division afterwards
+
 	/*
 	 * Get the list of fixed and inferred events and output them to the log file
 	 * Do it in a scope so the variables will be destroyed
@@ -175,7 +178,7 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 			sequence_util_ptr = &sequences;
 		}
 
-
+		cerr<<"Performing Evaluate/Inference iteration "<<iteration_accomplished+1<<endl;
 
 		/* omp parallel declaration using OpenMP 4.0 standards
 		 * #pragma omp parallel for schedule(dynamic) reduction(+:error_rate_copy,new_marginals) firstprivate(model_queue,index_map,offset_map,model_marginals_copy,events_map , processed_events , safety_set , write_index_list) //num_threads(6)
@@ -280,7 +283,7 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 			}
 			#pragma omp single nowait
 			{
-				cerr<<"Initializing proba bounds"<<endl;
+				cerr<<"Initializing probability bounds..."<<endl;
 			}
 			//Compute upper proba bounds for downstream scenarios for each event
 			double downstream_proba_bound = 1 ;
@@ -296,14 +299,14 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 				last_proba_init_event->initialize_crude_scenario_proba_bound(downstream_proba_bound , updated_proba_list , events_map);
 
 				last_proba_init_event->initialize_Len_proba_bound(tmp_init_proba_single_thread_model_queue,single_thread_model_marginals.marginal_array_smart_p,index_mapp);
-				#pragma omp single nowait
+				/*#pragma omp single nowait
 				{
 					cerr<<last_proba_init_event->get_name()<<" initialized"<<endl;
-				}
+				}*/
 			}
 			#pragma omp single nowait
 			{
-				cerr<<"Initialization of proba bounds over"<<endl;
+				cerr<<"Initialization of probability bounds over."<<endl;
 			}
 
 			//Now let all the events in the need of it get their own updated copy of the marginals
@@ -401,7 +404,16 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 					single_thread_err_rate->clean_seq_counters();
 				}
 
+				#pragma omp critical (update_progress_bar)
+				{
+					if(sequences_processed%100 == 0){
+						//Output current progress to cerr
+						show_progress_bar(cerr,sequences_processed/total_number_seqs, "Iteration "+ to_string(iteration_accomplished+1), 50);
+					}
+				}
+
 			}
+
 
 			//Merge single thread error_rates and marginals
 			#pragma omp critical(merge_marginals_and_er)
@@ -415,6 +427,7 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 
 
 		}
+
 
 		for(map<size_t,shared_ptr<Counter>>::const_iterator iter = counters_list.begin() ; iter!=counters_list.end() ; ++iter){
 			(*iter).second->dump_data_summary(iteration_accomplished);
@@ -430,6 +443,9 @@ bool GenModel::infer_model(const vector<tuple<int,string,unordered_map<Gene_clas
 
 		this->model_marginals.write2txt(path+string("iteration_")+to_string(iteration_accomplished)+string(".txt"),this->model_parms);
 		this->model_parms.write_model_parms(path+string("iteration_")+to_string(iteration_accomplished)+string("_parms.txt"));
+
+		//Close current iteration progress bar
+		close_progress_bar(cerr, "Iteration " + to_string(iteration_accomplished), 50);
 
 	}
 	//Create a copy of the last iteration results with identifiable name
