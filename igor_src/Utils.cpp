@@ -370,7 +370,7 @@ vector<string> extract_string_fields(string total_string ,string separator){
  *
  */
 void show_progress_bar(std::ostream& output_stream , double progress, std::string prefix_message /*= ""*/, size_t progress_bar_size /*= 50*/){
-	output_stream << prefix_message <<"[";
+	output_stream << prefix_message <<" [";
 	size_t pos = progress_bar_size * progress;
 	for(size_t i=0 ; i!=progress_bar_size ; ++i){
 		if(i<pos) output_stream<<"|";
@@ -394,11 +394,11 @@ void show_progress_bar(std::ostream& output_stream , double progress, std::strin
  *
  */
 void close_progress_bar(std::ostream& output_stream , std::string prefix_message /*= ""*/, size_t progress_bar_size /*= 50*/){
-	output_stream << prefix_message <<"[";
+	output_stream << prefix_message <<" [";
 	for(size_t i=0 ; i!=progress_bar_size ; ++i){
 		output_stream<<"|";
 	}
-	output_stream<< "] " << " Done." << "\r";
+	output_stream<< "] " << " Done." << " \r";
 	output_stream.flush();
 	output_stream<<endl;
 }

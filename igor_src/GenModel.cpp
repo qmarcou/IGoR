@@ -464,7 +464,12 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
 			sequence.second.push(this->model_parms.get_err_rate_p()->generate_errors(sequence.first,generator));
 		}
 		sequence_list.push_front(sequence);
+		if(seq%1000 == 0){
+			//Output current progress to cerr
+			show_progress_bar(cerr,seq/(double) number_seq, "Sequence generation", 50);
+		}
 	}
+	close_progress_bar(cerr, "Sequence generation", 50);
 
 	return sequence_list;
 
@@ -567,7 +572,14 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 			outfile_ind_real<<endl;
 		}
 
+		if(seq%1000 == 0){
+			//Output current progress to cerr
+			show_progress_bar(cerr,seq/(double) number_seq, "Sequence generation", 50);
+		}
+
+
 	}
+	close_progress_bar(cerr, "Sequence generation", 50);
 	return;
 }
 
