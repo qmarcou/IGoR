@@ -51,8 +51,10 @@ enum Int_nt { int_A = 0 , int_C = 1 , int_G = 2 , int_T = 3 , int_R = 4 , int_Y 
 				int_W = 9 , int_B = 10 , int_D = 11 , int_H = 12 , int_V = 13 , int_N = 14};
 
 
-Gene_class str2GeneClass(std::string);
-Seq_side str2SeqSide(std::string);
+Gene_class str2GeneClass(const std::string);
+std::string to_string(const Gene_class);
+Seq_side str2SeqSide(const std::string);
+std::string to_string(const Seq_side);
 
 std::ostream& operator<<(std::ostream& , Gene_class);
 std::ostream& operator<<(std::ostream& , Seq_side);
@@ -74,7 +76,9 @@ typedef Int_Str* Int_Str_ptr;
 //typedef std::shared_ptr<Rec_Event> Next_event_ptr; //Does not work for some reason
 typedef Rec_Event* Next_event_ptr;
 
-/*Declare a null_delete function
+/**
+ * \brief Declare a null_delete function
+ * \author Q.Marcou
  * This function is not performing any task, it's purpose is to supply a "null_delete" function
  * to prevent shared pointer objects created when passing Rec_Event or Error_rate objects pointers to model_parms
  * to be destroyed when the model_parms object is destroyed itself and the rec_event and error_rate objects

@@ -52,6 +52,9 @@ ostream& operator<<(ostream& os , Seq_side ss){
 	case Five_prime:os<<"Five_prime";break;
 	case Three_prime:os<<"Three_prime";break;
 	case Undefined_side:os<<"Undefined_side";break;
+
+	default:
+		throw invalid_argument("Unknown Seq_side in operator << ");
 	}
 	return os;
 }
@@ -92,7 +95,12 @@ string operator+(const string& str , Event_type et){
 	return str+next_str;
 }
 
-Gene_class str2GeneClass(string str){
+/**
+ * \brief Creates a Gene_class object from a string.
+ * \author Q.Marcou
+ * \version 1.0.0
+ */
+Gene_class str2GeneClass(const string str){
 	Gene_class gene_class;
 	if(str == "V_gene"){gene_class = V_gene;}
 	else if(str == "VD_genes"){gene_class = VD_genes;}
@@ -108,7 +116,33 @@ Gene_class str2GeneClass(string str){
 	return gene_class;
 }
 
-Seq_side str2SeqSide(string str){
+/**
+ * \brief Overloads std::to_string to convert Gene_class object to string.
+ * \author Q.Marcou
+ * \version 1.2.0
+ */
+string to_string(const Gene_class gc){
+	switch(gc){
+	case V_gene:return "V_gene";
+	case VD_genes:return "VD_genes";
+	case D_gene:return "D_gene";
+	case DJ_genes:return "DJ_gene";
+	case VJ_genes:return "VJ_gene";
+	case J_gene:return "J_gene";
+	case VDJ_genes:return "VDJ_genes";
+	case Undefined_gene:return "Undefined_gene";
+
+	default:
+		throw invalid_argument("Unknown Gene_class in to_string(const Gene_class).");
+	}
+}
+
+/**
+ * \brief Creates a Seq_side object from a string.
+ * \author Q.Marcou
+ * \version 1.0.0
+ */
+Seq_side str2SeqSide(const string str){
 	Seq_side seq_side;
 	if(str == "Five_prime"){seq_side = Five_prime;}
 		else if(str == "Three_prime"){seq_side = Three_prime;}
@@ -117,6 +151,23 @@ Seq_side str2SeqSide(string str){
 		throw runtime_error("Unknown event_side in str2SeqSide");
 	}
 	return seq_side;
+}
+
+/**
+ * \brief Overloads std::to_string to convert Seq_side object to string.
+ * \author Q.Marcou
+ * \version 1.2.0
+ */
+string to_string(const Seq_side ss){
+	switch(ss){
+	case Five_prime:return "Five_prime";
+	case Three_prime:return "Three_prime";
+	case Undefined_side:return "Undefined_side";
+
+	default:
+		throw invalid_argument("Unknown Seq_side in to_string(const Seq_side).");
+	}
+
 }
 
 //Seq_type_str_p_map::Seq_type_str_p_map(): Enum_fast_memory_map<Seq_type,Str_ptr>(6){}
