@@ -509,6 +509,9 @@ int main(int argc , char* argv[]){
 						}
 					}
 				}
+				else if(string(argv[carg_i]) == "--CDR3"){
+					gen_output_CDR3_data = true;
+				}
 				else{
 					return terminate_IGoR_with_error_message("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
 				}
@@ -1602,7 +1605,15 @@ int main(int argc , char* argv[]){
 				Aligner v_aligner = Aligner(v_subst_matrix , v_gap_penalty , V_gene);
 				v_aligner.set_genomic_sequences(v_genomic);
 				try{
-					v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+					if (!gen_output_CDR3_data)
+						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+					else{ //assume seqs are CDR3s
+						cout<<"Running on CDRsonly..."<<endl;
+						unordered_map<string,pair<int,int>> v_genomic_offset_bounds;
+						for(unordered_map<string,size_t>::const_iterator iter = v_CDR3_anchors.begin() ; iter != v_CDR3_anchors.end() ; iter++)
+							v_genomic_offset_bounds.emplace((*iter).first,make_pair( (*iter).second, (*iter).second ));
+						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_genomic_offset_bounds,false);	
+					}
 				}
 				catch(exception& e){
 					return terminate_IGoR_with_error_message("Exception caught upon aligning V genomic templates.",e);
@@ -1628,7 +1639,15 @@ int main(int argc , char* argv[]){
 				Aligner j_aligner (j_subst_matrix , j_gap_penalty , J_gene);
 				j_aligner.set_genomic_sequences(j_genomic);
 				try{
-					j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+					if (!gen_output_CDR3_data)
+						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+					else{ //assume seqs are CDR3s
+						cout<<"running on CDRsonly"<<endl;
+						unordered_map<string,pair<int,int>> j_genomic_offset_bounds;
+						for(unordered_map<string,size_t>::const_iterator iter = j_CDR3_anchors.begin() ; iter != j_CDR3_anchors.end() ; iter++)
+							j_genomic_offset_bounds.emplace((*iter).first,make_pair( (*iter).second, (*iter).second )); 
+						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_genomic_offset_bounds,true);
+					}
 				}
 				catch(exception& e){
 					return terminate_IGoR_with_error_message("Exception caught upon aligning J genomic templates.",e);

@@ -251,6 +251,93 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 	return alignment_list;
 }
 
+
+forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame){
+	int min_offset;
+	int max_offset;
+	Int_Str int_seq = nt2int(nt_seq);
+        int seqlen=int_seq.size();
+	forward_list<Alignment_data> alignment_list;// = *(new forward_list<Alignment_data>());
+	for(forward_list<pair<string,Int_Str>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
+	        min_offset=-genomic_offset_bounds.at((*iter).first).first-3;  
+		max_offset=-genomic_offset_bounds.at((*iter).first).second+3;
+		min_offset+=(rev_offset_frame)? seqlen:0; //reverse frame for J CDR3 anchors
+		max_offset+=(rev_offset_frame)? seqlen:0; //reverse frame for J CDR3 anchors
+		
+		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_only , min_offset , max_offset);
+		//TODO quick and dirty fix for D genes alignments
+		//alignment.second.gene_name = (*iter).first;
+		//alignment_list.push_front(alignment.second);
+		for(list<pair<int,Alignment_data>>::iterator jiter = alignments.begin() ; jiter != alignments.end() ; jiter++){
+			(*jiter).second.gene_name = (*iter).first;
+			alignment_list.push_front((*jiter).second);
+		}
+	}
+
+	return alignment_list;
+}
+
+void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame){
+	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
+
+	string folder_path = filename.substr(0,filename.rfind("/")+1); //Get the file path
+	ofstream align_infos_file(folder_path + "aligns_info.out",fstream::out | fstream::app); //Opens the file in append mode
+
+	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
+	std::time_t tt;
+	tt = chrono::system_clock::to_time_t ( begin_time );
+
+	align_infos_file<<endl<<"================================================================"<<endl;
+	align_infos_file<<"Alignments in file: "<<filename<<endl;
+	align_infos_file<<"Date: "<< ctime(&tt)<<endl;
+	align_infos_file<<"Score threshold = "<<score_threshold<<endl;
+	align_infos_file<<"Best only = "<<best_only<<endl;
+	align_infos_file<<"Using template offsets"<<endl;
+	align_infos_file<<"Gap penalty = "<<this->gap_penalty<<endl;
+	align_infos_file<<"Substitution matrix:"<<endl;
+	align_infos_file<<this->substitution_matrix<<endl;
+	align_infos_file<<sequence_list.size()<<" sequences processed in ";
+
+	ofstream outfile(filename);
+	outfile<<"seq_index"<<";"<<"gene_name"<<";"<<"score"<<";"<<"offset"<<";"<<"insertions"<<";"<<"deletions"<<";"<<"mismatches"<<";"<<"length"<<";5_p_align_offset;3_p_align_offset"<<endl;
+
+	int processed_seq_number = 0;
+
+/*
+ * Declaring parellel loop using OpenMP 4.0 standards
+	#pragma omp declare reduction (merge:unordered_map<int,forward_list<Alignment_data>>:omp_out.insert(omp_in.begin(),omp_in.end()))
+	#pragma omp parallel for schedule(dynamic) reduction(merge:alignment_map) shared(processed_seq_number)
+*/
+
+	//Declare parallel loop using OpenMP 3.1 standards
+	#pragma omp parallel for schedule(dynamic) shared(processed_seq_number , alignment_map) //num_threads(1)
+	for(vector<pair<const int , const string>>::const_iterator seq_it = sequence_list.begin() ; seq_it < sequence_list.end() ; seq_it++){
+		try{
+			forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , genomic_offset_bounds, rev_offset_frame);
+
+			#pragma omp critical(emplace_seq_alignments)
+			{
+				write_single_seq_alignment(outfile , (*seq_it).first , seq_alignments );
+				++processed_seq_number;
+			}
+		}
+		catch(exception& except){
+			cout<<"Exception caught calling align_seq() on sequence:"<<endl;
+			cout<<(*seq_it).first<<";"<<(*seq_it).second<<endl;
+			cout<<endl;
+			cout<<"Throwing exception now..."<<endl<<endl;
+			cout<<except.what()<<endl;
+			throw;
+		}
+
+
+	}
+
+	chrono::duration<double> elapsed_time = chrono::system_clock::now() - begin_time;
+	align_infos_file<<elapsed_time.count()<<" seconds"<<endl;
+
+}
+
 /*
  * Align sequences and hold them in memory
  */
