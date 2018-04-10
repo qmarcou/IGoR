@@ -232,37 +232,50 @@ vector<pair<const int , const string>> read_indexed_csv(string filename){
 	return sequence_vect;
 }
 /**
- * \brief This method aligns every genomic template to one sequence
+ * \overload
  */
-forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , int min_offset , int max_offset){
-	Int_Str int_seq = nt2int(nt_seq);
-	forward_list<Alignment_data> alignment_list;// = *(new forward_list<Alignment_data>());
+forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+	//Create a map of offset bounds and call align_seq overloads
+	//This is not very elegant, however this function will probably not be called anymore except for aligning a single sequence.
+	unordered_map<string,pair<int,int>> genomic_offset_bounds;
 	for(forward_list<pair<string,Int_Str>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
-		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_only , min_offset , max_offset);
-		//TODO quick and dirty fix for D genes alignments
-		//alignment.second.gene_name = (*iter).first;
-		//alignment_list.push_front(alignment.second);
-		for(list<pair<int,Alignment_data>>::iterator jiter = alignments.begin() ; jiter != alignments.end() ; jiter++){
-			(*jiter).second.gene_name = (*iter).first;
-			alignment_list.push_front((*jiter).second);
-		}
+		genomic_offset_bounds.emplace(iter->first,min_offset,max_offset);
 	}
 
-	return alignment_list;
+	return align_seq(nt_seq, score_threshold, best_only, genomic_offset_bounds, rev_offset_frame);
 }
 
-
+/**
+ * \brief A function performing alignment of all genomic templates against a given sequence
+ * \author Q.Marcou, M.Puelma Touzel
+ * \version 1.2.0
+ *
+ * \param [in] nt_seq the nucleotide sequence to study
+ * \param [in] score_threshold The SW alignment score threshold to record an alignment
+ * \param [in] best_only Only retain the best alignment for a given genomic template
+ * \param [in] genomic_offset_bounds A hash map containing offsets lower and upper bounds for each genomic template. Keys of the map are the genomic templates names.
+ * \param [in] rev_offset_frame Are offsets bounds given reversed? (offset defined based on the last sequence nt instead of the first)
+ *
+ * Call the SW alignment function for every genomic template aligning them against one target sequence.
+ * There is possibility to pass different offset bounds for different genomic templates.
+ * There is also a possibility to pass these offsets reversed (i.e defined from the last nucleotide of the target) in case it is more handy (e.g alignement of CDR3 sequences or J/C primer sequencing).
+ *
+ */
 forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame){
 	int min_offset;
 	int max_offset;
 	Int_Str int_seq = nt2int(nt_seq);
-        int seqlen=int_seq.size();
+	size_t seqlen=int_seq.size();
 	forward_list<Alignment_data> alignment_list;// = *(new forward_list<Alignment_data>());
+
 	for(forward_list<pair<string,Int_Str>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
-	        min_offset=-genomic_offset_bounds.at((*iter).first).first-3;  
-		max_offset=-genomic_offset_bounds.at((*iter).first).second+3;
-		min_offset+=(rev_offset_frame)? seqlen:0; //reverse frame for J CDR3 anchors
-		max_offset+=(rev_offset_frame)? seqlen:0; //reverse frame for J CDR3 anchors
+		// Extract min and max offset information from the offset bounds map
+		min_offset=-genomic_offset_bounds.at((*iter).first).first;
+		max_offset=-genomic_offset_bounds.at((*iter).first).second;
+
+		// Reverse the offset if necessary (e.g for J CDR3 alignment or sequencing from J primer)
+		min_offset+=(rev_offset_frame)? seqlen:0;
+		max_offset+=(rev_offset_frame)? seqlen:0;
 		
 		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_only , min_offset , max_offset);
 		//TODO quick and dirty fix for D genes alignments
