@@ -100,10 +100,13 @@ public:
 	virtual ~Aligner();
 
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , int , int);
+	std::forward_list<Alignment_data> align_seq(std::string , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool);
+
 	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool);
 	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool , int , int);
 	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool );
 	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , int , int);
+	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool);
 	void write_alignments_seq_csv(std::string , std::unordered_map<int,std::forward_list<Alignment_data>>);
 
 	std::unordered_map<int,std::forward_list<Alignment_data>> read_alignments_seq_csv(std::string , double , bool);
