@@ -139,6 +139,7 @@ int main(int argc , char* argv[]){
 	vector<pair<string,string>> j_genomic;
 	unordered_map<string,size_t> v_CDR3_anchors;
 	unordered_map<string,size_t> j_CDR3_anchors;
+	bool align_data_is_CDR3 = false;
 
 	//Model parms and marginals
 	bool load_last_inferred_parms = false;
@@ -510,7 +511,7 @@ int main(int argc , char* argv[]){
 					}
 				}
 				else if(string(argv[carg_i]) == "--CDR3"){
-					gen_output_CDR3_data = true;
+					align_data_is_CDR3 = true;
 				}
 				else{
 					return terminate_IGoR_with_error_message("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
@@ -1601,14 +1602,15 @@ int main(int argc , char* argv[]){
 
 			if(align_v){
 				//Performs V alignments
-				clog<<"Performing V alignments...."<<endl;
 				Aligner v_aligner = Aligner(v_subst_matrix , v_gap_penalty , V_gene);
 				v_aligner.set_genomic_sequences(v_genomic);
 				try{
-					if (!gen_output_CDR3_data)
+					if (not align_data_is_CDR3){
+						clog<<"Performing V alignments...."<<endl;
 						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+					}
 					else{ //assume seqs are CDR3s
-						cout<<"Running on CDRsonly..."<<endl;
+						clog<<"Performing CDR3s V alignments...."<<endl;
 						unordered_map<string,pair<int,int>> v_genomic_offset_bounds;
 						for(unordered_map<string,size_t>::const_iterator iter = v_CDR3_anchors.begin() ; iter != v_CDR3_anchors.end() ; iter++)
 							v_genomic_offset_bounds.emplace((*iter).first,make_pair( (*iter).second, (*iter).second ));
@@ -1635,14 +1637,15 @@ int main(int argc , char* argv[]){
 			}
 
 			if(align_j){
-				clog<<"Performing J alignments...."<<endl;
 				Aligner j_aligner (j_subst_matrix , j_gap_penalty , J_gene);
 				j_aligner.set_genomic_sequences(j_genomic);
 				try{
-					if (!gen_output_CDR3_data)
+					if (not align_data_is_CDR3){
+						clog<<"Performing J alignments...."<<endl;
 						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+					}
 					else{ //assume seqs are CDR3s
-						cout<<"running on CDRsonly"<<endl;
+						clog<<"Performing CDR3s J alignments...."<<endl;
 						unordered_map<string,pair<int,int>> j_genomic_offset_bounds;
 						for(unordered_map<string,size_t>::const_iterator iter = j_CDR3_anchors.begin() ; iter != j_CDR3_anchors.end() ; iter++)
 							j_genomic_offset_bounds.emplace((*iter).first,make_pair( (*iter).second, (*iter).second )); 
