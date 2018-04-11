@@ -237,12 +237,7 @@ vector<pair<const int , const string>> read_indexed_csv(string filename){
 forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
 	//Create a map of offset bounds and call align_seq overloads
 	//This is not very elegant, however this function will probably not be called anymore except for aligning a single sequence.
-	unordered_map<string,pair<int,int>> genomic_offset_bounds;
-	for(forward_list<pair<string,Int_Str>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
-		genomic_offset_bounds.emplace(iter->first,min_offset,max_offset);
-	}
-
-	return align_seq(nt_seq, score_threshold, best_only, genomic_offset_bounds, rev_offset_frame);
+	return align_seq(nt_seq, score_threshold, best_only, build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
 }
 
 /**
@@ -254,14 +249,14 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
  * \param [in] score_threshold The SW alignment score threshold to record an alignment
  * \param [in] best_only Only retain the best alignment for a given genomic template
  * \param [in] genomic_offset_bounds A hash map containing offsets lower and upper bounds for each genomic template. Keys of the map are the genomic templates names.
- * \param [in] rev_offset_frame Are offsets bounds given reversed? (offset defined based on the last sequence nt instead of the first)
+ * \param [in] rev_offset_frame Are offsets bounds given reversed? (offset defined based on the last sequence nt instead of the first). Default is false.
  *
  * Call the SW alignment function for every genomic template aligning them against one target sequence.
  * There is possibility to pass different offset bounds for different genomic templates.
  * There is also a possibility to pass these offsets reversed (i.e defined from the last nucleotide of the target) in case it is more handy (e.g alignement of CDR3 sequences or J/C primer sequencing).
  *
  */
-forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame){
+forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
 	int min_offset;
 	int max_offset;
 	Int_Str int_seq = nt2int(nt_seq);
@@ -290,66 +285,6 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 	return alignment_list;
 }
 
-void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame){
-	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
-
-	string folder_path = filename.substr(0,filename.rfind("/")+1); //Get the file path
-	ofstream align_infos_file(folder_path + "aligns_info.out",fstream::out | fstream::app); //Opens the file in append mode
-
-	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
-	std::time_t tt;
-	tt = chrono::system_clock::to_time_t ( begin_time );
-
-	align_infos_file<<endl<<"================================================================"<<endl;
-	align_infos_file<<"Alignments in file: "<<filename<<endl;
-	align_infos_file<<"Date: "<< ctime(&tt)<<endl;
-	align_infos_file<<"Score threshold = "<<score_threshold<<endl;
-	align_infos_file<<"Best only = "<<best_only<<endl;
-	align_infos_file<<"Using template offsets"<<endl;
-	align_infos_file<<"Gap penalty = "<<this->gap_penalty<<endl;
-	align_infos_file<<"Substitution matrix:"<<endl;
-	align_infos_file<<this->substitution_matrix<<endl;
-	align_infos_file<<sequence_list.size()<<" sequences processed in ";
-
-	ofstream outfile(filename);
-	outfile<<"seq_index"<<";"<<"gene_name"<<";"<<"score"<<";"<<"offset"<<";"<<"insertions"<<";"<<"deletions"<<";"<<"mismatches"<<";"<<"length"<<";5_p_align_offset;3_p_align_offset"<<endl;
-
-	int processed_seq_number = 0;
-
-/*
- * Declaring parellel loop using OpenMP 4.0 standards
-	#pragma omp declare reduction (merge:unordered_map<int,forward_list<Alignment_data>>:omp_out.insert(omp_in.begin(),omp_in.end()))
-	#pragma omp parallel for schedule(dynamic) reduction(merge:alignment_map) shared(processed_seq_number)
-*/
-
-	//Declare parallel loop using OpenMP 3.1 standards
-	#pragma omp parallel for schedule(dynamic) shared(processed_seq_number , alignment_map) //num_threads(1)
-	for(vector<pair<const int , const string>>::const_iterator seq_it = sequence_list.begin() ; seq_it < sequence_list.end() ; seq_it++){
-		try{
-			forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , genomic_offset_bounds, rev_offset_frame);
-
-			#pragma omp critical(emplace_seq_alignments)
-			{
-				write_single_seq_alignment(outfile , (*seq_it).first , seq_alignments );
-				++processed_seq_number;
-			}
-		}
-		catch(exception& except){
-			cout<<"Exception caught calling align_seq() on sequence:"<<endl;
-			cout<<(*seq_it).first<<";"<<(*seq_it).second<<endl;
-			cout<<endl;
-			cout<<"Throwing exception now..."<<endl<<endl;
-			cout<<except.what()<<endl;
-			throw;
-		}
-
-
-	}
-
-	chrono::duration<double> elapsed_time = chrono::system_clock::now() - begin_time;
-	align_infos_file<<elapsed_time.count()<<" seconds"<<endl;
-
-}
 
 /*
  * Align sequences and hold them in memory
@@ -362,7 +297,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 /*
  * Align sequences and hold them in memory
  */
-unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset){
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset, bool/*=false*/){
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
 	int processed_seq_number = 0;
@@ -382,7 +317,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 		{
 			alignment_map.emplace((*seq_it).first , seq_alignments);
 			//cout<<"Seq "<<processed_seq_number<<" processed"<<endl;
-			processed_seq_number++;
+			++processed_seq_number;
 		}
 
 		if(processed_seq_number%50 == 0){
@@ -397,15 +332,64 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 	return alignment_map;
 }
 
-/*
- * Align sequences and write them on disk on the fly (avoids memory issues)
+void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+	return this->align_seqs(filename , sequence_list , score_threshold , best_only , build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
+}
+
+
+/**
+ * \brief A function performing alignment of all genomic templates against all provided sequences. Output on file.
+ * \author Q.Marcou, M.Puelma Touzel
+ * \version 1.2.0
+ *
+ * \param [in] filename Path and filename for the ouput alignment file
+ * \param [in] sequence_list A forward list containing pairs of nt sequence and the corresponding index
+ * \param [in] nt_seq the nucleotide sequence to study
+ * \param [in] score_threshold The SW alignment score threshold to record an alignment
+ * \param [in] best_only Only retain the best alignment for a given genomic template
+ * \param [in] genomic_offset_bounds A hash map containing offsets lower and upper bounds for each genomic template. Keys of the map are the genomic templates names.
+ * \param [in] rev_offset_frame Are offsets bounds given reversed? (offset defined based on the last sequence nt instead of the first). Default is false.
+ *
+ * Call the SW alignment function for every genomic template aligning them against all target sequences.
+ * Alignments are all written on disk on the fly to avoid memory issues.
+ * A summary file containing all alignments parameters and relevant information is created/appended in the directory.
+ * There is possibility to pass different offset bounds for different genomic templates.
+ * There is also a possibility to pass these offsets reversed (i.e defined from the last nucleotide of the target) in case it is more handy (e.g alignement of CDR3 sequences or J/C primer sequencing).
+ *
+ * \bug Summary file creation might not work on Windows systems
  */
-void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset){
+void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
+
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
 	string folder_path = filename.substr(0,filename.rfind("/")+1); //Get the file path
 	ofstream align_infos_file(folder_path + "aligns_info.out",fstream::out | fstream::app); //Opens the file in append mode
 
+	//Compute min and max offsets over all genomic templates and check if they are constant.
+	int min_offset = UINT64_MAX;
+	int max_offset = -UINT64_MAX;
+	bool template_specific_offsets = false; //Although silly we have to recover the fact that not all templates have the same offset.
+	for(const pair<string,pair<int,int>> template_bounds: genomic_offset_bounds){
+		if(min_offset>template_bounds.second.first){
+			if(not template_specific_offsets
+					and min_offset!=UINT64_MAX){
+				//If min_offset's values is no longer UINT64_MAX, it has been updated once and this is the second => templates have different bounds
+				template_specific_offsets = true;
+			}
+			min_offset = template_bounds.second.first;
+		}
+
+		if(max_offset<template_bounds.second.second){
+			if(not template_specific_offsets
+					and max_offset!=-UINT64_MAX){
+				//If max_offset's values is no longer -UINT64_MAX, it has been updated once and this is the second => templates have different bounds
+				template_specific_offsets = true;
+			}
+			max_offset = template_bounds.second.second;
+		}
+	}
+
+	// Start chronometer and get dates and time
 	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
 	std::time_t tt;
 	tt = chrono::system_clock::to_time_t ( begin_time );
@@ -417,6 +401,8 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	align_infos_file<<"Best only = "<<best_only<<endl;
 	align_infos_file<<"Min Offset = "<<min_offset<<endl;
 	align_infos_file<<"Max Offset = "<<max_offset<<endl;
+	align_infos_file<<"Using template specific offsets = "<<template_specific_offsets<<endl;
+	align_infos_file<<"Using reversed offsets = "<<rev_offset_frame<<endl;
 	align_infos_file<<"Gap penalty = "<<this->gap_penalty<<endl;
 	align_infos_file<<"Substitution matrix:"<<endl;
 	align_infos_file<<this->substitution_matrix<<endl;
@@ -430,7 +416,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 
 
 /*
- * Declaring parellel loop using OpenMP 4.0 standards
+ * Declaring parallel loop using OpenMP 4.0 standards
 	#pragma omp declare reduction (merge:unordered_map<int,forward_list<Alignment_data>>:omp_out.insert(omp_in.begin(),omp_in.end()))
 	#pragma omp parallel for schedule(dynamic) reduction(merge:alignment_map) shared(processed_seq_number)
 */
@@ -439,7 +425,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	#pragma omp parallel for schedule(dynamic) shared(processed_seq_number , alignment_map) //num_threads(1)
 	for(vector<pair<const int , const string>>::const_iterator seq_it = sequence_list.begin() ; seq_it < sequence_list.end() ; seq_it++){
 		try{
-			forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , min_offset , max_offset);
+			forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , genomic_offset_bounds, rev_offset_frame);
 
 			#pragma omp critical(emplace_seq_alignments)
 			{
@@ -480,6 +466,17 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
  */
 void Aligner::align_seqs(string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only ){
 	align_seqs(filename,sequence_list,score_threshold,best_only,INT16_MIN,INT16_MAX);
+}
+
+/**
+ * \brief A small function to automatically build a hashmap containing genomic offset bounds from fixed bounds over genomic templates.
+ */
+std::unordered_map<std::string,std::pair<int,int>> Aligner::build_genomic_bounds_map(int min_offset,int max_offset) const{
+	unordered_map<string,pair<int,int>> genomic_offset_bounds;
+	for(forward_list<pair<string,Int_Str>>::const_iterator iter = this->int_genomic_sequences.begin() ; iter != this->int_genomic_sequences.end() ; ++iter){
+		genomic_offset_bounds.emplace(iter->first,make_pair(min_offset,max_offset));
+	}
+	return genomic_offset_bounds;
 }
 
 /*
@@ -1423,5 +1420,6 @@ Matrix<double> read_substitution_matrix(const string& filename , string sep/*=",
 	}
 	return Matrix<double>(line_size,line_size,tmp_vect);
 }
+
 
 

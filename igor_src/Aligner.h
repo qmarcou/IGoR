@@ -98,17 +98,18 @@ public:
 	Aligner();
 	Aligner(Matrix<double>,int,Gene_class);
 	virtual ~Aligner();
-
+	// Single seq alignments methods
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , int , int, bool=false);
-	std::forward_list<Alignment_data> align_seq(std::string , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool);
-
+	std::forward_list<Alignment_data> align_seq(std::string , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
+	// Multiple seqs alignments methods
 	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool);
-	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool , int , int);
+	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool , int , int, bool=false);
+	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
 	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool );
-	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , int , int);
-	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool);
+	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , int , int, bool=false);
+	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
+	//I/O related methods
 	void write_alignments_seq_csv(std::string , std::unordered_map<int,std::forward_list<Alignment_data>>);
-
 	std::unordered_map<int,std::forward_list<Alignment_data>> read_alignments_seq_csv(std::string , double , bool);
 
 	void set_genomic_sequences(std::vector< std::pair<std::string,std::string> >);
@@ -125,7 +126,7 @@ private:
 	bool flip_seqs;
 	void sw_align_common(const Int_Str& ,const Int_Str& ,const int,const int , Matrix<double>& , Matrix<int>& , Matrix<int>& , Matrix<int>& , std::vector<int>& ,  std::vector<int>& , std::vector<int>&);
 	std::list<std::pair<int,Alignment_data>> sw_align(const Int_Str& ,const Int_Str& , double , bool , int , int);
-
+	std::unordered_map<std::string,std::pair<int,int>> build_genomic_bounds_map(int,int) const;
 
 };
 
