@@ -265,8 +265,14 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 
 	for(forward_list<pair<string,Int_Str>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
 		// Extract min and max offset information from the offset bounds map
-		min_offset=genomic_offset_bounds.at((*iter).first).first;
-		max_offset=genomic_offset_bounds.at((*iter).first).second;
+		try{
+			min_offset=genomic_offset_bounds.at((*iter).first).first;
+			max_offset=genomic_offset_bounds.at((*iter).first).second;
+		}
+		catch(exception& e){
+			cerr<<"Exception caught trying to fetch template specific offset bounds in Aligner::align_seq"<<endl;
+			throw runtime_error("Missing genomic offset bounds for genomic template \"" + iter->first + "\"");
+		}
 
 		// Reverse the offset if necessary (e.g for J CDR3 alignment or sequencing from J primer)
 		min_offset+=(rev_offset_frame)? seqlen:0;
