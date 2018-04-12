@@ -1647,9 +1647,19 @@ int main(int argc , char* argv[]){
 					else{ //assume seqs are ntCDR3s
 						clog<<"Performing CDR3s J alignments...."<<endl;
 						unordered_map<string,pair<int,int>> j_genomic_offset_bounds;
-						for(unordered_map<string,size_t>::const_iterator iter = j_CDR3_anchors.begin() ; iter != j_CDR3_anchors.end() ; iter++)
-							j_genomic_offset_bounds.emplace((*iter).first,make_pair( -(*iter).second - 2 , -(*iter).second - 2));
-							//Use a reversed offset and add +3 in order to take into account the anchor's codon
+						for(pair<string,string> j_template: j_genomic){
+							if(j_CDR3_anchors.count(j_template.first)>0){
+								int& gene_offset = - j_CDR3_anchors.at(j_template.first) -2;
+								//Use a reversed offset and substract 2 in order to take into account the anchor's codon
+								j_genomic_offset_bounds.emplace(j_template.first, make_pair(gene_offset,gene_offset));
+							}
+							else{
+								// Put everything between the same min and max => efficient, most likely correct but dangerous
+								// Just put the least constraining? => safest in theory but risky in terms of alignments quality
+								// Call a function => See yuval's project
+							}
+						}
+
 						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_genomic_offset_bounds,true);
 					}
 				}
