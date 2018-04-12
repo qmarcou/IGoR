@@ -366,13 +366,13 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	ofstream align_infos_file(folder_path + "aligns_info.out",fstream::out | fstream::app); //Opens the file in append mode
 
 	//Compute min and max offsets over all genomic templates and check if they are constant.
-	int min_offset = UINT64_MAX;
-	int max_offset = -UINT64_MAX;
+	int min_offset = INT32_MAX;
+	int max_offset = INT32_MIN;
 	bool template_specific_offsets = false; //Although silly we have to recover the fact that not all templates have the same offset.
 	for(const pair<string,pair<int,int>> template_bounds: genomic_offset_bounds){
 		if(min_offset>template_bounds.second.first){
 			if(not template_specific_offsets
-					and min_offset!=UINT64_MAX){
+					and min_offset!=INT32_MAX){
 				//If min_offset's values is no longer UINT64_MAX, it has been updated once and this is the second => templates have different bounds
 				template_specific_offsets = true;
 			}
@@ -381,7 +381,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 
 		if(max_offset<template_bounds.second.second){
 			if(not template_specific_offsets
-					and max_offset!=-UINT64_MAX){
+					and max_offset!=INT32_MIN){
 				//If max_offset's values is no longer -UINT64_MAX, it has been updated once and this is the second => templates have different bounds
 				template_specific_offsets = true;
 			}
