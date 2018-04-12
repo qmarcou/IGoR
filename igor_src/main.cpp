@@ -1609,11 +1609,11 @@ int main(int argc , char* argv[]){
 						clog<<"Performing V alignments...."<<endl;
 						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
 					}
-					else{ //assume seqs are CDR3s
+					else{ //assume seqs are ntCDR3s
 						clog<<"Performing CDR3s V alignments...."<<endl;
 						unordered_map<string,pair<int,int>> v_genomic_offset_bounds;
 						for(unordered_map<string,size_t>::const_iterator iter = v_CDR3_anchors.begin() ; iter != v_CDR3_anchors.end() ; iter++)
-							v_genomic_offset_bounds.emplace((*iter).first,make_pair( (*iter).second, (*iter).second ));
+							v_genomic_offset_bounds.emplace((*iter).first,make_pair( -(*iter).second, -(*iter).second ));
 						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_genomic_offset_bounds,false);	
 					}
 				}
@@ -1644,11 +1644,12 @@ int main(int argc , char* argv[]){
 						clog<<"Performing J alignments...."<<endl;
 						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
 					}
-					else{ //assume seqs are CDR3s
+					else{ //assume seqs are ntCDR3s
 						clog<<"Performing CDR3s J alignments...."<<endl;
 						unordered_map<string,pair<int,int>> j_genomic_offset_bounds;
 						for(unordered_map<string,size_t>::const_iterator iter = j_CDR3_anchors.begin() ; iter != j_CDR3_anchors.end() ; iter++)
-							j_genomic_offset_bounds.emplace((*iter).first,make_pair( (*iter).second, (*iter).second )); 
+							j_genomic_offset_bounds.emplace((*iter).first,make_pair( -(*iter).second - 2 , -(*iter).second - 2));
+							//Use a reversed offset and add +3 in order to take into account the anchor's codon
 						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_genomic_offset_bounds,true);
 					}
 				}

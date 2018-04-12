@@ -265,8 +265,8 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 
 	for(forward_list<pair<string,Int_Str>>::const_iterator iter = int_genomic_sequences.begin() ; iter != int_genomic_sequences.end() ; iter++){
 		// Extract min and max offset information from the offset bounds map
-		min_offset=-genomic_offset_bounds.at((*iter).first).first;
-		max_offset=-genomic_offset_bounds.at((*iter).first).second;
+		min_offset=genomic_offset_bounds.at((*iter).first).first;
+		max_offset=genomic_offset_bounds.at((*iter).first).second;
 
 		// Reverse the offset if necessary (e.g for J CDR3 alignment or sequencing from J primer)
 		min_offset+=(rev_offset_frame)? seqlen:0;
@@ -1363,7 +1363,7 @@ bool align_compare(Alignment_data align1 , Alignment_data align2 ){
 }
 
 /**
- * A dumb function to read CSV anchor gene indices
+ * \brief A dumb function to read CSV anchor gene indices
  */
 unordered_map<string,size_t> read_gene_anchors_csv(string filename , string sep){
 	ifstream infile(filename);
