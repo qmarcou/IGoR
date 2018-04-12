@@ -295,7 +295,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 }
 
 /*
- * Align sequences and hold them in memory
+ * \brief A function performing alignment of all genomic templates against all provided sequences. Alignments are stored in memory.
  */
 unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset, bool/*=false*/){
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
