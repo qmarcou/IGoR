@@ -1609,11 +1609,35 @@ int main(int argc , char* argv[]){
 						clog<<"Performing V alignments...."<<endl;
 						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
 					}
-					else{ //assume seqs are ntCDR3s
+					else{ //Provided sequences are ntCDR3s, alignment offsets are based on provided CDR3 gene anchors.
 						clog<<"Performing CDR3s V alignments...."<<endl;
 						unordered_map<string,pair<int,int>> v_genomic_offset_bounds;
-						for(unordered_map<string,size_t>::const_iterator iter = v_CDR3_anchors.begin() ; iter != v_CDR3_anchors.end() ; iter++)
-							v_genomic_offset_bounds.emplace((*iter).first,make_pair( -(*iter).second, -(*iter).second ));
+						forward_list<string> unknown_gene_anchors;
+						for(pair<string,string> v_template: v_genomic){
+							if(j_CDR3_anchors.count(v_template.first)>0){
+								int gene_offset = - v_CDR3_anchors.at(v_template.first);
+								//Use a reversed offset and substract 2 in order to take into account the anchor's codon
+								v_genomic_offset_bounds.emplace(v_template.first, make_pair(gene_offset,gene_offset));
+							}
+							else{
+								v_genomic_offset_bounds.emplace(v_template.first, make_pair(v_left_offset_bound,v_right_offset_bound));
+								unknown_gene_anchors.push_front(v_template.first);
+								/*Note: there was a tradeoff between
+								 * - putting everything between the same min and max (extracted from template specific offsets) => most efficient, likely to be correct but dangerous
+								 * - put no constraint => safest in theory, in practice risky if only best alignments are accepted.
+								 * In the end this solution is more elegant and encapsulate both.
+								 */
+							}
+						}
+						if(not unknown_gene_anchors.empty()){
+							clog<<"Anchors indices could not be found for the following genes: ";
+							for(string unknown_gene: unknown_gene_anchors) clog<<"\""<<unknown_gene<<"\" ,";
+							clog<<endl<<"For these genes provided/default values for V gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") have been set as genomic offset bounds."<<endl;;
+							tuple<bool,int,int> min_max_offsets =  extract_min_max_genomic_templates_offsets(v_genomic_offset_bounds);
+							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<get<1>(min_max_offsets)<<"/"<<get<2>(min_max_offsets)<<"]";
+							clog<<"If you have provided V min/max offset values make sure they were NOT defined as reversed offsets."<<endl;
+						}
+						//Call the aligner module
 						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_genomic_offset_bounds,false);	
 					}
 				}
@@ -1670,7 +1694,7 @@ int main(int argc , char* argv[]){
 							clog<<endl<<"For these genes provided/default values for J gene min and max offset bounds ("<<j_left_offset_bound<<"/"<<j_right_offset_bound<<") have been set as genomic offset bounds."<<endl;;
 							tuple<bool,int,int> min_max_offsets =  extract_min_max_genomic_templates_offsets(j_genomic_offset_bounds);
 							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<get<1>(min_max_offsets)<<"/"<<get<2>(min_max_offsets)<<"]";
-							clog<<"If you have provided min/max offset values make sure they were defined as reversed offsets."<<endl;
+							clog<<"If you have provided J min/max offset values make sure they were defined as reversed offsets."<<endl;
 						}
 						//Call the aligner module
 						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_genomic_offset_bounds,true);
