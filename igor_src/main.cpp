@@ -1612,7 +1612,7 @@ int main(int argc , char* argv[]){
 					else{ //Provided sequences are ntCDR3s, alignment offsets are based on provided CDR3 gene anchors.
 						clog<<"Performing CDR3s V alignments...."<<endl;
 						unordered_map<string,pair<int,int>> v_genomic_offset_bounds;
-						forward_list<string> unknown_gene_anchors;
+						list<string> unknown_gene_anchors;
 						for(pair<string,string> v_template: v_genomic){
 							if(j_CDR3_anchors.count(v_template.first)>0){
 								int gene_offset = - v_CDR3_anchors.at(v_template.first);
@@ -1630,11 +1630,11 @@ int main(int argc , char* argv[]){
 							}
 						}
 						if(not unknown_gene_anchors.empty()){
-							clog<<"Anchors indices could not be found for the following genes: ";
+							clog<<"Anchors indices could not be found for the following "<<unknown_gene_anchors.size()<<" genes: ";
 							for(string unknown_gene: unknown_gene_anchors) clog<<"\""<<unknown_gene<<"\" ,";
 							clog<<endl<<"For these genes provided/default values for V gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") have been set as genomic offset bounds."<<endl;;
 							tuple<bool,int,int> min_max_offsets =  extract_min_max_genomic_templates_offsets(v_genomic_offset_bounds);
-							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<get<1>(min_max_offsets)<<"/"<<get<2>(min_max_offsets)<<"]";
+							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<get<1>(min_max_offsets)<<"/"<<get<2>(min_max_offsets)<<"]."<<endl;
 							clog<<"If you have provided V min/max offset values make sure they were NOT defined as reversed offsets."<<endl;
 						}
 						//Call the aligner module
@@ -1671,7 +1671,7 @@ int main(int argc , char* argv[]){
 					else{ //Provided sequences are ntCDR3s, alignment offsets are based on provided CDR3 gene anchors.
 						clog<<"Performing CDR3s J alignments...."<<endl;
 						unordered_map<string,pair<int,int>> j_genomic_offset_bounds;
-						forward_list<string> unknown_gene_anchors;
+						list<string> unknown_gene_anchors;
 						for(pair<string,string> j_template: j_genomic){
 							if(j_CDR3_anchors.count(j_template.first)>0){
 								int gene_offset = - j_CDR3_anchors.at(j_template.first) -2;
@@ -1689,11 +1689,11 @@ int main(int argc , char* argv[]){
 							}
 						}
 						if(not unknown_gene_anchors.empty()){
-							clog<<"Anchors indices could not be found for the following genes: ";
+							clog<<"Anchors indices could not be found for the following "<<unknown_gene_anchors.size()<<" genes: ";
 							for(string unknown_gene: unknown_gene_anchors) clog<<"\""<<unknown_gene<<"\" ,";
 							clog<<endl<<"For these genes provided/default values for J gene min and max offset bounds ("<<j_left_offset_bound<<"/"<<j_right_offset_bound<<") have been set as genomic offset bounds."<<endl;;
 							tuple<bool,int,int> min_max_offsets =  extract_min_max_genomic_templates_offsets(j_genomic_offset_bounds);
-							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<get<1>(min_max_offsets)<<"/"<<get<2>(min_max_offsets)<<"]";
+							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<get<1>(min_max_offsets)<<"/"<<get<2>(min_max_offsets)<<"]."<<endl;
 							clog<<"If you have provided J min/max offset values make sure they were defined as reversed offsets."<<endl;
 						}
 						//Call the aligner module
