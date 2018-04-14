@@ -275,8 +275,8 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 		}
 
 		// Reverse the offset if necessary (e.g for J CDR3 alignment or sequencing from J primer)
-		min_offset+=(rev_offset_frame)? seqlen:0;
-		max_offset+=(rev_offset_frame)? seqlen:0;
+		min_offset+=(rev_offset_frame)? seqlen-1:0;//seqlen-1 correspond to the index of the last nt of the sequence
+		max_offset+=(rev_offset_frame)? seqlen-1:0;
 		
 		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_only , min_offset , max_offset);
 		//TODO quick and dirty fix for D genes alignments
