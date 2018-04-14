@@ -371,29 +371,8 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	string folder_path = filename.substr(0,filename.rfind("/")+1); //Get the file path
 	ofstream align_infos_file(folder_path + "aligns_info.out",fstream::out | fstream::app); //Opens the file in append mode
 
-	//Compute min and max offsets over all genomic templates and check if they are constant.
-	int min_offset = INT32_MAX;
-	int max_offset = INT32_MIN;
-	bool template_specific_offsets = false; //Although silly we have to recover the fact that not all templates have the same offset.
-	for(const pair<string,pair<int,int>> template_bounds: genomic_offset_bounds){
-		if(min_offset>template_bounds.second.first){
-			if(not template_specific_offsets
-					and min_offset!=INT32_MAX){
-				//If min_offset's values is no longer UINT64_MAX, it has been updated once and this is the second => templates have different bounds
-				template_specific_offsets = true;
-			}
-			min_offset = template_bounds.second.first;
-		}
-
-		if(max_offset<template_bounds.second.second){
-			if(not template_specific_offsets
-					and max_offset!=INT32_MIN){
-				//If max_offset's values is no longer -UINT64_MAX, it has been updated once and this is the second => templates have different bounds
-				template_specific_offsets = true;
-			}
-			max_offset = template_bounds.second.second;
-		}
-	}
+	//Check if all templates have the same min and max offsets and compute min and max over all of them.
+	tuple<bool,int,int> min_max_offsets =  extract_min_max_genomic_templates_offsets(genomic_offset_bounds);
 
 	// Start chronometer and get dates and time
 	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
@@ -405,9 +384,9 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	align_infos_file<<"Date: "<< ctime(&tt)<<endl;
 	align_infos_file<<"Score threshold = "<<score_threshold<<endl;
 	align_infos_file<<"Best only = "<<best_only<<endl;
-	align_infos_file<<"Min Offset = "<<min_offset<<endl;
-	align_infos_file<<"Max Offset = "<<max_offset<<endl;
-	align_infos_file<<"Using template specific offsets = "<<template_specific_offsets<<endl;
+	align_infos_file<<"Min Offset = "<<get<1>(min_max_offsets)<<endl;
+	align_infos_file<<"Max Offset = "<<get<2>(min_max_offsets)<<endl;
+	align_infos_file<<"Using template specific offsets = "<<get<0>(min_max_offsets)<<endl;
 	align_infos_file<<"Using reversed offsets = "<<rev_offset_frame<<endl;
 	align_infos_file<<"Gap penalty = "<<this->gap_penalty<<endl;
 	align_infos_file<<"Substitution matrix:"<<endl;
@@ -1427,5 +1406,38 @@ Matrix<double> read_substitution_matrix(const string& filename , string sep/*=",
 	return Matrix<double>(line_size,line_size,tmp_vect);
 }
 
+/**
+ * \brief Compute min and max offsets over all genomic templates and check if they are constant.
+ * \author Q.Marcou
+ * \version 1.2.0
+ *
+ * \param [in] genomic_offset_bounds A hash map containing offsets lower and upper bounds for each genomic template. Keys of the map are the genomic templates names.
+ * \return A three component tuple: first: boolean true if offsets are template specific (not all the same for all templates, second and third the min and max offsets over all templates.
+ */
+tuple<bool,int,int> extract_min_max_genomic_templates_offsets(const unordered_map<string,pair<int,int>>& genomic_offset_bounds){
+	//Compute min and max offsets over all genomic templates and check if they are constant.
+	int min_offset = INT32_MAX;
+	int max_offset = INT32_MIN;
+	bool template_specific_offsets = false; //Although silly we have to recover the fact that not all templates have the same offset.
+	for(const pair<string,pair<int,int>> template_bounds: genomic_offset_bounds){
+		if(min_offset>template_bounds.second.first){
+			if(not template_specific_offsets
+					and min_offset!=INT32_MAX){
+				//If min_offset's values is no longer UINT64_MAX, it has been updated once and this is the second => templates have different bounds
+				template_specific_offsets = true;
+			}
+			min_offset = template_bounds.second.first;
+		}
 
+		if(max_offset<template_bounds.second.second){
+			if(not template_specific_offsets
+					and max_offset!=INT32_MIN){
+				//If max_offset's values is no longer -UINT64_MAX, it has been updated once and this is the second => templates have different bounds
+				template_specific_offsets = true;
+			}
+			max_offset = template_bounds.second.second;
+		}
+	}
+	return tuple<bool,int,int>(template_specific_offsets,min_offset,max_offset);
+}
 

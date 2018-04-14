@@ -151,6 +151,7 @@ inline void write_single_seq_alignment( std::ofstream& , int , std::forward_list
 bool align_compare(Alignment_data , Alignment_data );
 std::vector<std::pair<const int , const std::string>> sample_indexed_seq( std::vector<std::pair<const int , const std::string>>,const size_t);
 Matrix<double> read_substitution_matrix(const std::string& , std::string sep=",");
+std::tuple<bool,int,int> extract_min_max_genomic_templates_offsets(const std::unordered_map<std::string,std::pair<int,int>>& genomic_offset_bounds);
 
 /*
 	namespace substitution_matrices{
