@@ -1616,7 +1616,7 @@ int main(int argc , char* argv[]){
 						int min_offset = INT32_MAX;
 						int max_offset = INT32_MIN;
 						for(pair<string,string> v_template: v_genomic){
-							if(j_CDR3_anchors.count(v_template.first)>0){
+							if(v_CDR3_anchors.count(v_template.first)>0){
 								int gene_offset = - v_CDR3_anchors.at(v_template.first);
 								//Use a reversed offset and substract 2 in order to take into account the anchor's codon
 								v_genomic_offset_bounds.emplace(v_template.first, make_pair(gene_offset,gene_offset));
@@ -1638,7 +1638,7 @@ int main(int argc , char* argv[]){
 							clog<<"Anchors indices could not be found for the following "<<unknown_gene_anchors.size()<<" genes: ";
 							for(string unknown_gene: unknown_gene_anchors) clog<<"\""<<unknown_gene<<"\" ,";
 							clog<<endl<<"For these genes provided/default values for V gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") have been set as genomic offset bounds."<<endl;;
-							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<min_offset<<"/"<<max_offset<<"]."<<endl;
+							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<min_offset<<":"<<max_offset<<"]."<<endl;
 							clog<<"If you have provided V min/max offset values make sure they were NOT defined as reversed offsets."<<endl;
 						}
 						//Call the aligner module
@@ -1701,7 +1701,7 @@ int main(int argc , char* argv[]){
 							clog<<"Anchors indices could not be found for the following "<<unknown_gene_anchors.size()<<" genes: ";
 							for(string unknown_gene: unknown_gene_anchors) clog<<"\""<<unknown_gene<<"\" ,";
 							clog<<endl<<"For these genes provided/default values for J gene min and max offset bounds ("<<j_left_offset_bound<<"/"<<j_right_offset_bound<<") have been set as genomic offset bounds."<<endl;;
-							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<min_offset<<"/"<<max_offset<<"]."<<endl;
+							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<min_offset<<":"<<max_offset<<"]."<<endl;
 							clog<<"If you have provided J min/max offset values make sure they were defined as reversed offsets."<<endl;
 						}
 						//Call the aligner module
