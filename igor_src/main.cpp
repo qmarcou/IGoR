@@ -1644,22 +1644,35 @@ int main(int argc , char* argv[]){
 						clog<<"Performing J alignments...."<<endl;
 						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
 					}
-					else{ //assume seqs are ntCDR3s
+					else{ //Provided sequences are ntCDR3s, alignment offsets are based on provided CDR3 gene anchors.
 						clog<<"Performing CDR3s J alignments...."<<endl;
 						unordered_map<string,pair<int,int>> j_genomic_offset_bounds;
+						forward_list<string> unknown_gene_anchors;
 						for(pair<string,string> j_template: j_genomic){
 							if(j_CDR3_anchors.count(j_template.first)>0){
-								int& gene_offset = - j_CDR3_anchors.at(j_template.first) -2;
+								int gene_offset = - j_CDR3_anchors.at(j_template.first) -2;
 								//Use a reversed offset and substract 2 in order to take into account the anchor's codon
 								j_genomic_offset_bounds.emplace(j_template.first, make_pair(gene_offset,gene_offset));
 							}
 							else{
-								// Put everything between the same min and max => efficient, most likely correct but dangerous
-								// Just put the least constraining? => safest in theory but risky in terms of alignments quality
-								// Call a function => See yuval's project
+								j_genomic_offset_bounds.emplace(j_template.first, make_pair(j_left_offset_bound,j_right_offset_bound));
+								unknown_gene_anchors.push_front(j_template.first);
+								/*Note: there was a tradeoff between
+								 * - putting everything between the same min and max (extracted from template specific offsets) => most efficient, likely to be correct but dangerous
+								 * - put no constraint => safest in theory, in practice risky if only best alignments are accepted.
+								 * In the end this solution is more elegant and encapsulate both.
+								 */
 							}
 						}
-
+						if(not unknown_gene_anchors.empty()){
+							clog<<"Anchors indices could not be found for the following genes: ";
+							for(string unknown_gene: unknown_gene_anchors) clog<<"\""<<unknown_gene<<"\" ,";
+							clog<<endl<<"For these genes provided/default values for J gene min and max offset bounds ("<<j_left_offset_bound<<"/"<<j_right_offset_bound<<") have been set as genomic offset bounds."<<endl;;
+							tuple<bool,int,int> min_max_offsets =  extract_min_max_genomic_templates_offsets(j_genomic_offset_bounds);
+							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<get<1>(min_max_offsets)<<"/"<<get<2>(min_max_offsets)<<"]";
+							clog<<"If you have provided min/max offset values make sure they were defined as reversed offsets."<<endl;
+						}
+						//Call the aligner module
 						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_genomic_offset_bounds,true);
 					}
 				}
