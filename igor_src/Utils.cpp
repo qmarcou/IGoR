@@ -402,3 +402,32 @@ void close_progress_bar(std::ostream& output_stream , std::string prefix_message
 	output_stream.flush();
 	output_stream<<endl;
 }
+
+/**
+ * \brief A function drawing a random 64 bits integer seed.
+ * \author Q.Marcou
+ * \version 1.2.0
+ *
+ * Draws a random 64 bits integer seed trying to be as close as possible from the guidelines given in http://www0.cs.ucl.ac.uk/staff/D.Jones/GoodPracticeRNG.pdf
+ * If a random device is available (e.g /dev/random) is available, two 32 bits integers are drawn from it and combined as a 64 bit one.
+ * If no random device is available a 64 bits random seed is computed from time, process id, etc...
+ */
+uint64_t draw_random_64bits_seed(){
+	uint64_t random_seed;
+	try{
+		// Use a random device (e.g /dev/random)
+		random_device rd;
+		// Draw two different 32 bits seeds
+		uint32_t subseed1 = rd();
+		uint32_t subseed2 = rd();
+		// Combine them in a single 64 bit unsigned integer.
+		uint32_t* first_ptr = (uint32_t*)&random_seed;
+		uint32_t* second_ptr = (uint32_t*)&random_seed + sizeof(uint32_t);
+		*first_ptr = subseed1;
+		*second_ptr = subseed2;
+	}
+	catch (exception& e){
+		cerr<<"Exception caught trying to initialize random_device to generate a random seed in draw_random_64bits_seed"<<endl;
+	}
+	return random_seed;
+}

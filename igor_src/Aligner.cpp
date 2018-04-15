@@ -957,9 +957,10 @@ vector<pair<const int , const string>> sample_indexed_seq(vector<pair<const int 
 	myclock::time_point time = myclock::now();
 	myclock::duration dur = myclock::time_point::max() - time;
 
-	unsigned time_seed = dur.count();
+	//Get a random seed
+	uint64_t random_seed = draw_random_64bits_seed();
 	//Instantiate random number generator
-	mt19937_64 generator =  mt19937_64(time_seed);
+	mt19937_64 generator =  mt19937_64(random_seed);
 
 	//Need to make a copy because of the constness in indexed_seqs
 	vector<pair< int , string>> indexed_seqs_copy (indexed_seqs.begin(),indexed_seqs.end());

@@ -1059,16 +1059,17 @@ queue<int> Hypermutation_global_errorrate::generate_errors(string& generated_seq
 	return errors_indices;
 }
 
-unsigned Hypermutation_global_errorrate::generate_random_contributions(double ei_contribution_range){
+uint64_t Hypermutation_global_errorrate::generate_random_contributions(double ei_contribution_range){
 	//Create seed for random generator
 	//create a seed from timer
 	typedef std::chrono::high_resolution_clock myclock;
 	myclock::time_point time = myclock::now();
 	myclock::duration dur = myclock::time_point::max() - time;
 
-	unsigned time_seed = dur.count();
+	//Get a random seed
+	uint64_t random_seed = draw_random_64bits_seed();
 	//Instantiate random number generator
-	mt19937_64 generator =  mt19937_64(time_seed);
+	mt19937_64 generator =  mt19937_64(random_seed);
 	uniform_real_distribution<double> distribution(-ei_contribution_range,ei_contribution_range);
 
 	for(i = 0 ; i != mutation_Nmer_size ; ++i){
@@ -1088,7 +1089,7 @@ unsigned Hypermutation_global_errorrate::generate_random_contributions(double ei
 	}
 	this->update_Nmers_proba(0,0,1);
 
-	return time_seed;
+	return random_seed;
 }
 
 

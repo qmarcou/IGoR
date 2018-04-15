@@ -977,9 +977,10 @@ void Model_marginals::random_initialize(const Model_Parms& parms){
 	myclock::time_point time = myclock::now();
 	myclock::duration dur = myclock::time_point::max() - time;
 
-	unsigned time_seed = dur.count();
+	//Get a random seed
+	uint64_t random_seed = draw_random_64bits_seed();
 	//Instantiate random number generator
-	mt19937_64 generator =  mt19937_64(time_seed);
+	mt19937_64 generator =  mt19937_64(random_seed);
 	uniform_real_distribution<double> distribution(0.0,1.0);
 	for(size_t i = 0 ; i != this->marginal_arr_size ; ++i){
 		marginal_array_smart_p[i] = distribution(generator);

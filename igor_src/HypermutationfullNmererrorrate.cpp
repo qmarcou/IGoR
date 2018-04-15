@@ -915,16 +915,17 @@ queue<int> Hypermutation_full_Nmer_errorrate::generate_errors(string& generated_
 	return errors_indices;
 }
 
-unsigned Hypermutation_full_Nmer_errorrate::generate_random_mutation_probas(double mean, double std){
+uint64_t Hypermutation_full_Nmer_errorrate::generate_random_mutation_probas(double mean, double std){
 	//Create seed for random generator
 	//create a seed from timer
 	typedef std::chrono::high_resolution_clock myclock;
 	myclock::time_point time = myclock::now();
 	myclock::duration dur = myclock::time_point::max() - time;
 
-	unsigned time_seed = dur.count();
+	//Get a random seed
+	uint64_t random_seed = draw_random_64bits_seed();
 	//Instantiate random number generator
-	mt19937_64 generator =  mt19937_64(time_seed);
+	mt19937_64 generator =  mt19937_64(random_seed);
 	normal_distribution<double> distribution(mean,std);
 
 	size_t array_size = pow(4,mutation_Nmer_size);
@@ -932,7 +933,7 @@ unsigned Hypermutation_full_Nmer_errorrate::generate_random_mutation_probas(doub
 		Nmer_mutation_proba[i] =  distribution(generator);
 	}
 
-	return time_seed;
+	return random_seed;
 }
 
 

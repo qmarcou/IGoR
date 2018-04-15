@@ -469,9 +469,10 @@ forward_list<pair<string,queue<queue<int>>>> GenModel::generate_sequences(int nu
 	myclock::time_point time = myclock::now();
 	myclock::duration dur = myclock::time_point::max() - time;
 
-	unsigned time_seed = dur.count();
+	//Get a random seed
+	uint64_t random_seed = draw_random_64bits_seed();
 	//Instantiate random number generator
-	mt19937_64 generator =  mt19937_64(time_seed);
+	mt19937_64 generator =  mt19937_64(random_seed);
 	forward_list<pair<string,queue<queue<int>>>> sequence_list =  forward_list<pair<string,queue<queue<int>>>>();
 
 	for(int seq = 0 ; seq != number_seq ; ++seq){
@@ -523,19 +524,16 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 
 	//Create seed for random generator
 	//create a seed from timer if no seed was provided
-	unsigned time_seed;
+	uint64_t random_seed;
 	if(seed<0){
-		typedef std::chrono::high_resolution_clock myclock;
-		myclock::time_point time = myclock::now();
-		myclock::duration dur = myclock::time_point::max() - time;
-		//cout<<dur<<endl;
-		time_seed = dur.count();
+		//Get a random seed
+		random_seed = draw_random_64bits_seed();
 	}else{
-		time_seed = seed;
+		random_seed = seed;
 	}
-	cerr<<"Seed: "<<time_seed<<endl;
+	clog<<"Seed: "<<random_seed<<endl;
 	//Instantiate random number generator
-	mt19937_64 generator =  mt19937_64(time_seed);
+	mt19937_64 generator =  mt19937_64(random_seed);
 
 
 	chrono::system_clock::time_point begin_time = chrono::system_clock::now();
@@ -548,7 +546,7 @@ void GenModel::generate_sequences(int number_seq,bool generate_errors , string f
 	generation_infos_file<<"Date: "<< ctime(&tt)<<endl;
 	generation_infos_file<<"Number of sequences = "<<number_seq<<endl;
 	generation_infos_file<<"Generated with errors = "<<generate_errors<<endl;
-	generation_infos_file<<"Seed  = "<<time_seed<<endl;
+	generation_infos_file<<"Seed  = "<<random_seed<<endl;
 
 	//Update events internal probas (e.g for dinucleotide ambiguous nucleotides)
 	queue<shared_ptr<Rec_Event>> model_queue_copy = model_queue;

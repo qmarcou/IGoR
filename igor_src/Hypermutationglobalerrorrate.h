@@ -75,7 +75,7 @@ public:
 	void build_upper_bound_matrix(size_t,size_t);
 	int get_number_non_zero_likelihood_seqs() const{return number_seq;};
 	std::queue<int>  generate_errors(std::string& , std::mt19937_64&) const;
-	unsigned generate_random_contributions(double);
+	uint64_t generate_random_contributions(double);
 
 
 private:
