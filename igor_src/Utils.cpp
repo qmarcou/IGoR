@@ -421,11 +421,9 @@ uint64_t draw_random_64bits_seed(){
 		uint32_t subseed1 = rd();
 		uint32_t subseed2 = rd();
 		// Combine them in a single 64 bit unsigned integer.
-		uint32_t* first_ptr = (uint32_t*)&random_seed;
-		uint32_t* second_ptr = (uint32_t*)&random_seed + sizeof(uint32_t);
-		*first_ptr = subseed1;
-		*second_ptr = subseed2;
-	}
+		uint32_t* begin_ptr = (uint32_t*)&random_seed;
+		*begin_ptr = subseed1;
+		*(begin_ptr+1) = subseed2;	}
 	catch (exception& e){
 		cerr<<"Exception caught trying to initialize random_device to generate a random seed in draw_random_64bits_seed"<<endl;
 	}
