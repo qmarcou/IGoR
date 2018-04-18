@@ -38,6 +38,10 @@
 #include <memory>
 #include <list>
 #include <random>
+#include <chrono>
+#include<sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
 
 class Rec_Event;
 

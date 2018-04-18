@@ -423,9 +423,35 @@ uint64_t draw_random_64bits_seed(){
 		// Combine them in a single 64 bit unsigned integer.
 		uint32_t* begin_ptr = (uint32_t*)&random_seed;
 		*begin_ptr = subseed1;
-		*(begin_ptr+1) = subseed2;	}
+		*(begin_ptr+1) = subseed2;
+	}
 	catch (exception& e){
 		cerr<<"Exception caught trying to initialize random_device to generate a random seed in draw_random_64bits_seed"<<endl;
+		cerr<<"A lesser quality seed based on date,time,PID,... has been provided instead."<<endl;
+		//Get today's time
+		typedef std::chrono::high_resolution_clock myclock;
+		myclock::time_point time = myclock::now();
+		chrono::duration<uint64_t,nano> dur1 (time -  myclock::time_point::min());
+		chrono::duration<uint64_t,nano> dur2 (myclock::time_point::max() - time);
+		uint64_t time1 = dur1.count();
+		uint64_t time2 = dur2.count();
+		// Get process ID
+		int pid = ::getpid();
+		// Get host ID
+		long int hid = ::gethostid();
+		//Get a somewhat random timing (will vary of the order of micro seconds)
+		chrono::duration<uint64_t,nano> dur3 (myclock::now() - time);
+		uint64_t time3 = dur3.count();
+
+		//Now combine them
+		uint64_t rd_id = pid*hid-pid;
+			//Perform a somewhat random circular shift
+				rd_id = (rd_id << rd_id%17) | (rd_id >> (64 - rd_id%17));
+				time1 = (time1 << time1%23) | (time1 >> (64 - time1%23));
+				time2 = (time2 << time2%13) | (time2 >> (64 - time2%13));
+				time3 = (time3 << time3%7) | (time3 >> (64 - time3%7));
+		uint64_t rd_time = time1^((time2<<1)^(time3>>1)>>1);
+		random_seed = (rd_id>>1)^(rd_time<<1)<<1;
 	}
 	return random_seed;
 }
