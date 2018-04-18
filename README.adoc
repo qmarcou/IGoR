@@ -167,7 +167,7 @@ http://docs.brew.sh/Custom-GCC-and-cross-compilers.html[this page] for
 more details). You will thus have to pass the correct compiler
 instructions to the configure script with the _CC_ and _CXX_ flags.*
 
-Alternatively you could also install GCC directly from sources as described by this https://solarianprogrammer.com/2017/05/21/compiling-gcc-macos/[guide]
+Alternatively you could also install GCC directly from sources as described by this https://solarianprogrammer.com/2017/05/21/compiling-gcc-macos/[guide].
 
 Once done, simply follow instructions from the <<linux, Linux installation section>> to complete IGoR's installation.
 
@@ -361,10 +361,10 @@ templates will no longer correspond to the ones contained in the
 reference models, the model parameters are thus automatically reset to a
 uniform distribution.*
 
-|`-set_CDR3_anchors --*gene*` |Load a CSV file containing the index of
+|`-set_CDR3_anchors --*gene*` |Load a CSV file containing the indices/offset of
 the CDR3 anchors for the _gene_(--V or --J). The index should correspond
 to the first letter of the cysteine (for V) or tryptophan/phenylalanin
-(for J) for the nucleotide sequence of the gene.
+(for J) for the nucleotide sequence of the gene. Indices are 0 based.
 
 |`-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt`
 |Use a custom model as a baseline for inference or evaluation. *Note
@@ -429,6 +429,9 @@ will cause to align only the specified genes*. In order to specify a set
 of parameters for all genes or force to align all genes the argument
 `--all` should be passed. The arguments for setting the different
 parameters are given in the table below.
+If the considered sequences are nucleotide CDR3 sequences (delimited by 
+its anchors on 3' and 5' sides) using the command `--ntCDR3` alignments will
+be performed using gene anchors information as offset bounds.
 
 [width="99%",cols="<32%,<68%",options="header",]
 |=======================================================================
@@ -475,7 +478,7 @@ _indexed_sequences.csv_ file.
 |score |SW alignment score
 
 |offset |The index of the first letter of the (undeleted) genomic
-template on the read as described in the previous section.
+template on the read as described in the previous section. Indices are 0 based.
 
 |insertions |Indices of the alignment inserted nucleotides (relative to
 the read)

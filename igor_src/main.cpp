@@ -510,7 +510,7 @@ int main(int argc , char* argv[]){
 						}
 					}
 				}
-				else if(string(argv[carg_i]) == "--CDR3"){
+				else if(string(argv[carg_i]) == "--ntCDR3"){
 					align_data_is_CDR3 = true;
 				}
 				else{
