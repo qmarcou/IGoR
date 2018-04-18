@@ -1,0 +1,5 @@
+This model was learned on TCR beta chains DNA from: http://www.pnas.org/content/114/9/2253.short
+Courtesy of Y.Elhanati
+The model was obtained using the following alignment parameters:
+igor -set_wd $WD/rutgers_DNA_mice -batch rutgers_6Wk_outframe -read_seqs $WD/rutgers_DNA_mice/sequence_outframe.txt -species mouse -chain beta -align --J ---thresh 40 ---offset_bounds 60 80 --V ---thresh 50 ---offset_bounds -300 -150 --D ---thresh 9
+

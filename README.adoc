@@ -252,6 +252,7 @@ Available options are listed below:
 |=======================
 |Species |Chains
 |human |alpha, beta, heavy
+|mouse |beta
 |=======================
 
 If you are working on datasets not present in this list refer to the
