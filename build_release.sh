@@ -23,9 +23,9 @@ if [ $# == 1 ]; then
 	mv tmpfile configure.ac
 	
 	#Automate release number change in README.md
-	sed -r s/'Latest released version: '[0-9\.]+/'Latest released version: '$DOTTEDVERSION/ README.md > tmpfile
-	rm README.md
-	mv tmpfile README.md
+	sed -r s/'Latest released version: '[0-9\.]+/'Latest released version: '$DOTTEDVERSION/ README.adoc > tmpfile
+	rm README.adoc
+	mv tmpfile README.adoc
 
 	#Commit
 	git add configure.ac
