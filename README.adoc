@@ -1,4 +1,4 @@
-:toc2: left
+:toc:
 :toclevels: 3
 :icons:
 [float]
