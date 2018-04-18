@@ -29,7 +29,7 @@ if [ $# == 1 ]; then
 
 	#Commit
 	git add configure.ac
-	git add README.md
+	git add README.adoc
 	COMMITMESSAGE="IGoR v"$DOTTEDVERSION" release commit."
 	git commit -m "$COMMITMESSAGE"
 
