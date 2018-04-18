@@ -907,8 +907,8 @@ Contact
 -------
 
 For any question or issue please open an
-https://github.com/qmarcou/IGoR/issues[issue] or email
-quentin.marcou@lpt.ens.fr
+https://github.com/qmarcou/IGoR/issues[issue] or email mailto:quentin.marcou@lpt.ens.fr[us].
+
 
 Copying
 -------
