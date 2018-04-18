@@ -581,7 +581,7 @@ void Model_Parms::read_model_parms(string filename){
 			}
 
 
-			cout<<event<<" read"<<endl;
+			cerr<<event<<" read"<<endl;
 			if(event == string("Insertion")){
 				unordered_map<string,Event_realization> event_realizations = unordered_map<string,Event_realization> ();
 				getline(infile,line_str);
