@@ -4,13 +4,16 @@ brevity.  Much more detail can be found in the git revision history:
 
     https://github.com/qmarcou/IGoR
 
-* X.X.X (Month Day, Year)
+* 1.2.0 (April 18, 2018)
 
   A brief description of the release content's
 
   New features:
+  - Enable CDR3 sequences alignment using defined gene anchors via --ntCDR3
+  - better quality random seed generation
   - show a progress bar for alignment, inference/evaluation and generation.
   - add independent Nmer hypermutation models in the repository
+  - add mouse beta chain model
 
   Bug fixes:
   - replace the use of default_random_engine by a 64bits mersenne twister
@@ -20,3 +23,5 @@ brevity.  Much more detail can be found in the git revision history:
   - create a ChangeLog for better traceability
   - clean some Eclipse config file from the repo
   - remove events initialization message duplication
+  - transition to asciidoc documentation
+  - add juman BCR CDR3 anchors
