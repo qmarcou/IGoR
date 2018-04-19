@@ -1,0 +1,14 @@
+[[alignments]]
+Alignments
+~~~~~~~~~~
+
+[[algorithm]]
+Algorithm
+^^^^^^^^^
+
+Performs Smith-Waterman alignments of the genomic templates. Using a
+slight alteration of the Smith-Waterman score matrix, we enforce that V
+can only be deleted on the 3' side and J on the 5' side (thus enforcing
+the alignment on the other side until the end of the read or of the
+genomic template). D is aligned using a classical Smith-Waterman local
+alignment approach allowing gene deletions on both sides.

@@ -1,0 +1,18 @@
+[[runtimes]]
+Runtimes
+--------
+
+As runtimes may evolve with IGoR's maturation, below is a table
+recapitulating the latest per sequence runtimes for different tasks on
+different chains:
+
+[width="99%",cols="<20%,<40%,<40%",options="header",]
+|=======================================================================
+|Chain/Read |(Pre)Alignments time (seconds) |Probabilistic treatment
+time (seconds)
+|TRA 100bp |0.3 |10^-4^
+
+|TRB 60bp |0.1 |0.1
+
+|IGH 130bp |0.2 |0.2
+|=======================================================================

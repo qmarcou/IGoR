@@ -1,0 +1,180 @@
+[[dependencies]]
+Dependencies
+------------
+
+* a C++ compiler supporting OpenMP 3.8 or higher and POSIX Threads
+(pthread) such as GCC (GNU C Compiler)
+* https://www.gnu.org/software/gsl/[GSL library] : a subpart of the
+library is shipped with IGoR and will be statically linked to IGoR's
+executable to avoid dependencies
+* http://jemalloc.net/[jemalloc] (optional although recommended for full
+parallel proficiency) memory allocation library: also shipped with IGoR
+to avoid dependencies issues (requires a pthreads compatible compiler)
+* bash
+* autotools suite, asciidoc, doxygen and the latex suite if building from
+unpackaged sources
+
+[[install]]
+Install
+-------
+
+IGoR uses the autotools suite for compilation and installation in order
+to ensure portability to many systems.
+
+_Installing from package releases (recommended)_
+
+First download the latest released package on the
+https://github.com/qmarcou/IGoR/releases[Release page]. Extract the
+files from the archive.
+
+_Installing from unpackaged sources (by cloning or direct download of
+the repository)_
+
+For this you will have to get git, the autotools suite, pandoc, doxygen
+and the latex suite software installed. Note that this is the most
+convenient way to keep IGoR up-to-date but involves a bit more
+installation steps. Using _git_, clone the repository where you desire.
+Go in the created directory and run the _autogen.sh_ bash script. This
+will create the _configure_ script. Upon this stage the installation
+rules are the same as for packaged developer sources. From _git_ you can
+chose among two branches: the _master_ branch corresponds to the latest
+stable (packaged) release, the dev branch is the most up to date branch
+including current developpments until they are issued in the next
+release. The _dev_ branch is therefore more bug prone, however this is
+the natural branch for people ready to help with developpment (even only
+by functionality testing).
+
+A (sadly) non exhaustive list of potential installation troubleshoots
+follows in the next section. If your problem is not referenced there
+please open a GitHub https://github.com/qmarcou/IGoR/issues[issue] or
+link:quentin.marcou@lpt.ens.fr[contact] us. If you end up finding a
+solution by yourself please help us append it to the following list and
+help the user community.
+
+[[linux]]
+Linux
+~~~~~
+
+Widely tested on several Debian related distros. Install gcc/g++ if not
+already installed (note that another compiler could be used). With the
+command line go to IGoR's root directory and simply type `./configure`.
+This will make various check on your system and create makefiles
+compatible with your system configuration. Many options can be appended
+to ./configure such as `./configure CC=gcc CXX=g++` to enforce the use
+of gcc as compiler. Once over, type `make` to compile the sources (this
+will take a few minutes). *IGoR's executable will appear in the igor_src
+folder*
+
+Finally in order to access all IGoR's features, install IGoR by typing
+`make install`. This will install IGoR's executable, supplied models and
+manual in your system's default location (note that depending on this
+location you might require administrator privileges and use the `sudo`
+prefix). If you do not have administrator privileges, IGoR can be
+installed locally in the folder of your choice by passing
+*--prefix=/your/custom/path* upon calling the configure script (e.g
+`./configure --prefix=$HOME`). Other configure options can be accessed
+using ./configure -h.
+
+[[macos]]
+MacOS
+~~~~~
+
+MacOS is shipped with another compiler (Clang) when installing Xcode
+that is called upon calling gcc (through name aliasing) and is not
+supporting OpenMP. In order to use gcc and compile with it an OpenMP
+application you will first need to download Macports or Homebrew and
+install gcc from there.
+
+First if not already present on your system install XCode through the
+application store.
+
+Macports can be found https://www.macports.org/install.php[here]. Download and install the
+version corresponding to your MacOS version.
+
+Once installed, use Macports to install GCC:
+
+----
+sudo port selfupdate #Update macports database
+sudo port install gcc6 #install gcc version 6
+----
+
+The full list of available GCC versions is available
+https://www.macports.org/ports.php?by=name&substr=gcc[here], select a sufficiently recent one to get C++11
+standards enabled. In order to set GCC as your default compiler use the
+following commands: 
+
+----
+port select --list gcc #Will list the versions of gcc available on your system
+sudo port select --set gcc mp-gcc6 #set the one you wish to have as default call upon using the gcc command
+----
+
+If you prefer to use Homebrew over Macports, it can be downloaded and
+installed https://brew.sh/[here].
+
+Then install GCC using the following command:
+----
+brew install gcc
+----
+
+*Note: if you decide to use Homebrew you should apparently refrain
+yourself from assigning the newly installed gcc to the `gcc` command(see
+http://docs.brew.sh/Custom-GCC-and-cross-compilers.html[this page] for
+more details). You will thus have to pass the correct compiler
+instructions to the configure script with the _CC_ and _CXX_ flags.*
+
+Alternatively you could also install GCC directly from sources as described by this https://solarianprogrammer.com/2017/05/21/compiling-gcc-macos/[guide].
+
+Once done, simply follow instructions from the <<linux, Linux installation section>> to complete IGoR's installation.
+
+[[windows-not-tested]]
+Windows (not tested)
+~~~~~~~~~~~~~~~~~~~~
+
+The configure script relies on bash to work. A first step would be to
+download a bash interpreter (such as Cygwin or MinGW) and a compiler.
+Open the command line of the one of your choice and use
+`./configure;make`
+
+[[troubleshoots]]
+Troubleshoots
+~~~~~~~~~~~~~
+
+Here is a list of some install troubleshoots that have been reported and
+their corresponding solution
+
+[width="99%",cols="<20%,<40%,<40%",options="header",]
+|=======================================================================
+|Issue |Reason |Solution
+|In file included from Aligner.cpp:8: /n ./Aligner.h:19:10: fatal error:
+'omp.h' file not found /n #include <omp.h> |The compiler used is not
+supporting OpenMP |Make sure you have an OpenMP compatible compiler
+installed (such as GCC). If such a compiler is installed make sure the
+right compiler is called upon compiling. In order to specify a specific
+compiler to use (such as mc-gcc6 for macport installed gcc under MacOS)
+pass the following option upon executing the configure script:
+`./configure CC=mc-gcc6 CXX=mc-g++6`. The _CC_ option will specify the C
+compiler to use to compile jemalloc and gsl, while _CXX_ specifies the
+C++ compiler to use to compile IGoR sources.
+
+|_aclocal-1.15: command not found_; _WARNING: 'aclocal-1.15' is missing
+on your system._; _make: _** [aclocal.m4] Error 127* |The _configure_
+script relies on file timestamps to assess whether it is up to date.
+These time stamps might be compromised when extracting files from the
+archive. |Run the following command in IGoR root directory:
+`touch configure.ac aclocal.m4 configure Makefile.* */Makefile.* */*/Makefile.*`
+
+|_.libs/sasum.o: No such file or directory_ error at compile time
+|Unknown |Running `make clean;make` will fix this issue
+
+|_undefined reference to symbol 'clock_gettime@@GLIBC_2.2.5'_ at link
+time |Jemalloc used an extra library to extract system time |Run the
+last command printed to the screen (_g++ -std=gnu++11
+-I./../libs/jemalloc/include/jemalloc -I./../libs/gsl_sub -fopenmp
+...... -lpthread -ldl -fopenmp_) and add -lrt after -ldl. This will be
+automated and fixed soon
+
+|_src/jemalloc.c:241:1: error: initializer element is not constant_ ;
+_static malloc_mutex_t init_lock = MALLOC_MUTEX_INITIALIZER;_ |Might be
+related to MacOS Sierra? |Unknown
+|=======================================================================
+

@@ -1,0 +1,39 @@
+[[alignment-output-files-summary]]
+Alignment output files summary
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Upon alignment the alignment parameters/dates/filenames will appended to
+the _aligns/aligns_info.out_ file for easy traceability.
+
+Alignment files are semicolon separated files. For each alignment of a
+genomic template to a sequence the following fields are given:
+
+[width="99%",cols="<32%,<68%",options="header",]
+|=======================================================================
+|Field |Description
+|seq_index |The sequence index the alignment corresponds to in the
+_indexed_sequences.csv_ file.
+
+|gene_name |The gene name as provided in the genomic template file
+
+|score |SW alignment score
+
+|offset |The index of the first letter of the (undeleted) genomic
+template on the read as described in the previous section. Indices are 0 based.
+
+|insertions |Indices of the alignment inserted nucleotides (relative to
+the read)
+
+|deletions |Indices of the alignment deleted nucleotides (relative to
+the genomic template)
+
+|mismatches |Indices of the alignment mismatches (relative to the read)
+
+|length |Length of the SW alignment (including insertions and deletions)
+
+|5_p_align_offset |Offset of the first nucleotide of the SW alignment
+(relative to the read)
+
+|3_p_align_offset |Offset of the last nucleotide of the SW alignemnt
+(relative to the read)
+|=======================================================================

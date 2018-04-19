@@ -1,0 +1,38 @@
+[[alignment-commands-summary]]
+Alignment commands summary
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Alignment of the sequences is performed upon detection of the `-align`
+switch in the command line. For each gene, alignment parameters can be
+set using `--V`,`--D` or `--J`. *Specifying any of those three argument
+will cause to align only the specified genes*. In order to specify a set
+of parameters for all genes or force to align all genes the argument
+`--all` should be passed. The arguments for setting the different
+parameters are given in the table below.
+If the considered sequences are nucleotide CDR3 sequences (delimited by 
+its anchors on 3' and 5' sides) using the command `--ntCDR3` alignments will
+be performed using gene anchors information as offset bounds.
+
+[width="99%",cols="<32%,<68%",options="header",]
+|=======================================================================
+|Command line argument |Description
+|`---thresh X` |Sets the score threshold for the considered gene
+alignments to _X_. Default is 50.0 for V, 15.0 for D and 15.0 for J
+
+|`---matrix path/to/file` |Sets the substitution matrix to the one given
+in the file. Must be _','_ delimited. Default is a NUC44 matrix with
+stronger penalty on errors (5,-14)
+
+|`---gap_penalty X` |Sets the alignment gap penalty to X. Default is
+50.0
+
+|`---best_only` |If _true_ only keep the best alignment per gene/allele.
+If _false_ outputs all alignments above the score threshold. Default is
+_true_ for V and J, and _false_ for D.
+
+|`---offset_bounds M N` |Constrains the possible positions of the
+alignments. The offset is defined as the position on the read to which
+the first nucleotide of the genomic template aligns (can be negative,
+e.g for V for which most of the V is on the 5' of the read and cannot be
+seen)
+|=======================================================================

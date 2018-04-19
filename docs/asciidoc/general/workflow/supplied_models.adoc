@@ -1,0 +1,23 @@
+[[using-predefined-genomic-templates-and-models]]
+Predefined genomic templates and models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IGoR is shipped with a set of genomic templates and already inferred
+models from [https://www.nature.com/articles/s41467-018-02832-w[1]].
+
+*In order to use the predefined models and demo IGoR must have been
+installed on your system.*
+
+Available options are listed below:
+
+[cols="<,<",options="header",]
+|=======================
+|Species |Chains
+|human |alpha, beta, heavy
+|mouse |beta
+|=======================
+
+If you are working on datasets not present in this list refer to the
+<<advanced-usage, Advanced Usage section>> and/or <<contact,contact>> us for assistance. Help us
+filling this database for other users and share the resulting models
+with us!

@@ -1,0 +1,6 @@
+[cols="<,<",options="header",]
+|=======================
+|Species |Chains
+|human |alpha, beta, heavy
+|mouse |beta
+|=======================

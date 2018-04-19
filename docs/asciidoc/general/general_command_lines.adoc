@@ -1,0 +1,95 @@
+[[general-commands-summary]]
+General commands summary
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+[width="99%",cols="<32%,<68%",options="header",]
+|=======================================================================
+|Command line argument |Description
+|`-h` or `-help` |Displays IGoR's manual. Alternatively one could use
+`man igor`.
+
+|`-v` or `-version` |Displays IGoR's installed version number.
+
+|`-set_wd /path/to/dir/` |Sets the working directory to _/path/to/dir/_,
+default is _/tmp_. ** This should be an already existing directory and
+will not be created by IGoR **
+
+|`-threads N` |Sets the number of OpenMP threads to _N_ for alignments
+and inference/evaluation. By default IGoR will use the maximum number of
+threads.
+
+|`-stdout_f /path/to/file` |Redirects the standard output to the file
+_/path/to/file_
+
+|`-read_seqs /path/to/file` |Reads the input sequences file
+_/path/to/file_ and reformat it in the working directory. *This step is
+necessary for running any action on sequences using the command line*.
+Can be a fasta file, a csv file (with the sequence index as first column
+and the sequence in the second separated by a semicolon ';') or a text
+file with one sequence per line (format recognition is based on the file
+extension). Providing this file will create a semicolon separated file
+with indexed sequences in the _align_ folder.
+
+|`-batch batchname` |Sets the batch name. This name will be used as a
+prefix to alignment/indexed sequences files, output, infer, evaluate and
+generate folders.
+
+|`-chain chainname` |Selects a model and a set of genomic template
+according to the value. Possible values for `chainname` are: `alpha`,
+`beta`, `light`, `heavy_naive`, and `heavy_memory`. *This needs to be
+set in order to use provided genomic templates/model*
+
+|`-species speciesname` |Selects a species from the set of predefined
+species. Possible values are: `human`.*This needs to be set in order to
+use provided genomic templates/model*
+
+|`-set_genomic --*gene* /path/to/file.fasta` |Set a set of custom
+genomic templates for gene _gene_ (possible values are --V,--D and --J)
+with a list of genomic templates contained in the file
+_/path/to/file.fasta_ in fasta format. If the set of provided genomic
+templates is already fully contained (same name and same sequence) in
+the loaded model (default, custom, last_inferred), the missing ones will
+be set to zero probability keeping the ratios of the others. For
+instance providing only one already known genomic template will result
+in a model with the considered gene usage to be 1.0, all others set to
+0.0. *When using this option and introducing new/modified genomic
+templates, the user will need to re-infer a model since the genomic
+templates will no longer correspond to the ones contained in the
+reference models, the model parameters are thus automatically reset to a
+uniform distribution.*
+
+|`-set_CDR3_anchors --*gene*` |Load a CSV file containing the indices/offset of
+the CDR3 anchors for the _gene_(--V or --J). The index should correspond
+to the first letter of the cysteine (for V) or tryptophan/phenylalanin
+(for J) for the nucleotide sequence of the gene. Indices are 0 based.
+
+|`-set_custom_model /path/to/model_parms.txt /path/to/model_marginals.txt`
+|Use a custom model as a baseline for inference or evaluation. *Note
+that this will override custom genomic templates for inference and
+evaluation*. Alternatively, providing only the model parameters file
+will lead IGoR to create model marginals initialized to a uniform
+distribution.
+
+|`-load_last_inferred` |Using this command will load the last inferred
+model (folder _inference/final_xx.txt_) as a basis for a new inference,
+evaluation or generation of synthetic sequences
+
+|`-run_demo` |Runs the demo code on 300 sequences of 60bp TCRs (mostly a
+sanity run check)
+
+|`-run_custom` |Runs the code inside the custom section of the main.cpp
+file
+
+|`-subsample N` |Perform actions on a random subsample of _N_ sequences.
+*This flag will have different effects depending on the supplied
+commands:* if the `-read_seqs` command is used, the resulting indexed
+sequence file will be a subsample of sequences contained in the original
+file. Else, if the `-align` command is used the alignments will be
+performed on a subsample of the indexed sequences. Else, if the
+`-evaluate` or `-infer` command is used the inference will be run on a
+subsample of the indexed sequences. _Obviously N should be < to the
+total number of sequences available. The `-subsample` flag should be
+used in only one command of a pipeline, see the Command example section
+for details._
+|=======================================================================
+
