@@ -1362,9 +1362,10 @@ unordered_map<string,size_t> read_gene_anchors_csv(string filename , string sep)
 
 		getline(infile,temp_str); //Ignore first header line
 
+		vector<string> separated_strings;
 		while (getline(infile,temp_str)){
-			int coma_index = temp_str.find(sep);
-			anchors_map.emplace(temp_str.substr(0,coma_index),stoi(temp_str.substr(coma_index+1,string::npos)));
+			separated_strings = extract_string_fields(temp_str,sep);
+			anchors_map.emplace(separated_strings.at(0),stoi(separated_strings.at(1)));
 		}
 
 		return anchors_map;
