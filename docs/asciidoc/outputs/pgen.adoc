@@ -1,0 +1,13 @@
+[[generation-probability]]
+Generation probability
+^^^^^^^^^^^^^^^^^^^^^^
+
+_Estimates the probability of generation of the error free/unmutated
+ancestor sequence_ By default only outputs an estimator of the
+probability of generation of the ancestor sequence underlying each
+sequencing read. See
+https://www.nature.com/articles/s41467-018-02832-w[IGoR's paper] for
+details.
+
+Use command `--Pgen`
+

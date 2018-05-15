@@ -1,0 +1,10 @@
+[[contribute]]
+Contribute
+----------
+
+* Your feedbacks are valuable, please send your comments about
+usability, bug reports and new features you would like to see
+* Code contribution: IGoR was designed to be modular and evolve, please
+get in touch if you would like to do something new with your data and
+would like some more guidance on the code structure
+

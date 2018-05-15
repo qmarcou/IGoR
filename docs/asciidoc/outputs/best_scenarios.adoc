@@ -1,0 +1,13 @@
+[[best-scenarios]]
+Best scenarios
+^^^^^^^^^^^^^^
+
+_Output the N best scenarios for each sequence_
+
+Use command `--scenarios N`
+
+The output of this Counter is a semicolon separated values file with one
+field for each event realization, associated mismatches/errors/mutations
+indices on the read, the scenario rank, its associated probability and
+the sequence index.
+

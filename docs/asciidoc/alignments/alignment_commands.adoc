@@ -36,3 +36,4 @@ the first nucleotide of the genomic template aligns (can be negative,
 e.g for V for which most of the V is on the 5' of the read and cannot be
 seen)
 |=======================================================================
+

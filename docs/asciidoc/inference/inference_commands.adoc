@@ -1,0 +1,56 @@
+[[inference-and-evaluation-commands]]
+Inference and evaluation commands
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The inference is reached using the command `-infer`. Logs and models
+parameters values for each iteration will be created in the folder
+_inference_ of the working directory (or _batchname_inference_ if a
+batchname was supplied).
+
+Sequence evaluation is reached using the command `-evaluate`. This is
+the same as performing an iteration of the Expectation-Maximization on
+the whole dataset and thus accepts the same arguments as `-infer` for
+arguments related to the precision of the algorithm. The logs of the
+sequences evaluation are created in the folder _evaluate_ (or
+_batchname_evaluate_ if a batchname was supplied).
+
+** Note that -infer and -evaluate are mutually exclusive in the same
+command since it brings ambiguity reagarding which model should be used
+for each **
+
+Optional parameters are the following:
+
+[width="99%",cols="<26%,<53%,<21%",options="header",]
+|=======================================================================
+|Command line argument |Description |Available for
+|`--N_iter N` |Sets the number of EM iterations for the inference to N
+|inference
+
+|`--L_thresh X` |Sets the sequence likelihood threshold to X. |inference
+& evaluation
+
+|`--P_ratio_thresh X` |Sets the probability ratio threshold to X. This
+influences how much the tree of scenarios is pruned. Setting it 0.0
+means exploring every possible scenario (exact but very slow), while
+setting it to 1.0 only explores scenarios that are more likely than the
+best scenario explored so far (very fast but inaccurate). This sets a
+trade off between speed and accuracy, the best value is the largest one
+for which the likelihood of the sequences almost doesn't change when
+decreasing it further. |inference & evaluation
+
+|`--MLSO` |Runs the algorithm in a 'Viterbi like' fashion. Accounts for
+the Most Likely Scenario Only (as fast as using a probability ratio
+threshold of 1.0) |inference & evaluation
+
+|`--infer_only eventnickname1 eventnickname2` |During the inference only
+the parameters of the events with nicknames listed will be updated. **
+Note that not passing any event nickname will fix all events. **
+|inference
+
+|`--not_infer eventnickname1 eventnickname2` |Opposite command to the
+one above, will fix the parameters of the listed events |inference
+
+|`--fix_err` |In the same vein as the two commands above, this one will
+fix the parameters related to the error rate. |inference
+|=======================================================================
+

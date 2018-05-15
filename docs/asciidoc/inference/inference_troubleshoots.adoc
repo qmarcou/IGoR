@@ -1,0 +1,36 @@
+[[inference-and-evaluation-troubleshoots]]
+Inference and evaluation Troubleshoots
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Although the inference/evaluation generally run smoothly we try to list
+out some possible troubleshoots and corresponding solutions.
+
+[width="99%",cols="<32%,<68%",options="header",]
+|=======================================================================
+|Issue |Putative solution
+|map_base::at() exception |This exception is most likely thrown by a
+Gene_Choice event in the inference. Try/Catch handling is runtime costly
+thus some checks are not performed on the fly. Explanation: This is most
+likely the inference receiving a genomic template whose name does not
+exist in the model realizations. Solution: make sure the genomic
+templates (and their names) used for alignments correspond to those
+contained in your model file.
+
+|All 0 output |All marginal files contains 0 parameters after one
+iteration. All sequences have zero likelihood in the
+_inference_logs.txt_ file. Explanation: none of the scenarios had a
+sufficiently high likelihood to reach the likelihood threshold.
+Solution: use the `--L_thresh` argument to decrease the likelihood
+threshold, if the code becomes utterly slow see below. ** In general
+while inferring one should make sure not too many sequences are assigned
+a zero likelihood since it would introduce a systematic bias in the
+learned distribution **
+
+|Extreme slowness |Runtimes are very far from the ones given in the
+<<runtimes, Runtimes section>>. Check the mean number of errors in the _inference_logs.txt_
+file. If these numbers are higher than you would expect from your data
+(e.g if you are not studying hypermutated data) check your alignments
+statistics. A possible explanation would be an incorrect setting of the
+alignment offsets bounds
+|=======================================================================
+

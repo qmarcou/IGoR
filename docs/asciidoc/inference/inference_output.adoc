@@ -1,0 +1,96 @@
+[[inference-and-evaluation-output]]
+Inference and evaluation output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Upon inferring or evaluating several files will be created in the
+corresponding folder.
+
+[[model-parameters-files]]
+Model parameters files
+++++++++++++++++++++++
+
+**_parms.txt* files contain information to create Model_Parms C++
+objects. It encapsulates information on the individual model events,
+their possible realizations, the model's graph structure encoding events
+conditional dependences and the error model information. All fields are
+semi colon separated. The different sections of the files are delimited
+by an `@` symbol, each further subdivided as follows:
+
+* `@Event_list` introduces the section in which the recombination events
+(i.e the Bayesian Network/graph nodes) are defined.
+** `#` introduces a new recombination event (or node). The line contains
+4 fields:
+*** the event type (_GeneChoice_, _Deletion_, _Insertion_,
+_DinucMarkov_)
+*** the targeted genes (_V_gene_, _VD_genes_, _D_gene_, _DJ_genes_,
+_J_gene_, _VJ_genes_)
+*** the gene side (_Five_prime_, _Three_prime_, _Undefined_side_)
+*** the event priority: an integer influencing the order in which events
+are processed during the inference such that events with high priority
+are preferentially processed earlier.
+*** the event nickname
+** `%` introduces a new event realization. Depending on the
+recombination event, the first fields will define the realization name
+and/or values (e.g gene name and gene sequence for _GeneChoice_ or
+number of deletions for _Deletion_) while the final field always denotes
+the realization's index on the probability array. *This index is
+automatically assigned by IGoR upon addition of an event realization,
+changing it will cause undefined behavior.* See the _Advanced usage_
+section of this README for more information on how to add/remove event
+realizations.
+* `@Edges` introduces the section in which the conditional dependencies
+(i.e graph directed edges) are defined.
+** `%parent;child` introduces a new directed edge/conditional dependence
+between the parent and child event.
+* `@ErrorRate` introduces the section in which the error model is
+defined.
+** `#` introduces a new error model, the first field defining the error
+model type and subsequent fields other meta parameters of the error
+model
+*** `%` introduces the parameters values linked to the actual
+error/mutation rate.
+
+[[model-marginals-files]]
+Model marginals files
++++++++++++++++++++++
+
+**_marginals.txt* files contain information to create Model_Marginals
+C++ objects. It encapsulates the probabilities for each recombination
+event's realization. As for the model parameters files, the marginals
+files are are sectioned by special characters as follows:
+
+* `@` introduces the recombination event's nickname the following
+probabilities are referring to.
+* `$Dim` introduces the dimensions of the event and its conditional
+dimensions probability array. By convention the last dimension refers to
+the considered event dimension.
+* `#` introduces the indices of the realizations of the parent events
+and their nickname corresponding to the following 1D probability array
+* `%` introduces the 1D probability array for all of the considered
+event realizations for fixed realizations of the parents events whose
+indices were given in the previous line.
+
+Python functions are provided to read such files along with the
+corresponding model parameters file within the GenModel object.
+
+[[inference-information-file]]
+Inference information file
+++++++++++++++++++++++++++
+
+_inference_info.out_ contains the inference parameters/date/time for
+traceability and potential error messages.
+
+[[inference-logs-file]]
+Inference logs file
++++++++++++++++++++
+
+_inference_logs.txt_ contains some information on each sequence for each
+iteration. This is a useful tool to debug inference troubleshoots.
+
+[[model-likelihood-file]]
+Model likelihood file
++++++++++++++++++++++
+
+_likelihoods.out_ contains the likelihood information for a given
+dataset.
+

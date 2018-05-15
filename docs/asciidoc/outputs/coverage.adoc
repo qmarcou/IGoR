@@ -1,0 +1,9 @@
+[[coverage]]
+Coverage
+^^^^^^^^
+
+_Counts for each genomic nucleotide how many times it has been seen and
+how many times it was mutated/erroneous_
+
+Use command `--coverage`
+

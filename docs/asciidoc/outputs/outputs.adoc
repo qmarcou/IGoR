@@ -1,0 +1,20 @@
+[[outputs]]
+Outputs
+~~~~~~~
+
+Outputs or Counters in the C++ interface are scenario/sequence
+statistics, each individually presented below. They are all written in
+the _output_ folder (or _batchname_output_ if a batchname was supplied).
+
+In order to specify outputs use the `-output` argument, and detail the
+desired list of outputs. Outputs are tied to the exploration of
+scenarios and thus require to have `-infer` or `-evaluate` in the same
+command. Note that although it might be interesting to track some
+outputs during the inference for debugging purposes, best practice would
+be to use it along with evaluation.
+
+The different outputs are detailed in the next sections.
+
+Python utility functions are provided to analyze these outputs in the
+pygor.counters submodule.
+

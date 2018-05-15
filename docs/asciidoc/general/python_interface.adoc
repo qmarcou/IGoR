@@ -1,0 +1,7 @@
+[[python]]
+Python
+------
+
+A set of Python codes are shipped with Igor in order to parse IGoR's
+outputs (alignments,models etc) as the *pygor* module.
+

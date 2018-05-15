@@ -1,0 +1,16 @@
+[[command-line-tools]]
+Command line tools
+------------------
+
+Although the full flexibility of IGoR is reachable through C\++ highlevel
+functions (see the <<c,C++ section>>) we provide some command line options to
+perform most frequent tasks on immune receptor sequences.
+
+Command options are nested arguments, the general organization of the
+commands follows `-arg1 --subarg1 ---subsubarg1` to reach the different
+levels.
+
+[[general]]
+General
+~~~~~~~
+
