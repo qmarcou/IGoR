@@ -341,7 +341,18 @@ Enum_fast_memory_map::~Enum_fast_memory_map(){
 			this->init_bool_array[i] = other.init_bool_array[i];
 		}
 	}*/
-vector<string> extract_string_fields(string total_string ,string separator){
+
+/**
+ * \brief A handy function to extract separated fields in a string (e.g csv)
+ * \author Q.Marcou
+ * \version 1.2.0
+ *
+ * \param [in] total_string The original string
+ * \param [in] separator the string separator
+ *
+ * \return A vector containing the separated fields in order of appearance.
+ */
+vector<string> extract_string_fields(const string total_string ,const string separator){
 	vector<string> output_vector;
 	int sep_index = -1;
 	int next_sep_index = total_string.find(separator);
