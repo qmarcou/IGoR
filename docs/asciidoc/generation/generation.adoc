@@ -6,3 +6,4 @@ Using a recombination model and its associated probabilities IGoR can
 generate random sequences mimicking the raw product of the V(D)J
 recombination process.
 
+include::generation_commands.adoc[]

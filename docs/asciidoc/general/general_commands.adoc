@@ -14,3 +14,4 @@ levels.
 General
 ~~~~~~~
 
+include::general_command_lines.adoc[]

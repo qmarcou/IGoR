@@ -13,3 +13,6 @@ the alignment on the other side until the end of the read or of the
 genomic template). D is aligned using a classical Smith-Waterman local
 alignment approach allowing gene deletions on both sides.
 
+include::alignment_commands.adoc[]
+
+include::alignments_output.adoc[]

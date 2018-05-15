@@ -18,3 +18,8 @@ The different outputs are detailed in the next sections.
 Python utility functions are provided to analyze these outputs in the
 pygor.counters submodule.
 
+include::best_scenarios.adoc[]
+
+include::pgen.adoc[]
+
+include::coverage.adoc[]

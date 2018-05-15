@@ -10,12 +10,7 @@ installed on your system.*
 
 Available options are listed below:
 
-[cols="<,<",options="header",]
-|=======================
-|Species |Chains
-|human |alpha, beta, heavy
-|mouse |beta
-|=======================
+include::supplied_models_table.adoc[]
 
 If you are working on datasets not present in this list refer to the
 <<advanced-usage, Advanced Usage section>> and/or <<contact,contact>> us for assistance. Help us

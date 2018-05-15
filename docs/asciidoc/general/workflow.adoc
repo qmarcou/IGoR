@@ -1,3 +1,7 @@
+[[workflow]]
+Workflow
+--------
+
 As a preprocessing step IGoR first needs to align the genomic templates
 to the read (`-align`, see detailed commands in the <<alignments, Alignments commands section>>) before exploring all putative recombination
 scenarios for this read. After aligning IGoR can be used to infer a
@@ -6,3 +10,7 @@ recombination model (`-infer`, see the <<inference-and-evaluation, Inference/Eva
 be generated from a learned model (as one supplied by IGoR, or one
 inferred de novo through the `-infer` command) with the `-generate` (see the <<sequence-generation-commands, Sequence generation section>>)
 command.
+
+include::workflow/supplied_models.adoc[]
+
+include::workflow/model_validity.adoc[]
