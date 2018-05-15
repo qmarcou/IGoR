@@ -54,7 +54,7 @@ int terminate_IGoR_with_error_message(const forward_list<string> error_messages)
 		cerr<<igor_error_prefix<<error_message<<endl;
 	}
 	cerr<<igor_error_prefix<<"Use \"man igor\", \"igor -help\" or visit "<<PACKAGE_URL<<" to see available commands and their effects."<<endl;
-	cerr<<igor_error_prefix<<"Please report any bug to: "<<PACKAGE_BUGREPORT<<endl;
+	cerr<<igor_error_prefix<<"Please report any bug by opening an issue on "<<PACKAGE_URL<<" or email: "<<PACKAGE_BUGREPORT<<endl;
 	cerr<<igor_error_prefix<<"Terminating IGoR..."<<endl;
 	return EXIT_FAILURE;
 }
