@@ -26,9 +26,10 @@
 #ifndef ALIGNER_H_
 #define ALIGNER_H_
 
-#include<forward_list>
-#include<list>
-#include<unordered_map>
+#include <forward_list>
+#include <list>
+#include <unordered_map>
+#include <set>
 #include <utility>
 #include <fstream>
 #include <algorithm>
@@ -101,6 +102,8 @@ public:
 	// Single seq alignments methods
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , int , int, bool=false);
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
+	std::forward_list<Alignment_data> align_seq(std::string , double , bool , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
+
 	// Multiple seqs alignments methods
 	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool);
 	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool , int , int, bool=false);
@@ -108,6 +111,7 @@ public:
 	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool );
 	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , int , int, bool=false);
 	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
+	void align_seqs( std::string , std::vector<std::pair<const int , const std::string>> , double , bool , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
 	//I/O related methods
 	void write_alignments_seq_csv(std::string , std::unordered_map<int,std::forward_list<Alignment_data>>);
 	std::unordered_map<int,std::forward_list<Alignment_data>> read_alignments_seq_csv(std::string , double , bool);
@@ -152,6 +156,7 @@ bool align_compare(Alignment_data , Alignment_data );
 std::vector<std::pair<const int , const std::string>> sample_indexed_seq( std::vector<std::pair<const int , const std::string>>,const size_t);
 Matrix<double> read_substitution_matrix(const std::string& , std::string sep=",");
 std::tuple<bool,int,int> extract_min_max_genomic_templates_offsets(const std::unordered_map<std::string,std::pair<int,int>>& genomic_offset_bounds);
+std::forward_list<Alignment_data> extract_best_gene_alignments(const std::forward_list<Alignment_data>&);
 
 /*
 	namespace substitution_matrices{

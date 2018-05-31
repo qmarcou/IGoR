@@ -239,6 +239,14 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 	//This is not very elegant, however this function will probably not be called anymore except for aligning a single sequence.
 	return align_seq(nt_seq, score_threshold, best_only, build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
 }
+/**
+ *  \overload
+ */
+forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_align_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
+	// Call the align seq function enforcing alignments for all genes to be passed
+	return align_seq(nt_seq , score_threshold , best_align_only, false , genomic_offset_bounds, rev_offset_frame/*=false*/);
+}
+
 
 /**
  * \brief A function performing alignment of all genomic templates against a given sequence
@@ -256,7 +264,7 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
  * There is also a possibility to pass these offsets reversed (i.e defined from the last nucleotide of the target) in case it is more handy (e.g alignement of CDR3 sequences or J/C primer sequencing).
  *
  */
-forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
+forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_align_only, bool best_gene_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
 	int min_offset;
 	int max_offset;
 	Int_Str int_seq = nt2int(nt_seq);
@@ -278,7 +286,7 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 		min_offset+=(rev_offset_frame)? seqlen-1:0;//seqlen-1 correspond to the index of the last nt of the sequence
 		max_offset+=(rev_offset_frame)? seqlen-1:0;
 		
-		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_only , min_offset , max_offset);
+		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_align_only , min_offset , max_offset);
 		//TODO quick and dirty fix for D genes alignments
 		//alignment.second.gene_name = (*iter).first;
 		//alignment_list.push_front(alignment.second);
@@ -286,6 +294,11 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 			(*jiter).second.gene_name = (*iter).first;
 			alignment_list.push_front((*jiter).second);
 		}
+	}
+
+	if(best_gene_only){
+		//Only return alignments for the gene with best alignment
+		alignment_list = extract_best_gene_alignments(alignment_list);
 	}
 
 	return alignment_list;
@@ -1443,3 +1456,38 @@ tuple<bool,int,int> extract_min_max_genomic_templates_offsets(const unordered_ma
 	return tuple<bool,int,int>(template_specific_offsets,min_offset,max_offset);
 }
 
+/**
+ * \brief Extract alignments of the gene/allele with best alignment score.
+ * \author Q.Marcou
+ * \version 1.2.1
+ *
+ * \param [in] all_aligns A forward list containing alignments for several genes/alleles.
+ * \return A forward list containing only alignments of the best gene/allele candidate.
+ */
+forward_list<Alignment_data> extract_best_gene_alignments(const forward_list<Alignment_data>& all_aligns){
+	//Find gene/allele whose alignments has best score
+	set<string> best_genes_names;
+	double best_align_score = 0;
+	for(Alignment_data alignment: all_aligns){
+		if(alignment.score>best_align_score){
+			best_align_score = alignment.score;
+			best_genes_names.clear();
+			best_genes_names.emplace(alignment.gene_name);
+		}
+		else if(alignment.score==best_align_score){
+			if(best_genes_names.count(alignment.gene_name)==0){
+				//Make sure gene name is not already contained in the set before adding it
+				best_genes_names.emplace(alignment.gene_name);
+			}
+		}
+	}
+
+	//Extract needed alignments
+	forward_list<Alignment_data> best_gene_aligns;
+	for(Alignment_data alignment: all_aligns){
+		if(best_genes_names.count(alignment.gene_name)>0){
+			best_gene_aligns.emplace_front(alignment);
+		}
+	}
+	return best_gene_aligns;
+}
