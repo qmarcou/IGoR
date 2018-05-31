@@ -198,7 +198,8 @@ int main(int argc , char* argv[]){
 		double v_align_thresh_value = 50.0;
 		Matrix<double> v_subst_matrix = heavy_pen_nuc44_sub_matrix;
 		double v_gap_penalty = 50.0;
-		bool v_best_only = true;
+		bool v_best_align_only = true;
+		bool v_best_gene_only = false;
 		int v_left_offset_bound = INT16_MIN;
 		int v_right_offset_bound = INT16_MAX;
 
@@ -208,7 +209,8 @@ int main(int argc , char* argv[]){
 		double d_align_thresh_value = 15.0;
 		Matrix<double> d_subst_matrix = heavy_pen_nuc44_sub_matrix;
 		double d_gap_penalty = 50.0;
-		bool d_best_only = false;
+		bool d_best_align_only = false;
+		bool d_best_gene_only = false;
 		int d_left_offset_bound = INT16_MIN;
 		int d_right_offset_bound = INT16_MAX;
 
@@ -218,7 +220,8 @@ int main(int argc , char* argv[]){
 		double j_align_thresh_value = 15.0;
 		Matrix<double> j_subst_matrix = heavy_pen_nuc44_sub_matrix;
 		double j_gap_penalty = 50.0;
-		bool j_best_only = true;
+		bool j_best_align_only = true;
+		bool j_best_gene_only = false;
 		int j_left_offset_bound = INT16_MIN;
 		int j_right_offset_bound = INT16_MAX;
 
@@ -411,8 +414,10 @@ int main(int argc , char* argv[]){
 				bool gap_penalty_provided = false;
 				double gap_penalty;
 
-				bool best_only_provided = false;
-				bool best_only;
+				bool best_align_only_provided = false;
+				bool best_gene_only_provided = false;
+				bool best_align_only;
+				bool best_gene_only;
 
 				bool offset_bounds_provided = false;
 				int left_offset_bound;
@@ -471,19 +476,34 @@ int main(int argc , char* argv[]){
 							}
 							gap_penalty_provided = true;
 						}
-						else if(string(argv[carg_i]) == "---best_only"){
+						else if(string(argv[carg_i]) == "---best_align_only"){
 							//Set the best alignment only boolean
 							++carg_i;
 							if(string(argv[carg_i]) == "true"){
-								best_only = true;
+								best_align_only = true;
 							}
 							else if(string(argv[carg_i]) == "false"){
-								best_only = false;
+								best_align_only = false;
 							}
 							else{
 								return terminate_IGoR_with_error_message("Unkown argument received\"" + string(argv[carg_i]) + "\"to set best alignment only boolean, existing values are: true, false");
 							}
-							best_only_provided = true;
+							best_align_only_provided = true;
+
+						}
+						else if(string(argv[carg_i]) == "---best_gene_only"){
+							//Set the best alignment only boolean
+							++carg_i;
+							if(string(argv[carg_i]) == "true"){
+								best_gene_only = true;
+							}
+							else if(string(argv[carg_i]) == "false"){
+								best_gene_only = false;
+							}
+							else{
+								return terminate_IGoR_with_error_message("Unkown argument received\"" + string(argv[carg_i]) + "\"to set best gene/allele candidate only boolean, existing values are: true, false");
+							}
+							best_gene_only_provided = true;
 
 						}
 						else if(string(argv[carg_i]) == "---offset_bounds"){
@@ -532,8 +552,12 @@ int main(int argc , char* argv[]){
 						v_gap_penalty = gap_penalty;
 					}
 
-					if(best_only_provided){
-						v_best_only = best_only;
+					if(best_align_only_provided){
+						v_best_align_only = best_align_only;
+					}
+
+					if(best_gene_only_provided){
+						v_best_gene_only = best_gene_only;
 					}
 
 					if(offset_bounds_provided){
@@ -555,8 +579,12 @@ int main(int argc , char* argv[]){
 						d_gap_penalty = gap_penalty;
 					}
 
-					if(best_only_provided){
-						d_best_only = best_only;
+					if(best_align_only_provided){
+						d_best_align_only = best_align_only;
+					}
+
+					if(best_gene_only_provided){
+						d_best_gene_only = best_gene_only;
 					}
 
 					if(offset_bounds_provided){
@@ -578,8 +606,12 @@ int main(int argc , char* argv[]){
 						j_gap_penalty = gap_penalty;
 					}
 
-					if(best_only_provided){
-						j_best_only = best_only;
+					if(best_align_only_provided){
+						j_best_align_only = best_align_only;
+					}
+
+					if(best_gene_only_provided){
+						j_best_gene_only = best_gene_only;
 					}
 
 					if(offset_bounds_provided){
@@ -1607,7 +1639,7 @@ int main(int argc , char* argv[]){
 				try{
 					if (not align_data_is_CDR3){
 						clog<<"Performing V alignments...."<<endl;
-						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_left_offset_bound , v_right_offset_bound);
+						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_align_only , v_best_gene_only , v_left_offset_bound , v_right_offset_bound);
 					}
 					else{ //Provided sequences are ntCDR3s, alignment offsets are based on provided CDR3 gene anchors.
 						clog<<"Performing CDR3s V alignments...."<<endl;
@@ -1642,7 +1674,7 @@ int main(int argc , char* argv[]){
 							clog<<"If you have provided V min/max offset values make sure they were NOT defined as reversed offsets."<<endl;
 						}
 						//Call the aligner module
-						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_only , v_genomic_offset_bounds,false);	
+						v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_align_only , v_best_gene_only , v_genomic_offset_bounds,false);
 					}
 				}
 				catch(exception& e){
@@ -1657,7 +1689,7 @@ int main(int argc , char* argv[]){
 				Aligner d_aligner = Aligner(d_subst_matrix , d_gap_penalty , D_gene);
 				d_aligner.set_genomic_sequences(d_genomic);
 				try{
-					d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_only , d_left_offset_bound , d_right_offset_bound);
+					d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename ,indexed_seqlist, d_align_thresh_value , d_best_align_only , d_best_gene_only , d_left_offset_bound , d_right_offset_bound);
 				}
 				catch(exception& e){
 					return terminate_IGoR_with_error_message("Exception caught upon aligning D genomic templates.",e);
@@ -1670,7 +1702,7 @@ int main(int argc , char* argv[]){
 				try{
 					if (not align_data_is_CDR3){
 						clog<<"Performing J alignments...."<<endl;
-						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_left_offset_bound , j_right_offset_bound);
+						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_align_only , j_best_gene_only , j_left_offset_bound , j_right_offset_bound);
 					}
 					else{ //Provided sequences are ntCDR3s, alignment offsets are based on provided CDR3 gene anchors.
 						clog<<"Performing CDR3s J alignments...."<<endl;
@@ -1705,7 +1737,7 @@ int main(int argc , char* argv[]){
 							clog<<"If you have provided J min/max offset values make sure they were defined as reversed offsets."<<endl;
 						}
 						//Call the aligner module
-						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_only , j_genomic_offset_bounds,true);
+						j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist, j_align_thresh_value , j_best_align_only , j_best_gene_only , j_genomic_offset_bounds,true);
 					}
 				}
 				catch(exception& e){

@@ -4,6 +4,19 @@ brevity.  Much more detail can be found in the git revision history:
 
     https://github.com/qmarcou/IGoR
 
+* 1.2.1 (April 18, 2018)
+
+  A brief description of the release content's
+
+  New features:
+  - Add ---best_gene_only boolean for alignments
+
+  Bug fixes:
+  - 
+
+  Miscellaneous :
+  - split documentation in several files
+
 * 1.2.0 (April 18, 2018)
 
   A brief description of the release content's

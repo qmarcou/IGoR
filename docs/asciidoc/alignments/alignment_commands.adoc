@@ -26,9 +26,14 @@ stronger penalty on errors (5,-14)
 |`---gap_penalty X` |Sets the alignment gap penalty to X. Default is
 50.0
 
-|`---best_only` |If _true_ only keep the best alignment per gene/allele.
+|`---best_align_only` |If _true_ only keep the best alignment for each gene/allele.
 If _false_ outputs all alignments above the score threshold. Default is
 _true_ for V and J, and _false_ for D.
+
+|`---best_gene_only` |If _true_ only keep alignments for best scoring gene candidate
+ (or candidates if several genes have the same maximum score).
+If _false_ outputs alignments for every aligned gene/allele. Default is
+_false_ for V, D and J.
 
 |`---offset_bounds M N` |Constrains the possible positions of the
 alignments. The offset is defined as the position on the read to which
