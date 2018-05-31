@@ -231,13 +231,22 @@ vector<pair<const int , const string>> read_indexed_csv(string filename){
 	}
 	return sequence_vect;
 }
+
 /**
  * \overload
  */
-forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_align_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
 	//Create a map of offset bounds and call align_seq overloads
 	//This is not very elegant, however this function will probably not be called anymore except for aligning a single sequence.
-	return align_seq(nt_seq, score_threshold, best_only, build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
+	return align_seq(nt_seq, score_threshold, best_align_only, false, build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
+}
+/**
+ * \overload
+ */
+forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_threshold , bool best_align_only , bool best_gene_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+	//Create a map of offset bounds and call align_seq overloads
+	//This is not very elegant, however this function will probably not be called anymore except for aligning a single sequence.
+	return align_seq(nt_seq, score_threshold, best_align_only, best_gene_only, build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
 }
 /**
  *  \overload
@@ -255,7 +264,8 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
  *
  * \param [in] nt_seq the nucleotide sequence to study
  * \param [in] score_threshold The SW alignment score threshold to record an alignment
- * \param [in] best_only Only retain the best alignment for a given genomic template
+ * \param [in] best_align_only Only retain the best alignment for each genomic template.
+ * \param [in] best_gene_only Only retain the best gene/allele candidate (or best candidates if several have the same highest score).
  * \param [in] genomic_offset_bounds A hash map containing offsets lower and upper bounds for each genomic template. Keys of the map are the genomic templates names.
  * \param [in] rev_offset_frame Are offsets bounds given reversed? (offset defined based on the last sequence nt instead of the first). Default is false.
  *
@@ -308,15 +318,31 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 /*
  * Align sequences and hold them in memory
  */
-unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only){
-	unordered_map<int,forward_list<Alignment_data>> alignment_map = align_seqs(sequence_list , score_threshold , best_only , INT16_MIN , INT16_MAX);
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only ){
+	unordered_map<int,forward_list<Alignment_data>> alignment_map = align_seqs(sequence_list , score_threshold , best_align_only , false , INT16_MIN , INT16_MAX);
+	return alignment_map;
+}
+
+/*
+ * Align sequences and hold them in memory
+ */
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only){
+	unordered_map<int,forward_list<Alignment_data>> alignment_map = align_seqs(sequence_list , score_threshold , best_align_only , best_gene_only , INT16_MIN , INT16_MAX);
 	return alignment_map;
 }
 
 /*
  * \brief A function performing alignment of all genomic templates against all provided sequences. Alignments are stored in memory.
  */
-unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset, bool/*=false*/){
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+	unordered_map<int,forward_list<Alignment_data>> alignment_map = align_seqs(sequence_list , score_threshold , best_align_only , false , min_offset , max_offset);
+	return alignment_map;
+}
+
+/*
+ * \brief A function performing alignment of all genomic templates against all provided sequences. Alignments are stored in memory.
+ */
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
 	int processed_seq_number = 0;
@@ -331,7 +357,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 	//Declare parallel loop using OpenMP 3.1 standards
 	#pragma omp parallel for schedule(dynamic) shared(processed_seq_number , alignment_map) //num_threads(1)
 	for(vector<pair<const int , const string>>::const_iterator seq_it = sequence_list.begin() ; seq_it < sequence_list.end() ; seq_it++){
-		forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , min_offset , max_offset);
+		forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_align_only , best_gene_only , min_offset , max_offset, rev_offset_frame);
 		#pragma omp critical(emplace_seq_alignments)
 		{
 			alignment_map.emplace((*seq_it).first , seq_alignments);
@@ -350,9 +376,25 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 	close_progress_bar(cerr, to_string(this->gene)+" alignments",50);
 	return alignment_map;
 }
+/**
+ * \overload
+ */
+void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+	return this->align_seqs(filename , sequence_list , score_threshold , best_align_only , false , build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
+}
 
-void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
-	return this->align_seqs(filename , sequence_list , score_threshold , best_only , build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
+/**
+ * \overload
+ */
+void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only  , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+	return this->align_seqs(filename , sequence_list , score_threshold , best_align_only , best_gene_only , build_genomic_bounds_map(min_offset,max_offset), rev_offset_frame);
+}
+
+/**
+ * \overload
+ */
+void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
+	 return this->align_seqs(filename,sequence_list,score_threshold,best_align_only,false,genomic_offset_bounds,rev_offset_frame);
 }
 
 
@@ -365,7 +407,8 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
  * \param [in] sequence_list A forward list containing pairs of nt sequence and the corresponding index
  * \param [in] nt_seq the nucleotide sequence to study
  * \param [in] score_threshold The SW alignment score threshold to record an alignment
- * \param [in] best_only Only retain the best alignment for a given genomic template
+ * \param [in] best_align_only Only retain the best alignment for each genomic template.
+ * \param [in] best_gene_only Only retain the best gene/allele candidate (or best candidates if several have the same highest score).
  * \param [in] genomic_offset_bounds A hash map containing offsets lower and upper bounds for each genomic template. Keys of the map are the genomic templates names.
  * \param [in] rev_offset_frame Are offsets bounds given reversed? (offset defined based on the last sequence nt instead of the first). Default is false.
  *
@@ -377,7 +420,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
  *
  * \bug Summary file creation might not work on Windows systems
  */
-void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
+void Aligner::align_seqs( string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only, bool best_gene_only , unordered_map<string,pair<int,int>> genomic_offset_bounds,bool rev_offset_frame/*=false*/){
 
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
@@ -396,7 +439,8 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	align_infos_file<<"Alignments in file: "<<filename<<endl;
 	align_infos_file<<"Date: "<< ctime(&tt)<<endl;
 	align_infos_file<<"Score threshold = "<<score_threshold<<endl;
-	align_infos_file<<"Best only = "<<best_only<<endl;
+	align_infos_file<<"Best alignement per gene/allele only = "<<best_align_only<<endl;
+	align_infos_file<<"Best gene/allele candidate only = "<<best_gene_only<<endl;
 	align_infos_file<<"Min Offset = "<<get<1>(min_max_offsets)<<endl;
 	align_infos_file<<"Max Offset = "<<get<2>(min_max_offsets)<<endl;
 	align_infos_file<<"Using template specific offsets = "<<get<0>(min_max_offsets)<<endl;
@@ -423,7 +467,7 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 	#pragma omp parallel for schedule(dynamic) shared(processed_seq_number , alignment_map) //num_threads(1)
 	for(vector<pair<const int , const string>>::const_iterator seq_it = sequence_list.begin() ; seq_it < sequence_list.end() ; seq_it++){
 		try{
-			forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_only , genomic_offset_bounds, rev_offset_frame);
+			forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_align_only, best_gene_only , genomic_offset_bounds, rev_offset_frame);
 
 			#pragma omp critical(emplace_seq_alignments)
 			{
@@ -462,9 +506,17 @@ void Aligner::align_seqs( string filename , vector<pair<const int , const string
 /*
  * Align sequences and write them on disk on the fly (avoids memory issues)
  */
-void Aligner::align_seqs(string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_only ){
-	align_seqs(filename,sequence_list,score_threshold,best_only,INT16_MIN,INT16_MAX);
+void Aligner::align_seqs(string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only ){
+	this->align_seqs(filename,sequence_list,score_threshold,best_align_only,INT16_MIN,INT16_MAX);
 }
+/*
+ * Align sequences and write them on disk on the fly (avoids memory issues)
+ */
+void Aligner::align_seqs(string filename , vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only, bool best_gene_only ){
+	this->align_seqs(filename,sequence_list,score_threshold,best_align_only,best_gene_only,INT16_MIN,INT16_MAX);
+}
+
+
 
 /**
  * \brief A small function to automatically build a hashmap containing genomic offset bounds from fixed bounds over genomic templates.
