@@ -339,10 +339,21 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 	return alignment_map;
 }
 
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+	unordered_map<int,forward_list<Alignment_data>> alignment_map = align_seqs(sequence_list , score_threshold , best_align_only , best_gene_only , build_genomic_bounds_map(min_offset , max_offset), rev_offset_frame );
+	return alignment_map;
+}
+
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only , unordered_map<string,pair<int,int>> genomic_offset_bounds , bool rev_offset_frame/*=false*/){
+	unordered_map<int,forward_list<Alignment_data>> alignment_map = align_seqs(sequence_list , score_threshold , best_align_only , false , genomic_offset_bounds, rev_offset_frame );
+	return alignment_map;
+}
+
+
 /*
  * \brief A function performing alignment of all genomic templates against all provided sequences. Alignments are stored in memory.
  */
-unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only , int min_offset , int max_offset, bool rev_offset_frame/*=false*/){
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only , unordered_map<string,pair<int,int>> genomic_offset_bounds , bool rev_offset_frame/*=false*/){
 	unordered_map<int,forward_list<Alignment_data>> alignment_map; //= *(new unordered_map<int,forward_list<Alignment_data>>);
 
 	int processed_seq_number = 0;
@@ -357,7 +368,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 	//Declare parallel loop using OpenMP 3.1 standards
 	#pragma omp parallel for schedule(dynamic) shared(processed_seq_number , alignment_map) //num_threads(1)
 	for(vector<pair<const int , const string>>::const_iterator seq_it = sequence_list.begin() ; seq_it < sequence_list.end() ; seq_it++){
-		forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_align_only , best_gene_only , min_offset , max_offset, rev_offset_frame);
+		forward_list<Alignment_data> seq_alignments = align_seq((*seq_it).second , score_threshold , best_align_only , best_gene_only , genomic_offset_bounds , rev_offset_frame);
 		#pragma omp critical(emplace_seq_alignments)
 		{
 			alignment_map.emplace((*seq_it).first , seq_alignments);
