@@ -296,7 +296,15 @@ forward_list<Alignment_data> Aligner::align_seq(string nt_seq , double score_thr
 		min_offset+=(rev_offset_frame)? seqlen-1:0;//seqlen-1 correspond to the index of the last nt of the sequence
 		max_offset+=(rev_offset_frame)? seqlen-1:0;
 		
-		list<pair<int,Alignment_data>> alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_align_only , min_offset , max_offset);
+		list<pair<int,Alignment_data>> alignments;
+		try{
+			alignments = this->sw_align(int_seq , (*iter).second , score_threshold , best_align_only , min_offset , max_offset);
+		}
+		catch(exception& e){
+			cerr<<endl;
+			cerr<<"Exception caught calling sw_align() on genomic template:"<<(*iter).first<<endl;
+			throw e;
+		}
 		//TODO quick and dirty fix for D genes alignments
 		//alignment.second.gene_name = (*iter).first;
 		//alignment_list.push_front(alignment.second);
