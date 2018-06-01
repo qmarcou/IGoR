@@ -344,7 +344,7 @@ unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<
 	return alignment_map;
 }
 
-unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , bool best_gene_only , unordered_map<string,pair<int,int>> genomic_offset_bounds , bool rev_offset_frame/*=false*/){
+unordered_map<int,forward_list<Alignment_data>> Aligner::align_seqs(vector<pair<const int , const string>> sequence_list , double score_threshold , bool best_align_only , unordered_map<string,pair<int,int>> genomic_offset_bounds , bool rev_offset_frame/*=false*/){
 	unordered_map<int,forward_list<Alignment_data>> alignment_map = align_seqs(sequence_list , score_threshold , best_align_only , false , genomic_offset_bounds, rev_offset_frame );
 	return alignment_map;
 }
