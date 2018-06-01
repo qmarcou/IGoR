@@ -102,9 +102,13 @@ public:
 
 	// Single sequence alignments methods
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , int , int, bool=false);
+	std::forward_list<Alignment_data> align_seq(std::string , double , bool , int , int, std::set<std::string> , bool=false);
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , bool , int , int, bool=false);
+	std::forward_list<Alignment_data> align_seq(std::string , double , bool , bool , int , int, std::set<std::string> , bool=false);
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
+	std::forward_list<Alignment_data> align_seq(std::string , double , bool , std::unordered_map<std::string,std::pair<int,int>>, std::set<std::string> , bool=false);
 	std::forward_list<Alignment_data> align_seq(std::string , double , bool , bool , std::unordered_map<std::string,std::pair<int,int>>, bool=false);
+	std::forward_list<Alignment_data> align_seq(std::string , double , bool , bool , std::unordered_map<std::string,std::pair<int,int>> , std::set<std::string> , bool=false);
 
 	// Multiple sequences alignments methods
 	std::unordered_map<int,std::forward_list<Alignment_data>> align_seqs(std::vector<std::pair<const int , const std::string>> , double , bool);
