@@ -202,6 +202,7 @@ int main(int argc , char* argv[]){
 		bool v_best_gene_only = false;
 		int v_left_offset_bound = INT16_MIN;
 		int v_right_offset_bound = INT16_MAX;
+		unordered_map<string,pair<int,int>> v_template_bounds_map;
 
 		//D alignment vars
 		bool align_d = false;
@@ -213,6 +214,7 @@ int main(int argc , char* argv[]){
 		bool d_best_gene_only = false;
 		int d_left_offset_bound = INT16_MIN;
 		int d_right_offset_bound = INT16_MAX;
+		unordered_map<string,pair<int,int>> d_template_bounds_map;
 
 		//J alignment vars
 		bool align_j = false;
@@ -224,6 +226,7 @@ int main(int argc , char* argv[]){
 		bool j_best_gene_only = false;
 		int j_left_offset_bound = INT16_MIN;
 		int j_right_offset_bound = INT16_MAX;
+		unordered_map<string,pair<int,int>> j_template_bounds_map;
 
 
 	while(carg_i<argc){
@@ -420,8 +423,10 @@ int main(int argc , char* argv[]){
 				bool best_gene_only;
 
 				bool offset_bounds_provided = false;
+				bool template_bounds_provided = false;
 				int left_offset_bound;
 				int right_offset_bound;
+				unordered_map<string,pair<int,int>> template_bounds_map;
 
 				if( (gene_str_val == "--V")
 						or (gene_str_val == "--D")
@@ -506,6 +511,19 @@ int main(int argc , char* argv[]){
 							best_gene_only_provided = true;
 
 						}
+						else if(string(argv[carg_i]) == "---template_spec_offset_bounds"){
+							//Read the offset bounds
+							++carg_i;
+							try{
+								template_bounds_map;
+							}
+							catch (exception& e) {
+								return terminate_IGoR_with_error_message("Exception caught reading a semi-colon separated offset file \"" + string(argv[carg_i]) + "\" for template specific offset bounds.",e);
+							}
+							++carg_i;
+
+							template_bounds_provided = true;
+						}
 						else if(string(argv[carg_i]) == "---offset_bounds"){
 							//Read the offset bounds
 							++carg_i;
@@ -560,6 +578,10 @@ int main(int argc , char* argv[]){
 						v_best_gene_only = best_gene_only;
 					}
 
+					if(template_bounds_provided){
+						v_template_bounds_map = template_bounds_map;
+					}
+
 					if(offset_bounds_provided){
 						v_left_offset_bound = left_offset_bound;
 						v_right_offset_bound = right_offset_bound;
@@ -587,6 +609,10 @@ int main(int argc , char* argv[]){
 						d_best_gene_only = best_gene_only;
 					}
 
+					if(template_bounds_provided){
+						d_template_bounds_map = template_bounds_map;
+					}
+
 					if(offset_bounds_provided){
 						d_left_offset_bound = left_offset_bound;
 						d_right_offset_bound = right_offset_bound;
@@ -612,6 +638,10 @@ int main(int argc , char* argv[]){
 
 					if(best_gene_only_provided){
 						j_best_gene_only = best_gene_only;
+					}
+
+					if(template_bounds_provided){
+						j_template_bounds_map = template_bounds_map;
 					}
 
 					if(offset_bounds_provided){
