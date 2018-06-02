@@ -429,6 +429,8 @@ int main(int argc , char* argv[]){
 				bool template_bounds_provided = false;
 				int left_offset_bound;
 				int right_offset_bound;
+				bool reversed_offset_provided = false;
+				bool reversed_offsets;
 				unordered_map<string,pair<int,int>> template_bounds_map;
 
 				if( (gene_str_val == "--V")
@@ -546,6 +548,20 @@ int main(int argc , char* argv[]){
 							}
 							offset_bounds_provided = true;
 						}
+						else if(string(argv[carg_i]) == "---reversed_offsets"){
+							//Set the best alignment only boolean
+							++carg_i;
+							if(string(argv[carg_i]) == "true"){
+								reversed_offsets = true;
+							}
+							else if(string(argv[carg_i]) == "false"){
+								reversed_offsets = false;
+							}
+							else{
+								return terminate_IGoR_with_error_message("Unkown argument received\"" + string(argv[carg_i]) + "\"to set reversed offsets boolean, existing values are: true, false");
+							}
+							reversed_offset_provided = true;
+						}
 						else{
 							return terminate_IGoR_with_error_message("Unknown parameter\"" + string(argv[carg_i]) +"\" for gene " + gene_str_val + " in -align " );
 						}
@@ -589,6 +605,10 @@ int main(int argc , char* argv[]){
 						v_left_offset_bound = left_offset_bound;
 						v_right_offset_bound = right_offset_bound;
 					}
+
+					if(reversed_offset_provided){
+						v_reversed_offsets = reversed_offsets;
+					}
 				}
 				if( (gene_str_val == "--D") or (gene_str_val == "--all")){
 					align_d = true;
@@ -620,6 +640,10 @@ int main(int argc , char* argv[]){
 						d_left_offset_bound = left_offset_bound;
 						d_right_offset_bound = right_offset_bound;
 					}
+
+					if(reversed_offset_provided){
+						d_reversed_offsets = reversed_offsets;
+					}
 				}
 				if( (gene_str_val == "--J") or (gene_str_val == "--all")){
 					align_j = true;
@@ -650,6 +674,10 @@ int main(int argc , char* argv[]){
 					if(offset_bounds_provided){
 						j_left_offset_bound = left_offset_bound;
 						j_right_offset_bound = right_offset_bound;
+					}
+
+					if(reversed_offset_provided){
+						j_reversed_offsets = reversed_offsets;
 					}
 				}
 
