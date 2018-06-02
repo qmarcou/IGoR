@@ -1491,6 +1491,29 @@ unordered_map<string,size_t> read_gene_anchors_csv(string filename , string sep)
 }
 
 /**
+ * \brief A dumb function to read CSV template specific offset bounds
+ */
+unordered_map<string,pair<int,int>> read_template_specific_offset_csv(string filename,string sep/*= ";"*/){
+	ifstream infile(filename);
+	if(!infile){
+		throw runtime_error("File not found: "+filename + " in read_gene_anchors_csv()");
+	}
+	string temp_str;
+	unordered_map<string,pair<int,int>> template_bounds_map;
+
+	getline(infile,temp_str); //Ignore first header line
+
+	vector<string> separated_strings;
+	while (getline(infile,temp_str)){
+		separated_strings = extract_string_fields(temp_str,sep);
+		template_bounds_map.emplace(separated_strings.at(0),make_pair(stoi(separated_strings.at(1)),stoi(separated_strings.at(2))));
+	}
+
+	return template_bounds_map;
+}
+
+
+/**
  * Function reading a substitution matrix from a file
  * The matrix should be 4*4 or 15*15
  * Matrix can have a header or not
