@@ -1706,10 +1706,17 @@ int main(int argc , char* argv[]){
 						else{
 							// Check if all genes have a specific template entry
 							// If not add the min max offsets bounds as entries
+							list<string> unknown_template_specific_offsets;
 							for(pair<string,string> v_template: v_genomic){
 								if(v_template_bounds_map.count(v_template.first)==0){
 									v_template_bounds_map.emplace(v_template.first,make_pair(v_left_offset_bound,v_right_offset_bound));
+									unknown_template_specific_offsets.push_front(v_template.first);
 								}
+							}
+							if(not unknown_template_specific_offsets.empty()){
+								clog<<"Template specific offsets could not be found for the following "<<unknown_template_specific_offsets.size()<<" genes: ";
+								for(string unknown_gene: unknown_template_specific_offsets) clog<<"\""<<unknown_gene<<"\" ,";
+								clog<<endl<<"For these genes provided/default values for V gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") been set as genomic offset bounds."<<endl;
 							}
 							v_aligner.align_seqs(cl_path + "aligns/" +  batchname + v_align_filename , indexed_seqlist , v_align_thresh_value , v_best_align_only , v_best_gene_only , v_template_bounds_map,v_reversed_offsets);
 						}
@@ -1747,7 +1754,7 @@ int main(int argc , char* argv[]){
 						if(not unknown_gene_anchors.empty()){
 							clog<<"Anchors indices could not be found for the following "<<unknown_gene_anchors.size()<<" genes: ";
 							for(string unknown_gene: unknown_gene_anchors) clog<<"\""<<unknown_gene<<"\" ,";
-							clog<<endl<<"For these genes provided/default values for V gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") or, if provided, template specific ones have been set as genomic offset bounds."<<endl;;
+							clog<<endl<<"For these genes provided/default values for V gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") or, if provided, template specific ones have been set as genomic offset bounds."<<endl;
 							clog<<"Hint: provided CDR3 anchors correspond to min/max offsets in ["<<min_offset<<":"<<max_offset<<"]."<<endl;
 							clog<<"If you have provided V min/max offset values make sure they were NOT defined as reversed offsets."<<endl;
 						}
@@ -1775,10 +1782,17 @@ int main(int argc , char* argv[]){
 					else{
 						// Check if all genes have a specific template entry
 						// If not add the min max offsets bounds as entries
+						list<string> unknown_template_specific_offsets;
 						for(pair<string,string> d_template: d_genomic){
 							if(d_template_bounds_map.count(d_template.first)==0){
 								d_template_bounds_map.emplace(d_template.first,make_pair(d_left_offset_bound,d_right_offset_bound));
+								unknown_template_specific_offsets.push_front(d_template.first);
 							}
+						}
+						if(not unknown_template_specific_offsets.empty()){
+							clog<<"Template specific offsets could not be found for the following "<<unknown_template_specific_offsets.size()<<" genes: ";
+							for(string unknown_gene: unknown_template_specific_offsets) clog<<"\""<<unknown_gene<<"\" ,";
+							clog<<endl<<"For these genes provided/default values for D gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") been set as genomic offset bounds."<<endl;
 						}
 						d_aligner.align_seqs(cl_path + "aligns/" +  batchname + d_align_filename , indexed_seqlist , d_align_thresh_value , d_best_align_only , d_best_gene_only , d_template_bounds_map, d_reversed_offsets);
 					}
@@ -1800,10 +1814,17 @@ int main(int argc , char* argv[]){
 						else{
 							// Check if all genes have a specific template entry
 							// If not add the min max offsets bounds as entries
+							list<string> unknown_template_specific_offsets;
 							for(pair<string,string> j_template: j_genomic){
 								if(j_template_bounds_map.count(j_template.first)==0){
 									j_template_bounds_map.emplace(j_template.first,make_pair(j_left_offset_bound,j_right_offset_bound));
+									unknown_template_specific_offsets.push_front(j_template.first);
 								}
+							}
+							if(not unknown_template_specific_offsets.empty()){
+								clog<<"Template specific offsets could not be found for the following "<<unknown_template_specific_offsets.size()<<" genes: ";
+								for(string unknown_gene: unknown_template_specific_offsets) clog<<"\""<<unknown_gene<<"\" ,";
+								clog<<endl<<"For these genes provided/default values for J gene min and max offset bounds ("<<v_left_offset_bound<<"/"<<v_right_offset_bound<<") been set as genomic offset bounds."<<endl;
 							}
 							j_aligner.align_seqs(cl_path + "aligns/" +  batchname + j_align_filename , indexed_seqlist , j_align_thresh_value , j_best_align_only , j_best_gene_only , j_template_bounds_map, j_reversed_offsets);
 						}
