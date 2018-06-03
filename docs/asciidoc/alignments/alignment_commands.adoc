@@ -39,6 +39,19 @@ _false_ for V, D and J.
 alignments. The offset is defined as the position on the read to which
 the first nucleotide of the genomic template aligns (can be negative,
 e.g for V for which most of the V is on the 5' of the read and cannot be
-seen)
+seen). Default values are -inf and +inf. If the `--ntCDR3` command has been given 
+provided offset bounds values will be used for genes with missing CDR3 anchors positions.
+
+|`---template_spec_offset_bounds path/to/file` |Constrains the possible positions of the
+alignments differently for each genomic template. The file should be a semi colon separated
+file formated as follows: `gene_name;min_offset;max_offset`.
+If entries are missing for some genes, values given with the `---offset_bounds` command 
+will be used. If the `--ntCDR3` command has been given provided template specific offset bounds
+ values will be used for genes with missing CDR3 anchors positions. If non template specific entry
+ is given for the considered gene, general offset bounds values will be used.
+
+
+|`---reversed_offsets` |If _true_ provided offsets are accounted for reversed offsets.
+Reversed offsets are defined relative to the last nucleotide of the read instead of the first. Reversed offsets must be <=0 by construction.
 |=======================================================================
 
