@@ -22,6 +22,12 @@ then
 mv ./libs/jemalloc/configure.ac_tmp ./libs/jemalloc/configure.ac
 fi
 
+
+#Create the markdown file from asciidoc
+#https://tinyapps.org/blog/nix/201701240700_convert_asciidoc_to_markdown.html
+asciidoc -b docbook README.adoc
+pandoc -f docbook -t markdown_strict README.xml -o README.md
+
 # Create a man page and html README from the markdown manual using Pandoc
 #adapted from :https://stackoverflow.com/questions/7599447/less-style-markdown-viewer-for-unix-systems#7603703
 pandoc -s -f markdown -t html README.md -o docs/README.html
