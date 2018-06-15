@@ -40,7 +40,7 @@ https://www.gnu.org/licenses/quick-guide-gplv3.html[GNU-GPLv3] license.
 Version
 -------
 
-Latest released version: 1.2.0
+include::./docs/asciidoc/version.adoc[]
 
 
 include::./docs/asciidoc/general/installation.adoc[]

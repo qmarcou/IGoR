@@ -1,0 +1,63 @@
+IGOR(1)
+=======
+:doctype: manpage
+
+
+NAME
+----
+igor - Inference and Generation of Repertoires
+
+
+SYNOPSIS
+--------
+*igor* -arg --subarg ---subsubarg
+
+
+DESCRIPTION
+-----------
+IGoR is a C++ software designed to infer V(D)J recombination related
+processes from sequencing data such as:
+
+* Recombination model probability distribution
+* Hypermutation model
+* Best candidates recombination scenarios
+* Generation probabilities of sequences (even hypermutated)
+
+IGoR is a free (as in freedom) software released under the
+https://www.gnu.org/licenses/quick-guide-gplv3.html[GNU-GPLv3] license.
+
+This manpage gives a summary of available command lines. A more exhaustive description of the software capabilities can be found in the README document.
+
+AUTHOR
+------
+IGoR was originally written by Quentin Marcou.
+
+VERSION
+-------
+include::../asciidoc/version.adoc[]
+
+COMMANDS
+--------
+
+include::../asciidoc/general/general_commands.adoc[]
+
+include::../asciidoc/alignments/alignment_commands.adoc[]
+
+include::../asciidoc/inference/inference_commands.adoc[]
+
+include::../asciidoc/outputs/outputs.adoc[]
+
+include::../asciidoc/generation/generation_commands.adoc[]
+
+
+Contact
+-------
+
+For any question or issue please open an
+https://github.com/qmarcou/IGoR/issues[issue] or email mailto:quentin.marcou@lpt.ens.fr[us].
+
+
+Copying
+-------
+Free use of IGoR is granted under the terms of the https://www.gnu.org/licenses/quick-guide-gplv3.html[GNU General Public License version 3]
+(GPLv3).
