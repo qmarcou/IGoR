@@ -65,7 +65,7 @@ libs/jemalloc/lib
 libs/jemalloc/src/*.sym
 
 #Ignore documentation generated files
-docs/README.html
+README.html
 docs/html/
 docs/latex/
 docs/IGoR_CPP_manual.pdf

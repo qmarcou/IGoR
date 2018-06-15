@@ -22,10 +22,9 @@ then
 mv ./libs/jemalloc/configure.ac_tmp ./libs/jemalloc/configure.ac
 fi
 
-# Create a man page and html README from the markdown manual using Pandoc
-#adapted from :https://stackoverflow.com/questions/7599447/less-style-markdown-viewer-for-unix-systems#7603703
-pandoc -s -f markdown -t html README.md -o docs/README.html
-pandoc -s -f markdown -t man README.md -o igor.1
+# Create a man page and html README from the asciidoc using asciidoctor
+asciidoctor -b html5 -o README.html README.adoc
+asciidoctor -b manpage -d manpage -o igor.1 ./docs/man/igor_manpage.adoc
 
 # Create the Doxygen documentation
 doxygen doxygen.config
