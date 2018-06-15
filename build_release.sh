@@ -23,13 +23,13 @@ if [ $# == 1 ]; then
 	mv tmpfile configure.ac
 	
 	#Automate release number change in README.md
-	sed -r s/'Latest released version: '[0-9\.]+/'Latest released version: '$DOTTEDVERSION/ README.adoc > tmpfile
-	rm README.adoc
-	mv tmpfile README.adoc
+	sed -r s/'Latest released version: '[0-9\.]+/'Latest released version: '$DOTTEDVERSION/ ./docs/asciidoc/version.adoc > ./docs/asciidoc/tmpfile
+	rm ./docs/asciidoc/version.adoc
+	mv ./docs/asciidoc/tmpfile ./docs/asciidoc/version.adoc
 
 	#Commit
 	git add configure.ac
-	git add README.adoc
+	git add ./docs/asciidoc/version.adoc
 	COMMITMESSAGE="IGoR v"$DOTTEDVERSION" release commit."
 	git commit -m "$COMMITMESSAGE"
 
