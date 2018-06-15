@@ -11,7 +11,7 @@ executable to avoid dependencies
 parallel proficiency) memory allocation library: also shipped with IGoR
 to avoid dependencies issues (requires a pthreads compatible compiler)
 * bash
-* autotools suite, asciidoc, doxygen and the latex suite if building from
+* autotools suite, asciidoctor, doxygen and the latex suite if building from
 unpackaged sources
 
 [[install]]

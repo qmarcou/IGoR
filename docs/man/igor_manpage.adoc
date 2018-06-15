@@ -39,7 +39,7 @@ include::../asciidoc/version.adoc[]
 COMMANDS
 --------
 
-include::../asciidoc/general/general_commands.adoc[]
+include::../asciidoc/general/general_command_lines.adoc[]
 
 include::../asciidoc/alignments/alignment_commands.adoc[]
 
