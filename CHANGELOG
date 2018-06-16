@@ -10,12 +10,17 @@ brevity.  Much more detail can be found in the git revision history:
 
   New features:
   - Add ---best_gene_only boolean for alignments
+  - Allow for template specific alignment offsets
+  - Allow for reversed offsets use via command line
 
   Bug fixes:
-  - 
+  - Fix autogen creation of man and html README
+  - Fix semi colon separated files for gene anchors (human BCR, mice TRB)
 
   Miscellaneous :
-  - split documentation in several files
+  - Split documentation in several files.
+  - Create a proper manpage.
+  - Improve error handling for alignment issues (report faulty genomic template)
 
 * 1.2.0 (April 18, 2018)
 
