@@ -4,4 +4,5 @@ Python
 
 A set of Python codes are shipped with Igor in order to parse IGoR's
 outputs (alignments,models etc) as the *pygor* module.
-
+This module can be installed locally with pip using the included
+`setup.py` file (use command `pip install ./pygor` from within the IGoR directory).
