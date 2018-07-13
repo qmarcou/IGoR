@@ -10,4 +10,5 @@ The output of this Counter is a semicolon separated values file with one
 field for each event realization, associated mismatches/errors/mutations
 indices on the read, the scenario rank, its associated probability and
 the sequence index.
-
+Python functions to parse the output of the Best scenario counter can be
+found in the `pygor.counters.bestscenarios` submodule.
