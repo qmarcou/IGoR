@@ -525,7 +525,6 @@ int main(int argc , char* argv[]){
 							catch (exception& e) {
 								return terminate_IGoR_with_error_message("Exception caught reading a semi-colon separated offset file \"" + string(argv[carg_i]) + "\" for template specific offset bounds.",e);
 							}
-							++carg_i;
 
 							template_bounds_provided = true;
 						}
