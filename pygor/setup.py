@@ -24,6 +24,9 @@ from setuptools import setup
 with open('LICENSE') as f:
     license = f.read()
 
+with open('requirements.txt') as f:
+    requirements = [line.rstrip('\n') for line in f.readlines()]
+
 setup(name='pygor',
       version='1.2.0',
       description='Module for parsing IGoR output (alignments, models etc).',
@@ -40,11 +43,5 @@ setup(name='pygor',
           'pygor.models',
           'pygor.utils'
       ],
-      install_requires=[
-          'pandas>=0.20.3',
-          'numpy>=1.13.1',
-          'scipy>=1.0.0',
-          'matplotlib>=2.0.2',
-          'biopython>=1.70'
-      ],
+      install_requires=requirements,
       zip_safe=False)
