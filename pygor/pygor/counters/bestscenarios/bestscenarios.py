@@ -29,14 +29,14 @@ from ...models.genmodel import GenModel
 from ...utils import utils
 
 
-def read_bestscenarios_indices(filename):
-    return pandas.read_csv(filename, sep=';')
-
-
 def read_bestscenarios_values(scenarios_file, model_file):
-    best_scenarios_df = read_bestscenarios_values(scenarios_file)
+    best_scenarios_df = read_bestscenarios_indices(scenarios_file)
     genmodel = GenModel(model_file)
     return scenarios_indices2values(best_scenarios_df, genmodel)
+
+
+def read_bestscenarios_indices(filename):
+    return pandas.read_csv(filename, sep=';')
 
 
 def scenarios_indices2values(best_scenarios, input_genmodel,
