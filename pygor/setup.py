@@ -21,27 +21,27 @@
 
 from setuptools import setup
 
-with open('LICENSE') as f:
+with open("LICENSE") as f:
     license = f.read()
 
-with open('requirements.txt') as f:
-    requirements = [line.rstrip('\n') for line in f.readlines()]
+with open("requirements.txt") as f:
+    requirements = [line.rstrip("\n") for line in f.readlines()]
 
-setup(name='pygor',
-      version='1.2.0',
-      description='Module for parsing IGoR output (alignments, models etc).',
-      url='https://github.com/qmarcou/IGoR',
-      author='Quentin Marcou',
-      author_email='quentin.marcou@lpt.ens.fr',
+setup(name="pygor",
+      version="1.2.0",
+      description="Module for parsing IGoR output (alignments, models etc).",
+      url="https://github.com/qmarcou/IGoR",
+      author="Quentin Marcou",
+      author_email="quentin.marcou@lpt.ens.fr",
       license=license,
       packages=[
-          'pygor',
-          'pygor.aligns',
-          'pygor.counters',
-          'pygor.counters.bestscenarios',
-          'pygor.counters.coverage',
-          'pygor.models',
-          'pygor.utils'
+          "pygor",
+          "pygor.aligns",
+          "pygor.counters",
+          "pygor.counters.bestscenarios",
+          "pygor.counters.coverage",
+          "pygor.models",
+          "pygor.utils"
       ],
       install_requires=requirements,
       zip_safe=False)

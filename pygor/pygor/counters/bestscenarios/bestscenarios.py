@@ -29,19 +29,20 @@ from ...models.genmodel import GenModel
 from ...utils import utils
 
 
-def read_bestscenarios_values(scenarios_file, model_file):
-    best_scenarios_df = read_bestscenarios_indices(scenarios_file)
-    genmodel = GenModel(model_file)
-    return scenarios_indices2values(best_scenarios_df, genmodel)
+def read_bestscenarios_values(scenarios_file, model_parms_file):
+    best_scenarios_df = read_bestscenarios_indices(filename=scenarios_file)
+    gen_model = GenModel(model_parms_file=model_parms_file)
+    return scenarios_indices2values(best_scenarios=best_scenarios_df,
+                                    input_genmodel=gen_model)
 
 
 def read_bestscenarios_indices(filename):
-    return pandas.read_csv(filename, sep=';')
+    return pandas.read_csv(filename, sep=";")
 
 
 def scenarios_indices2values(best_scenarios, input_genmodel,
                              drop_alleles=False, name2nickname=True):
-    """ This function uses a supplied generative model to transform realization
+    """This function uses a supplied generative model to transform realization
     indices into realization values.
 
     """
@@ -56,7 +57,7 @@ def scenarios_indices2values(best_scenarios, input_genmodel,
                 tmp_real_indices = best_scenarios[event.name].apply(
                     lambda x: utils.get_str_asarray(x, dtype=int,
                                                     boundaries_char=["(", ")"],
-                                                    sep=','))
+                                                    sep=","))
 
             else:
                 tmp_real_indices = best_scenarios[event.name].apply(
@@ -65,9 +66,9 @@ def scenarios_indices2values(best_scenarios, input_genmodel,
                 lambda x: real_vect[x])
 
             # Return mismatches as a list of positions
-            best_scenarios_real['Mismatches'] = best_scenarios[
-                'Mismatches'].apply(lambda x: utils.get_str_asarray(
-                    x, dtype=int, boundaries_char=["(", ")"], sep=','))
+            best_scenarios_real["Errors"] = best_scenarios[
+                "Errors"].apply(lambda x: utils.get_str_asarray(
+                    x, dtype=int, boundaries_char=["(", ")"], sep=","))
 
             if drop_alleles and (event.event_type == "GeneChoice"):
                 best_scenarios_real[event.name] = best_scenarios_real[
@@ -82,7 +83,7 @@ def scenarios_indices2values(best_scenarios, input_genmodel,
 
 def drop_allele_info(x):
     if type(x) == str:
-        return x[0:x.find('*')]
+        return x[0:x.find("*")]
     else:
         return None
 

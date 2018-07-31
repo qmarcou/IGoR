@@ -30,40 +30,22 @@ class GenModel:
     probabilities. Similar to IGoR's C++ GenModel class.
 
     """
-    def __init__(self):
+    def __init__(self, model_parms_file=None, marginals_file=None):
         self.error_rate = numpy.NaN
         self.events = list()
         self.edges = {}  # Empty dictionary
         self.marginals = {}
-
-    def __init__(self):
-        self.error_rate = numpy.NaN
-        self.events = list()
-        self.edges = {}  # Empty dictionary
-        self.marginals = {}
-
-    def __init__(self, model_parms_file):
-        self.error_rate = numpy.NaN
-        self.events = list()
-        self.edges = {}  # Empty dictionary
-        self.marginals = {}
-        self.read_model_parms(model_parms_file)
-        self.marginals = {}
-
-    def __init__(self, model_parms_file, marginals_file):
-        self.error_rate = numpy.NaN
-        self.events = list()
-        self.edges = {}  # Empty dictionary
-        self.marginals = {}
-        self.read_model_parms(model_parms_file)
-        self.marginals = read_marginals_txt(marginals_file)
+        if model_parms_file is not None:
+            self.read_model_parms(filename=model_parms_file)
+        if marginals_file is not None:
+            self.marginals = read_marginals_txt(filename=marginals_file)
 
     def read_model_parms(self, filename):
         """Reads a model graph structure from a model params file.
         Note that for now this method does not read the error rate information.
 
         """
-        with open(filename, 'r') as file:
+        with open(filename, "r") as file:
             # dictionary containing recarrays?
             value_str = []
             index = []
@@ -191,7 +173,8 @@ class Rec_Event:
     etc... Similar to IGoR's C++ RecEvent class.
 
     """
-    def __init__(self, event_type, seq_type, seq_side, priority):
+    def __init__(self, event_type, seq_type, seq_side, priority,
+                 nickname=None):
         self.event_type = event_type
         self.seq_type = seq_type
         self.seq_side = seq_side
@@ -199,19 +182,9 @@ class Rec_Event:
         self.realizations = list()
         self.name = ""
         self.nickname = ""
+        if nickname is not None:
+            self.nickname = nickname
         self.update_name()
-        return
-
-    def __init__(self, event_type, seq_type, seq_side, priority, nickname):
-        self.event_type = event_type
-        self.seq_type = seq_type
-        self.seq_side = seq_side
-        self.priority = priority
-        self.realizations = list()
-        self.name = ""
-        self.nickname = nickname
-        self.update_name()
-        return
 
     def __str__(self):
         return self.name
@@ -405,8 +378,9 @@ def compute_average_distribution(event_name, model, averaging_list=None):
 
 
 # class Model_Marginals:
-# Model marginals are for now quite uneasy to study, should be turned into a handy class
-# For each event a small object containing the array and another a tuple with the dimension names ordered
+# Model marginals are for now quite uneasy to study, should be turned into a
+# handy class for each event a small object containing the array and another a
+# tuple with the dimension names ordered.
 def read_marginals_txt(filename, dim_names=False):
     """Reads a model marginals file. Returns a tuple containing a dict
     containing the individual events probabilities indexed by the events
@@ -414,7 +388,7 @@ def read_marginals_txt(filename, dim_names=False):
     each event.
 
     """
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         # Model parameters are stored inside a dictionnary of ndarrays
         model_dict = {}
         dimension_names_dict = {}
@@ -425,8 +399,8 @@ def read_marginals_txt(filename, dim_names=False):
         indices_array = []
 
         for line in f:
-            strip_line = line.rstrip('\n')  # Remove end of line character
-            if strip_line[0] == '@':
+            strip_line = line.rstrip("\n")  # Remove end of line character
+            if strip_line[0] == "@":
                 first_dim_line = True
                 if not first:
                     # Add the previous to the dictionnary
@@ -437,9 +411,9 @@ def read_marginals_txt(filename, dim_names=False):
                 element_name = strip_line[1:]
             # print element_name
 
-            if strip_line[0] == '$':
+            if strip_line[0] == "$":
                 # define array dimensions
-                coma_index = strip_line.find(',')
+                coma_index = strip_line.find(",")
                 dimensions = []
 
                 # Get rid of $Dim[
@@ -448,27 +422,27 @@ def read_marginals_txt(filename, dim_names=False):
                     dimensions.append(
                         int(strip_line[previous_coma_index + 1:coma_index]))
                     previous_coma_index = coma_index
-                    coma_index = strip_line.find(',', coma_index + 1)
+                    coma_index = strip_line.find(",", coma_index + 1)
 
                 # Add last dimension and get rid of the closing bracket
                 dimensions.append(int(strip_line[previous_coma_index + 1:-1]))
 
                 element_marginal_array = numpy.ndarray(shape=dimensions)
 
-            if strip_line[0] == '#':
+            if strip_line[0] == "#":
                 if first_dim_line:
                     dimensions_names = []
                     if len(dimensions) > 1:
-                        comma_index = strip_line.find(',')
-                        opening_bracket_index = strip_line.find('[')
+                        comma_index = strip_line.find(",")
+                        opening_bracket_index = strip_line.find("[")
                         while opening_bracket_index != -1:
                             dimensions_names.append(
                                 strip_line[
                                     opening_bracket_index + 1:comma_index])
                             opening_bracket_index = strip_line.find(
-                                '[', comma_index)
+                                "[", comma_index)
                             comma_index = strip_line.find(
-                                ',', opening_bracket_index)
+                                ",", opening_bracket_index)
                     first_dim_line = False
                     dimensions_names.append(element_name)
                     dimension_names_dict[element_name] = dimensions_names
@@ -476,21 +450,21 @@ def read_marginals_txt(filename, dim_names=False):
                 # update indices
                 indices_array = []
                 if len(dimensions) > 1:
-                    comma_index = strip_line.find(',')
-                    closing_brack_index = strip_line.find(']')
+                    comma_index = strip_line.find(",")
+                    closing_brack_index = strip_line.find("]")
                     while closing_brack_index != -1:
                         indices_array.append(int(
                             strip_line[comma_index + 1:closing_brack_index]))
                         opening_bracket_index = strip_line.find(
-                            '[', closing_brack_index)
+                            "[", closing_brack_index)
                         comma_index = strip_line.find(
-                            ',', opening_bracket_index)
+                            ",", opening_bracket_index)
                         closing_brack_index = strip_line.find(
-                            ']', closing_brack_index + 1)
+                            "]", closing_brack_index + 1)
 
-            if strip_line[0] == '%':
+            if strip_line[0] == "%":
                 # read doubles
-                coma_index = strip_line.find(',')
+                coma_index = strip_line.find(",")
                 marginals_values = []
 
                 # Get rid of the %
@@ -499,7 +473,7 @@ def read_marginals_txt(filename, dim_names=False):
                     marginals_values.append(
                         float(strip_line[previous_coma_index + 1:coma_index]))
                     previous_coma_index = coma_index
-                    coma_index = strip_line.find(',', coma_index + 1)
+                    coma_index = strip_line.find(",", coma_index + 1)
 
                 # Add last dimension and get rid of the closing bracket
                 marginals_values.append(
