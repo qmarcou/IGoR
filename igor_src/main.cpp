@@ -767,7 +767,7 @@ int main(int argc , char* argv[]){
 						return terminate_IGoR_with_error_message("Number of scenarios to be recorded must be greater than zero");
 					}
 
-					shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(10 , cl_path + "output/" ,true));
+					shared_ptr<Counter>best_sc_ptr(new Best_scenarios_counter(n_record_scenarios , cl_path + "output/" ,true));
 					cl_counters_list.emplace(cl_counters_list.size(),best_sc_ptr);
 				}
 				else if(string(argv[carg_i]) == "--coverage"){
