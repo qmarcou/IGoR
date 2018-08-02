@@ -65,10 +65,16 @@ def scenarios_indices2values(best_scenarios, input_genmodel,
             best_scenarios_real[event.name] = tmp_real_indices.apply(
                 lambda x: real_vect[x])
 
-            # Return mismatches as a list of positions
-            best_scenarios_real["Errors"] = best_scenarios[
-                "Errors"].apply(lambda x: utils.get_str_asarray(
-                    x, dtype=int, boundaries_char=["(", ")"], sep=","))
+            # Return possible errors and mismatches as a list of positions
+            if best_scenarios_real.columns.contains("Errors"):
+                best_scenarios_real["Errors"] = best_scenarios[
+                    "Errors"].apply(lambda x: utils.get_str_asarray(
+                        x, dtype=int, boundaries_char=["(", ")"], sep=","))
+
+            if best_scenarios_real.columns.contains("Mismatches"):
+                best_scenarios_real["Mismatches"] = best_scenarios[
+                    "Mismatches"].apply(lambda x: utils.get_str_asarray(
+                        x, dtype=int, boundaries_char=["(", ")"], sep=","))
 
             if drop_alleles and (event.event_type == "GeneChoice"):
                 best_scenarios_real[event.name] = best_scenarios_real[
