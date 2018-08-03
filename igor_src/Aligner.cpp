@@ -1482,8 +1482,21 @@ unordered_map<string,size_t> read_gene_anchors_csv(string filename , string sep)
 		getline(infile,temp_str); //Ignore first header line
 
 		vector<string> separated_strings;
+		bool first_line = true;
 		while (getline(infile,temp_str)){
 			separated_strings = extract_string_fields(temp_str,sep);
+			if(first_line){
+				if(separated_strings.size()<2){
+					throw runtime_error("Expected at least two fields in read_gene_anchors_csv(). Make sure file is separated by:\'"+sep +'\'.');
+				}
+				try{
+					stoi(separated_strings.at(1));
+				}
+				catch(exception& e){
+					throw runtime_error("Expected an integer for the second field in read_gene_anchors_csv(), received:" + separated_strings.at(1));
+				}
+				first_line = false;
+			}
 			anchors_map.emplace(separated_strings.at(0),stoi(separated_strings.at(1)));
 		}
 
