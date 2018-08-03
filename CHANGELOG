@@ -12,15 +12,22 @@ brevity.  Much more detail can be found in the git revision history:
   - Add ---best_gene_only boolean for alignments
   - Allow for template specific alignment offsets
   - Allow for reversed offsets use via command line
+  - Pygor package installable via pip (by @penuts7644)
 
   Bug fixes:
   - Fix autogen creation of man and html README
   - Fix semi colon separated files for gene anchors (human BCR, mice TRB)
+  - Fix pygor package broken imports and functions (by @penuts7644)
+  - Fix IGoR directory creation and installation problems (by @smoe)
+  - Fix bug on number of scenarios for the scenario counter CL
 
   Miscellaneous :
   - Split documentation in several files.
   - Create a proper manpage.
   - Improve error handling for alignment issues (report faulty genomic template)
+  - Improve error handling for some input files reading
+  - make the autogen.sh and build_release scripts executable (by @NickEngland)
+  - Clean and make the Pygor package PEP8 compliant (by @penuts7644)
 
 * 1.2.0 (April 18, 2018)
 
