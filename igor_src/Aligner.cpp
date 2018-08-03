@@ -1517,8 +1517,27 @@ unordered_map<string,pair<int,int>> read_template_specific_offset_csv(string fil
 	getline(infile,temp_str); //Ignore first header line
 
 	vector<string> separated_strings;
+	bool first_line = true;
 	while (getline(infile,temp_str)){
 		separated_strings = extract_string_fields(temp_str,sep);
+		if(first_line){
+			if(separated_strings.size()<2){
+				throw runtime_error("Expected at least three fields in read_gene_anchors_csv(). Make sure file is separated by:\'"+sep +'\'.');
+			}
+			try{
+				stoi(separated_strings.at(1));
+			}
+			catch(exception& e){
+				throw runtime_error("Expected an integer for the min offset (second field) in read_gene_anchors_csv(), received:" + separated_strings.at(1));
+			}
+			try{
+				stoi(separated_strings.at(2));
+			}
+			catch(exception& e){
+				throw runtime_error("Expected an integer for the max offset (third field) in read_gene_anchors_csv(), received:" + separated_strings.at(2));
+			}
+			first_line = false;
+		}
 		template_bounds_map.emplace(separated_strings.at(0),make_pair(stoi(separated_strings.at(1)),stoi(separated_strings.at(2))));
 	}
 
