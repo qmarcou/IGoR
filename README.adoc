@@ -1,14 +1,12 @@
-:toc:
-:toclevels: 3
-:icons:
-[float]
 IGoR: Inference and Generation Of Repertoires
 =============================================
 
 
 This repository contains all sources and models useful to infer V(D)J
 recombination related processes for TCR or BCR sequencing data using
-*IGoR*
+*IGoR*.
+
+IGoR's exhaustive *_documentation can be found http://qmarcou.github.io/IGoR[here]_*!
 
 [[quick-summary]]
 Quick summary
@@ -42,37 +40,9 @@ Version
 
 include::./docs/asciidoc/version.adoc[]
 
-
-include::./docs/asciidoc/general/installation.adoc[]
-
-include::./docs/asciidoc/general/workflow.adoc[]
-
-include::./docs/asciidoc/general/runtimes.adoc[]
-
-include::./docs/asciidoc/general/general_commands.adoc[]
-
-[[working-directory]]
-Working directory
-^^^^^^^^^^^^^^^^^
-
-This is where all IGoR outputs will appear. Specific folders will be
-created for alignments, inference, evaluation and outputs.
-
-include::./docs/asciidoc/alignments/alignments.adoc[]
-
-include::./docs/asciidoc/inference/inference.adoc[]
-
-include::./docs/asciidoc/outputs/outputs.adoc[]
-
-include::./docs/asciidoc/generation/generation.adoc[]
-
-include::./docs/asciidoc/commands_examples/general.adoc[]
-
-include::./docs/asciidoc/general/advanced_usage.adoc[]
-
-include::./docs/asciidoc/general/cpp_interface.adoc[]
-
-include::./docs/asciidoc/general/python_interface.adoc[]
+Documentation
+-------------
+A comprehensive documentation of IGoR is available on the internet at: http://qmarcou.github.io/IGoR[http://qmarcou.github.io/IGoR] or in your local installation of IGoR as the `./docs/index.html` file. 
 
 include::./docs/asciidoc/general/contribute.adoc[]
 
