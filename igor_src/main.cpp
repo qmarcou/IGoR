@@ -568,6 +568,9 @@ int main(int argc , char* argv[]){
 				}
 				else if(string(argv[carg_i]) == "--ntCDR3"){
 					align_data_is_CDR3 = true;
+					// Set the the V and J align thresholds accordingly
+					v_align_thresh_value = 0;
+					j_align_thresh_value = 0;
 				}
 				else{
 					return terminate_IGoR_with_error_message("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
