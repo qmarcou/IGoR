@@ -44,7 +44,8 @@ if [ $# == 1 ]; then
             Yes) 	
             git add configure.ac;
             git add ./docs/asciidoc/version.adoc
-            git add docs/index.html
+            git add ./docs/index.html
+            git add ./pygor/setup.py
             COMMITMESSAGE="IGoR v"$DOTTEDVERSION" release commit."
             git commit -m "$COMMITMESSAGE"
             break;;
