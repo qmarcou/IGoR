@@ -22,10 +22,15 @@ if [ $# == 1 ]; then
 	rm configure.ac
 	mv tmpfile configure.ac
 	
-	#Automate release number change in README.md
+	#Automatic release number change in README.md
 	sed -r s/'Latest released version: '[0-9\.]+/'Latest released version: '$DOTTEDVERSION/ ./docs/asciidoc/version.adoc > ./docs/asciidoc/tmpfile
 	rm ./docs/asciidoc/version.adoc
 	mv ./docs/asciidoc/tmpfile ./docs/asciidoc/version.adoc
+
+    #Automatic release number change in pygor setup.py
+	sed -r s/'version=\"'[0-9\.]+/'version=\"'$DOTTEDVERSION/ ./pygor/setup.py > ./pygor/tmpfile
+	rm ./pygor/setup.py
+	mv ./pygor/tmpfile ./pygor/setup.py
 
     #Update HTML documentation for github pages website
     asciidoctor --doctype=article --backend=html --destination-dir=./docs/ --out-file=index.html ./docs/asciidoc/IGoR_documentation.adoc
