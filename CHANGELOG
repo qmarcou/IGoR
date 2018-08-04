@@ -4,7 +4,7 @@ brevity.  Much more detail can be found in the git revision history:
 
     https://github.com/qmarcou/IGoR
 
-* 1.2.1 (April 18, 2018)
+* 1.3.0 (August 4, 2018)
 
   A brief description of the release content's
 
@@ -13,6 +13,7 @@ brevity.  Much more detail can be found in the git revision history:
   - Allow for template specific alignment offsets
   - Allow for reversed offsets use via command line
   - Pygor package installable via pip (by @penuts7644)
+  - New documentation website available at: https://qmarcou.github.io/IGoR/
 
   Bug fixes:
   - Fix autogen creation of man and html README
@@ -20,6 +21,7 @@ brevity.  Much more detail can be found in the git revision history:
   - Fix pygor package broken imports and functions (by @penuts7644)
   - Fix IGoR directory creation and installation problems (by @smoe)
   - Fix bug on number of scenarios for the scenario counter CL
+  - Fix alignment threshold for --ntCDR3 sequences
 
   Miscellaneous :
   - Split documentation in several files.
