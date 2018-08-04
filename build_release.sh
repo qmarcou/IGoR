@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [ $# == 1 ]; then
 	#Automate release number change in configure.ac
 	DOTTEDVERSION=$(echo $1 | sed s/-/./g) 
@@ -8,7 +8,7 @@ if [ $# == 1 ]; then
 	PREVLINE=$(grep -E 'AC_INIT\(\[igor\]\,\ \['$MYREGEXP'\]\,\ \['$EMAILREGEXP'\]\,\ \[igor\]\,\ \['$URLREGEXP'\]\)' configure.ac)
 	NEWLINE=$(grep -E 'AC_INIT\(\[igor\]\,\ \['$MYREGEXP'\]\,\ \['$EMAILREGEXP'\]\,\ \[igor\]\,\ \['$URLREGEXP'\]\)' configure.ac | sed -r s/$MYREGEXP/$DOTTEDVERSION/)
 	#Now replace it in configure.ac
-	#reescape everythin
+	#reescape everything
 	ZZ=$(echo $PREVLINE | sed s/'\['/'\\['/g) #escape opening bracket
 	ZZ=$(echo $ZZ | sed s/'\]'/'\\]'/g) #escape closing bracket
 	ZZ=$(echo $ZZ | sed s/'\.'/'\\.'/g) #escape backslash
@@ -31,10 +31,23 @@ if [ $# == 1 ]; then
     asciidoctor --doctype=article --backend=html --destination-dir=./docs/ --out-file=index.html ./docs/asciidoc/IGoR_documentation.adoc
 
 	#Commit
-	git add configure.ac
-	git add ./docs/asciidoc/version.adoc
-	COMMITMESSAGE="IGoR v"$DOTTEDVERSION" release commit."
-	git commit -m "$COMMITMESSAGE"
+    echo "Do you wish to commit the changes made during release creation?"
+    echo "Enter the digit corresponding to your choice:"
+    select yn in Yes No
+    do
+        case $yn in
+            Yes) 	
+            git add configure.ac;
+            git add ./docs/asciidoc/version.adoc
+            git add docs/index.html
+            COMMITMESSAGE="IGoR v"$DOTTEDVERSION" release commit."
+            git commit -m "$COMMITMESSAGE"
+            break;;
+            No) 
+            echo "Not commiting release creation..."
+            break;;
+        esac
+    done
 
 	#Create the packaged archive
 	MYPATH=$(pwd)
