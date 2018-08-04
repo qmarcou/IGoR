@@ -27,6 +27,9 @@ if [ $# == 1 ]; then
 	rm ./docs/asciidoc/version.adoc
 	mv ./docs/asciidoc/tmpfile ./docs/asciidoc/version.adoc
 
+    #Update HTML documentation for github pages website
+    asciidoctor --doctype=article --backend=html --destination-dir=./docs/ --out-file=index.html ./docs/asciidoc/IGoR_documentation.adoc
+
 	#Commit
 	git add configure.ac
 	git add ./docs/asciidoc/version.adoc
