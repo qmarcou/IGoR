@@ -58,7 +58,7 @@ templates will no longer correspond to the ones contained in the
 reference models, the model parameters are thus automatically reset to a
 uniform distribution.*
 
-|`-set_CDR3_anchors --*gene*` |Load a CSV file containing the indices/offset of
+|`-set_CDR3_anchors --*gene*` |Load a semicolon separated file containing the indices/offset of
 the CDR3 anchors for the _gene_(--V or --J). The index should correspond
 to the first letter of the cysteine (for V) or tryptophan/phenylalanin
 (for J) for the nucleotide sequence of the gene. Indices are 0 based.
