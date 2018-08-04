@@ -8,6 +8,8 @@ recombination related processes for TCR or BCR sequencing data using
 
 IGoR's exhaustive *_documentation can be found http://qmarcou.github.io/IGoR[here]_*!
 
+Download the latest release https://github.com/qmarcou/IGoR/releases[here].
+
 [[quick-summary]]
 Quick summary
 -------------
@@ -39,6 +41,7 @@ Version
 -------
 
 include::./docs/asciidoc/version.adoc[]
+Download the latest release https://github.com/qmarcou/IGoR/releases[here].
 
 Documentation
 -------------
