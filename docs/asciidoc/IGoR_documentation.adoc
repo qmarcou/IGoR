@@ -2,6 +2,8 @@
 :toclevels: 3
 :icons:
 [float]
+:source-highlighter: pygments
+:pygments-style: emacs
 IGoR: Inference and Generation Of Repertoires
 =============================================
 
