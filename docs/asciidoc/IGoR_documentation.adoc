@@ -1,20 +1,11 @@
+= IGoR (_Inference and Generation Of Repertoires_) Documentation
+Quentin Marcou
 :toc: left
 :toclevels: 3
 :icons:
-[float]
 :source-highlighter: pygments
 :pygments-style: emacs
-IGoR: Inference and Generation Of Repertoires
-=============================================
 
-
-This repository contains all sources and models useful to infer V(D)J
-recombination related processes for TCR or BCR sequencing data using
-*IGoR*
-
-[[quick-summary]]
-Quick summary
--------------
 
 IGoR is a C++ software designed to infer V(D)J recombination related
 processes from sequencing data such as:
@@ -24,7 +15,7 @@ processes from sequencing data such as:
 * Best candidates recombination scenarios
 * Generation probabilities of sequences (even hypermutated)
 
-The following paper describes the methodology, performance tests and
+The following article describes the methodology, performance tests and
 some new biological results obtained with IGoR:
 
 https://www.nature.com/articles/s41467-018-02832-w[_High-throughput

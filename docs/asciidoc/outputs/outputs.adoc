@@ -16,7 +16,7 @@ be to use it along with evaluation.
 The different outputs are detailed in the next sections.
 
 Python utility functions are provided to analyze these outputs in the
-pygor.counters submodule.
+`pygor.counters` submodule.
 
 include::best_scenarios.adoc[]
 

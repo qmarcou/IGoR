@@ -60,7 +60,7 @@ already installed (note that another compiler could be used). With the
 command line go to IGoR's root directory and simply type `./configure`.
 This will make various check on your system and create makefiles
 compatible with your system configuration. Many options can be appended
-to ./configure such as `./configure CC=gcc CXX=g++` to enforce the use
+to ./configure such as `./configure CC=gcc CXX=g\\+\+ ` to enforce the use
 of gcc as compiler. Once over, type `make` to compile the sources (this
 will take a few minutes). *IGoR's executable will appear in the igor_src
 folder*
@@ -93,6 +93,7 @@ version corresponding to your MacOS version.
 
 Once installed, use Macports to install GCC:
 
+[source,shell]
 ----
 sudo port selfupdate #Update macports database
 sudo port install gcc6 #install gcc version 6
@@ -103,6 +104,7 @@ https://www.macports.org/ports.php?by=name&substr=gcc[here], select a sufficient
 standards enabled. In order to set GCC as your default compiler use the
 following commands: 
 
+[source,shell]
 ----
 port select --list gcc #Will list the versions of gcc available on your system
 sudo port select --set gcc mp-gcc6 #set the one you wish to have as default call upon using the gcc command
@@ -112,6 +114,7 @@ If you prefer to use Homebrew over Macports, it can be downloaded and
 installed https://brew.sh/[here].
 
 Then install GCC using the following command:
+[source,shell]
 ----
 brew install gcc
 ----
