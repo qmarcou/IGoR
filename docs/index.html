@@ -5,7 +5,8 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.5">
-<title>Quick summary</title>
+<meta name="author" content="Quentin Marcou">
+<title>IGoR (Inference and Generation Of Repertoires) Documentation</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -417,13 +418,87 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .hide-for-print{display:none!important}
 .show-for-print{display:inherit!important}}
 </style>
+<style>
+.listingblock .pygments .hll { background-color: #ffffcc }
+.listingblock .pygments, .listingblock .pygments code { background: #f8f8f8; }
+.listingblock .pygments .tok-c { color: #008800; font-style: italic } /* Comment */
+.listingblock .pygments .tok-err { border: 1px solid #FF0000 } /* Error */
+.listingblock .pygments .tok-k { color: #AA22FF; font-weight: bold } /* Keyword */
+.listingblock .pygments .tok-o { color: #666666 } /* Operator */
+.listingblock .pygments .tok-ch { color: #008800; font-style: italic } /* Comment.Hashbang */
+.listingblock .pygments .tok-cm { color: #008800; font-style: italic } /* Comment.Multiline */
+.listingblock .pygments .tok-cp { color: #008800 } /* Comment.Preproc */
+.listingblock .pygments .tok-cpf { color: #008800; font-style: italic } /* Comment.PreprocFile */
+.listingblock .pygments .tok-c1 { color: #008800; font-style: italic } /* Comment.Single */
+.listingblock .pygments .tok-cs { color: #008800; font-weight: bold } /* Comment.Special */
+.listingblock .pygments .tok-gd { color: #A00000 } /* Generic.Deleted */
+.listingblock .pygments .tok-ge { font-style: italic } /* Generic.Emph */
+.listingblock .pygments .tok-gr { color: #FF0000 } /* Generic.Error */
+.listingblock .pygments .tok-gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.listingblock .pygments .tok-gi { color: #00A000 } /* Generic.Inserted */
+.listingblock .pygments .tok-go { color: #888888 } /* Generic.Output */
+.listingblock .pygments .tok-gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.listingblock .pygments .tok-gs { font-weight: bold } /* Generic.Strong */
+.listingblock .pygments .tok-gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.listingblock .pygments .tok-gt { color: #0044DD } /* Generic.Traceback */
+.listingblock .pygments .tok-kc { color: #AA22FF; font-weight: bold } /* Keyword.Constant */
+.listingblock .pygments .tok-kd { color: #AA22FF; font-weight: bold } /* Keyword.Declaration */
+.listingblock .pygments .tok-kn { color: #AA22FF; font-weight: bold } /* Keyword.Namespace */
+.listingblock .pygments .tok-kp { color: #AA22FF } /* Keyword.Pseudo */
+.listingblock .pygments .tok-kr { color: #AA22FF; font-weight: bold } /* Keyword.Reserved */
+.listingblock .pygments .tok-kt { color: #00BB00; font-weight: bold } /* Keyword.Type */
+.listingblock .pygments .tok-m { color: #666666 } /* Literal.Number */
+.listingblock .pygments .tok-s { color: #BB4444 } /* Literal.String */
+.listingblock .pygments .tok-na { color: #BB4444 } /* Name.Attribute */
+.listingblock .pygments .tok-nb { color: #AA22FF } /* Name.Builtin */
+.listingblock .pygments .tok-nc { color: #0000FF } /* Name.Class */
+.listingblock .pygments .tok-no { color: #880000 } /* Name.Constant */
+.listingblock .pygments .tok-nd { color: #AA22FF } /* Name.Decorator */
+.listingblock .pygments .tok-ni { color: #999999; font-weight: bold } /* Name.Entity */
+.listingblock .pygments .tok-ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.listingblock .pygments .tok-nf { color: #00A000 } /* Name.Function */
+.listingblock .pygments .tok-nl { color: #A0A000 } /* Name.Label */
+.listingblock .pygments .tok-nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.listingblock .pygments .tok-nt { color: #008000; font-weight: bold } /* Name.Tag */
+.listingblock .pygments .tok-nv { color: #B8860B } /* Name.Variable */
+.listingblock .pygments .tok-ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.listingblock .pygments .tok-w { color: #bbbbbb } /* Text.Whitespace */
+.listingblock .pygments .tok-mb { color: #666666 } /* Literal.Number.Bin */
+.listingblock .pygments .tok-mf { color: #666666 } /* Literal.Number.Float */
+.listingblock .pygments .tok-mh { color: #666666 } /* Literal.Number.Hex */
+.listingblock .pygments .tok-mi { color: #666666 } /* Literal.Number.Integer */
+.listingblock .pygments .tok-mo { color: #666666 } /* Literal.Number.Oct */
+.listingblock .pygments .tok-sa { color: #BB4444 } /* Literal.String.Affix */
+.listingblock .pygments .tok-sb { color: #BB4444 } /* Literal.String.Backtick */
+.listingblock .pygments .tok-sc { color: #BB4444 } /* Literal.String.Char */
+.listingblock .pygments .tok-dl { color: #BB4444 } /* Literal.String.Delimiter */
+.listingblock .pygments .tok-sd { color: #BB4444; font-style: italic } /* Literal.String.Doc */
+.listingblock .pygments .tok-s2 { color: #BB4444 } /* Literal.String.Double */
+.listingblock .pygments .tok-se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.listingblock .pygments .tok-sh { color: #BB4444 } /* Literal.String.Heredoc */
+.listingblock .pygments .tok-si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.listingblock .pygments .tok-sx { color: #008000 } /* Literal.String.Other */
+.listingblock .pygments .tok-sr { color: #BB6688 } /* Literal.String.Regex */
+.listingblock .pygments .tok-s1 { color: #BB4444 } /* Literal.String.Single */
+.listingblock .pygments .tok-ss { color: #B8860B } /* Literal.String.Symbol */
+.listingblock .pygments .tok-bp { color: #AA22FF } /* Name.Builtin.Pseudo */
+.listingblock .pygments .tok-fm { color: #00A000 } /* Name.Function.Magic */
+.listingblock .pygments .tok-vc { color: #B8860B } /* Name.Variable.Class */
+.listingblock .pygments .tok-vg { color: #B8860B } /* Name.Variable.Global */
+.listingblock .pygments .tok-vi { color: #B8860B } /* Name.Variable.Instance */
+.listingblock .pygments .tok-vm { color: #B8860B } /* Name.Variable.Magic */
+.listingblock .pygments .tok-il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
+<h1>IGoR (<em>Inference and Generation Of Repertoires</em>) Documentation</h1>
+<div class="details">
+<span id="author" class="author">Quentin Marcou</span><br>
+</div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#quick-summary">Quick summary</a></li>
 <li><a href="#version">Version</a></li>
 <li><a href="#dependencies">Dependencies</a></li>
 <li><a href="#install">Install</a>
@@ -488,14 +563,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div id="content">
-<h1 id="_igor_inference_and_generation_of_repertoires" class="float">IGoR: Inference and Generation Of Repertoires</h1>
-<div class="paragraph">
-<p>This repository contains all sources and models useful to infer V(D)J
-recombination related processes for TCR or BCR sequencing data using
-<strong>IGoR</strong></p>
-</div>
-<div class="sect1">
-<h2 id="quick-summary">Quick summary</h2>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
 <p>IGoR is a C++ software designed to infer V(D)J recombination related
@@ -518,7 +586,7 @@ processes from sequencing data such as:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>The following paper describes the methodology, performance tests and
+<p>The following article describes the methodology, performance tests and
 some new biological results obtained with IGoR:</p>
 </div>
 <div class="paragraph">
@@ -541,7 +609,7 @@ BCR receptors features using modern parallel architectures.</p>
 <h2 id="version">Version</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Latest released version: 1.2.0</p>
+<p>Latest released version: 1.3.0</p>
 </div>
 </div>
 </div>
@@ -568,7 +636,7 @@ to avoid dependencies issues (requires a pthreads compatible compiler)</p>
 <p>bash</p>
 </li>
 <li>
-<p>autotools suite, asciidoctor, doxygen and the latex suite if building from
+<p>autotools suite, asciidoctor, pygments (optional), doxygen and the latex suite if building from
 unpackaged sources</p>
 </li>
 </ul>
@@ -620,13 +688,13 @@ help the user community.</p>
 <div class="sect2">
 <h3 id="linux">Linux</h3>
 <div class="paragraph">
-<p>Widely tested on several Debian related distros. Install gcc/g if not
+<p>Widely tested on several Debian related distros. Install gcc/g++ if not
 already installed (note that another compiler could be used). With the
-command line go to IGoR's root directory and simply type `./configure`.
+command line go to IGoR&#8217;s root directory and simply type <code>./configure</code>.
 This will make various check on your system and create makefiles
 compatible with your system configuration. Many options can be appended
-to ./configure such as `./configure CC=gcc CXX=g` to enforce the use
-of gcc as compiler. Once over, type <code>make</code> to compile the sources (this
+to ./configure such as <code>./configure CC=gcc CXX=g\+\+ ` to enforce the use
+of gcc as compiler. Once over, type `make</code> to compile the sources (this
 will take a few minutes). <strong>IGoR&#8217;s executable will appear in the igor_src
 folder</strong></p>
 </div>
@@ -664,8 +732,8 @@ version corresponding to your MacOS version.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>sudo port selfupdate #Update macports database
-sudo port install gcc6 #install gcc version 6</pre>
+<pre class="pygments highlight"><code data-lang="shell">sudo port selfupdate <span class="tok-c1">#Update macports database</span>
+sudo port install gcc6 <span class="tok-c1">#install gcc version 6</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -676,8 +744,8 @@ following commands:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>port select --list gcc #Will list the versions of gcc available on your system
-sudo port select --set gcc mp-gcc6 #set the one you wish to have as default call upon using the gcc command</pre>
+<pre class="pygments highlight"><code data-lang="shell">port <span class="tok-k">select</span> --list gcc <span class="tok-c1">#Will list the versions of gcc available on your system</span>
+sudo port <span class="tok-k">select</span> --set gcc mp-gcc6 <span class="tok-c1">#set the one you wish to have as default call upon using the gcc command</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -689,7 +757,7 @@ installed <a href="https://brew.sh/">here</a>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>brew install gcc</pre>
+<pre class="pygments highlight"><code data-lang="shell">brew install gcc</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -995,7 +1063,7 @@ uniform distribution.</strong></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>-set_CDR3_anchors --<strong>gene</strong></code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Load a CSV file containing the indices/offset of
+<td class="tableblock halign-left valign-top"><p class="tableblock">Load a semicolon separated file containing the indices/offset of
 the CDR3 anchors for the <em>gene</em>(--V or --J). The index should correspond
 to the first letter of the cysteine (for V) or tryptophan/phenylalanin
 (for J) for the nucleotide sequence of the gene. Indices are 0 based.</p></td>
@@ -1542,7 +1610,7 @@ be to use it along with evaluation.</p>
 </div>
 <div class="paragraph">
 <p>Python utility functions are provided to analyze these outputs in the
-pygor.counters submodule.</p>
+<code>pygor.counters</code> submodule.</p>
 </div>
 <div class="sect3">
 <h4 id="best-scenarios">Best scenarios</h4>
@@ -1649,7 +1717,7 @@ default a random seed is obtained from the system.</p></td>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>igor -run_demo</pre>
+<pre class="pygments highlight"><code data-lang="shell">igor -run_demo</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1659,23 +1727,23 @@ directory containing the executable.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working directory
+<pre class="pygments highlight"><code data-lang="shell"><span class="tok-nv">WDPATH</span><span class="tok-o">=</span>/path/to/your/working/directory <span class="tok-c1">#Let&#39;s define a shorthand for the working directory</span>
 
-#We first read the sequences contained in a text file inside the demo folder
-#This will create the align folder in the working directory and the mydemo_indexed_seqs.csv file.
-igor -set_wd $WDPATH -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt
+<span class="tok-c1">#We first read the sequences contained in a text file inside the demo folder</span>
+<span class="tok-c1">#This will create the align folder in the working directory and the mydemo_indexed_seqs.csv file.</span>
+igor -set_wd <span class="tok-nv">$WDPATH</span> -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt
 
-#Now let's align the sequences against the provided human beta chain genomic templates with default parameters
-#This will create foo_V_alignments.csv, foo_D_alignments.csv and foo_J_alignments.csv files inside the align folder.
-igor -set_wd $WDPATH -batch foo -species human -chain beta -align --all
+<span class="tok-c1">#Now let&#39;s align the sequences against the provided human beta chain genomic templates with default parameters</span>
+<span class="tok-c1">#This will create foo_V_alignments.csv, foo_D_alignments.csv and foo_J_alignments.csv files inside the align folder.</span>
+igor -set_wd <span class="tok-nv">$WDPATH</span> -batch foo -species human -chain beta -align --all
 
-#Now use the provided beta chain model to get the 10 best scenarios per sequence
-#This will create the foo_output and foo_evaluate and the corresponding files inside
-igor -set_wd $WDPATH -batch foo -species human -chain beta -evaluate -output --scenarios 10
+<span class="tok-c1">#Now use the provided beta chain model to get the 10 best scenarios per sequence</span>
+<span class="tok-c1">#This will create the foo_output and foo_evaluate and the corresponding files inside</span>
+igor -set_wd <span class="tok-nv">$WDPATH</span> -batch foo -species human -chain beta -evaluate -output --scenarios <span class="tok-m">10</span>
 
-#Now generate 100 synthetic sequences from the provided human beta chain model
-#This will create the directory bar_generate with the corresponding files containing the generated sequences and their realizations
-igor -set_wd $WDPATH -batch bar -species human -chain beta -generate 100</pre>
+<span class="tok-c1">#Now generate 100 synthetic sequences from the provided human beta chain model</span>
+<span class="tok-c1">#This will create the directory bar_generate with the corresponding files containing the generated sequences and their realizations</span>
+igor -set_wd <span class="tok-nv">$WDPATH</span> -batch bar -species human -chain beta -generate <span class="tok-m">100</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1685,14 +1753,14 @@ with a lighter syntax:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working directory
-MYCOMMANDS=./igor -set_wd $WDPATH
+<pre class="pygments highlight"><code data-lang="shell"><span class="tok-nv">WDPATH</span><span class="tok-o">=</span>/path/to/your/working/directory <span class="tok-c1">#Let&#39;s define a shorthand for the working directory</span>
+<span class="tok-nv">MYCOMMANDS</span><span class="tok-o">=</span>./igor -set_wd <span class="tok-nv">$WDPATH</span>
 
-$MYCOMMANDS -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt #Read seqs
-MYCOMMANDS=$MYCOMMANDS -species human -chain beta #Add chain and species commands
-$MYCOMMANDS -batch foo -align --all #Align
-$MYCOMMANDS -batch foo -evaluate -output --scenarios 10 #Evaluate
-$MYCOMMANDS -batch bar -generate 100 #Generate</pre>
+<span class="tok-nv">$MYCOMMANDS</span> -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt <span class="tok-c1">#Read seqs</span>
+<span class="tok-nv">MYCOMMANDS</span><span class="tok-o">=</span><span class="tok-nv">$MYCOMMANDS</span> -species human -chain beta <span class="tok-c1">#Add chain and species commands</span>
+<span class="tok-nv">$MYCOMMANDS</span> -batch foo -align --all <span class="tok-c1">#Align</span>
+<span class="tok-nv">$MYCOMMANDS</span> -batch foo -evaluate -output --scenarios <span class="tok-m">10</span> <span class="tok-c1">#Evaluate</span>
+<span class="tok-nv">$MYCOMMANDS</span> -batch bar -generate <span class="tok-m">100</span> <span class="tok-c1">#Generate</span></code></pre>
 </div>
 </div>
 </div>
@@ -1805,7 +1873,7 @@ would like some more guidance on the code structure</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-08-03 20:23:35 EDT
+Last updated 2018-08-04 15:26:06 EDT
 </div>
 </div>
 </body>

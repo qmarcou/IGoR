@@ -28,7 +28,7 @@ with open("requirements.txt") as f:
     requirements = [line.rstrip("\n") for line in f.readlines()]
 
 setup(name="pygor",
-      version="1.2.0",
+      version="1.3.0",
       description="Module for parsing IGoR output (alignments, models etc).",
       url="https://github.com/qmarcou/IGoR",
       author="Quentin Marcou",
