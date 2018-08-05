@@ -418,6 +418,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .hide-for-print{display:none!important}
 .show-for-print{display:inherit!important}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
 <style>
 .listingblock .pygments .hll { background-color: #ffffcc }
 .listingblock .pygments, .listingblock .pygments code { background: #f8f8f8; }
@@ -636,8 +637,8 @@ to avoid dependencies issues (requires a pthreads compatible compiler)</p>
 <p>bash</p>
 </li>
 <li>
-<p>autotools suite, asciidoctor, pygments (optional), doxygen and the latex suite if building from
-unpackaged sources</p>
+<p>autotools suite, asciidoctor, pygments (optional), doxygen and the latex
+suite if building from unpackaged sources</p>
 </li>
 </ul>
 </div>
@@ -651,7 +652,7 @@ unpackaged sources</p>
 to ensure portability to many systems.</p>
 </div>
 <div class="paragraph">
-<p><em>Installing from package releases (recommended)</em></p>
+<p><em>Installing from packaged releases (recommended)</em></p>
 </div>
 <div class="paragraph">
 <p>First download the latest released package on the
@@ -663,10 +664,10 @@ files from the archive.</p>
 the repository)</em></p>
 </div>
 <div class="paragraph">
-<p>For this you will have to get git, the autotools suite, pandoc, doxygen
-and the latex suite software installed. Note that this is the most
-convenient way to keep IGoR up-to-date but involves a bit more
-installation steps. Using <em>git</em>, clone the repository where you desire.
+<p>For this you will have to get git, and all other dependencies mentioned above.
+ Note that this is the most convenient way to keep IGoR up-to-date but involves
+ a few extra installation steps.
+ Using <em>git</em>, clone the repository where you desire.
 Go in the created directory and run the <em>autogen.sh</em> bash script. This
 will create the <em>configure</em> script. Upon this stage the installation
 rules are the same as for packaged developer sources. From <em>git</em> you can
@@ -680,10 +681,22 @@ by functionality testing).</p>
 <div class="paragraph">
 <p>A (sadly) non exhaustive list of potential installation troubleshoots
 follows in the next section. If your problem is not referenced there
-please open a GitHub <a href="https://github.com/qmarcou/IGoR/issues">issue</a> or
-<a href="<a href="mailto:quentin.marcou@lpt.ens.fr">quentin.marcou@lpt.ens.fr</a>">contact</a> us. If you end up finding a
-solution by yourself please help us append it to the following list and
-help the user community.</p>
+please open a GitHub <a href="https://github.com/qmarcou/IGoR/issues">issue</a>. If you end
+ up finding a solution by yourself please help us append it to the following
+ list and help the user community.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To upgrade IGoR uninstall your previously installed version and install
+ the new one.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="linux">Linux</h3>
@@ -693,10 +706,14 @@ already installed (note that another compiler could be used). With the
 command line go to IGoR&#8217;s root directory and simply type <code>./configure</code>.
 This will make various check on your system and create makefiles
 compatible with your system configuration. Many options can be appended
-to ./configure such as <code>./configure CC=gcc CXX=g\+\+ ` to enforce the use
-of gcc as compiler. Once over, type `make</code> to compile the sources (this
-will take a few minutes). <strong>IGoR&#8217;s executable will appear in the igor_src
-folder</strong></p>
+to ./configure such as <code>./configure CC=gcc CXX=g+ +</code> to enforce the use
+of gcc as compiler. The full set of the configure script options can be found
+<a href="https://www.gnu.org/software/autoconf/manual/autoconf.html#Running-configure-Scripts">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>Once over, type <code>make</code> to compile the sources (this
+will take a few minutes). <em>IGoR&#8217;s executable will appear in the igor_src
+folder</em></p>
 </div>
 <div class="paragraph">
 <p>Finally in order to access all IGoR&#8217;s features, install IGoR by typing
@@ -705,9 +722,48 @@ manual in your system&#8217;s default location (note that depending on this
 location you might require administrator privileges and use the <code>sudo</code>
 prefix). If you do not have administrator privileges, IGoR can be
 installed locally in the folder of your choice by passing
-<strong>--prefix=/your/custom/path</strong> upon calling the configure script (e.g
+<code>--prefix=/your/custom/path</code> upon calling the configure script (e.g
 <code>./configure --prefix=$HOME</code>). Other configure options can be accessed
 using ./configure -h.</p>
+</div>
+<div class="paragraph">
+<p>As a brief summary for default installation use the following set of commands:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">./configure  <i class="conum" data-value="1"></i><b>(1)</b>
+make  <i class="conum" data-value="2"></i><b>(2)</b>
+make install <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Specify your custom installation options at this step.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Compile the sources before installation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Install IGoR.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Clean uninstallation of IGoR (e.g before upgrading IGoR to a newer version)
+is obtained via the <code>make uninstall</code> command.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -1128,6 +1184,21 @@ can only be deleted on the 3' side and J on the 5' side (thus enforcing
 the alignment on the other side until the end of the read or of the
 genomic template). D is aligned using a classical Smith-Waterman local
 alignment approach allowing gene deletions on both sides.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Alignments represent a critical step for a precise probabilistic
+characterization of your sequences. Make sure you use all the information you
+have on your sequences (e.g use the knowledge of your primers positions to
+provide template specific alignment offsets) for optimal result.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -1807,7 +1878,7 @@ for this chain from another species.</p>
 <div class="paragraph">
 <p>Although a few command line options are supplied for basic use of IGoR,
 its full modularity can be used through high level C++ functions on
-which all previous command lines are built. A section of the main.cpp
+which all previous command lines are built. A section of the <em>main.cpp</em>
 file is dedicated to accept user supplied code and can be executed using
 the <code>-run_custom</code> command line argument when launching IGoR from the
 shell. An example of the high level workflow is given in the <em>run demo</em>
@@ -1815,11 +1886,29 @@ section and the full Doxygen generated documentation is available as
 PDF. For any question please contact us.</p>
 </div>
 <div class="paragraph">
-<p>Good practice would be to append the C++ code in the main in the scope
-where "//Write your custom procedure here" is written. This part of the
-code is reachable using the <code>-run_custom</code> command line argument. This is
-done so that even after appending some custom code the command line
-interface is still usable.</p>
+<p>Good practice would be to append the C++ code in the dedicated area of the
+ <em>main.cpp</em> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span class="tok-k">else</span><span class="tok-p">{</span>
+	<span class="tok-c1">//Write your custom procedure here</span>
+       <i class="conum" data-value="1"></i><b>(1)</b>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Insert you custom code here.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This part of the code is reachable using the <code>-run_custom</code> command line argument.
+This design aims at keeping the command line interface fully functional while
+still appending some custom code.</p>
 </div>
 </div>
 </div>
@@ -1850,6 +1939,26 @@ would like some more guidance on the code structure</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>If you would like to share some improvements on IGoR&#8217;s code please file a pull
+request according to this logic:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If you&#8217;d like to propose a change in the documentation of existing functions
+to provide clearer insights please file your pull request on the <code>master</code> branch.</p>
+</li>
+<li>
+<p>If you&#8217;d like to propose a bug fix for a function already present in a release
+file your pull request on the <code>master</code> branch.</p>
+</li>
+<li>
+<p>If you&#8217;d like to propose a new functionality and its associated documentation
+please file your pull request on the <code>dev</code> branch.</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1873,7 +1982,7 @@ would like some more guidance on the code structure</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-08-04 15:26:06 EDT
+Last updated 2018-08-04 20:14:52 EDT
 </div>
 </div>
 </body>
