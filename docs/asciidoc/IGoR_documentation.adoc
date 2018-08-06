@@ -5,6 +5,7 @@ Quentin Marcou
 :icons: font
 :source-highlighter: pygments
 :pygments-style: emacs
+:stylesheet: ../golo.css
 
 
 IGoR is a C++ software designed to infer V(D)J recombination related
