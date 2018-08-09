@@ -200,5 +200,10 @@ automated and fixed soon
 |_src/jemalloc.c:241:1: error: initializer element is not constant_ ;
 _static malloc_mutex_t init_lock = MALLOC_MUTEX_INITIALIZER;_ |Might be
 related to MacOS Sierra? |Unknown
+
+|Undefined symbols for architecture x86_64:
+"comp_nt_int(int const&, int const&)", referenced from:
+Deletion::iterate(double&, Enum_fast_memory_map<Seq_type, double>&,... |Unknown
+ issue with GCC8, cf https://github.com/qmarcou/IGoR/issues/22[issue #22] |Downgrade your GCC version to a 7.X version.
 |=======================================================================
 
