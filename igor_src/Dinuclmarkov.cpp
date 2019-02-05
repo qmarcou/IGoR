@@ -476,8 +476,7 @@ void Dinucl_markov::update_event_internal_probas(const Marginal_array_p& margina
 
 			for(Int_nt prev_nt: previous_list){
 				for(Int_nt next_nt : next_list){
-					this->dinuc_proba_matrix(i,j) += marginal_array[event_index + i*event_realizations.size() + j];
-					//TODO This is risky in case teh code evolves to ahve more than realizations
+					this->dinuc_proba_matrix(i,j) += marginal_array[event_index + prev_nt*event_realizations.size() + next_nt];
 				}
 			}
 			//By taking the average we assume all nucleotides underlying the ambiguous one are  equally probable
