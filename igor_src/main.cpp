@@ -46,7 +46,8 @@
 #include <set>
 
 #include <string>
-//#include "CDR3SeqData.h"
+#include "CDR3SeqData.h"
+#include "ExtractFeatures.h"
 
 using namespace std;
 
@@ -60,56 +61,6 @@ typedef std::string strSequence;
 typedef vector< pair<const int, const strSequence> > VectorIndexedSeq;
 typedef pair<strSeqID, strSequence> PairSeq; // FIXME: Not a good name convention.
 typedef vector<PairSeq>  VectorGenomicTemplate;
-
-typedef std::unordered_map<std::string,std::string> UMCodonTable;
-UMCodonTable CodonTableStandard = {
-	{"TTT", "F"}, {"TTC", "F"}, {"TTA", "L"}, {"TTG", "L"}, 
-	{"TCT", "S"}, {"TCC", "S"}, {"TCA", "S"}, {"TCG", "S"}, 
-	{"TAT", "Y"}, {"TAC", "Y"}, {"TGT", "C"}, {"TGC", "C"}, 
-	{"TGG", "W"}, {"CTT", "L"}, {"CTC", "L"}, {"CTA", "L"}, 
-	{"CTG", "L"}, {"CCT", "P"}, {"CCC", "P"}, {"CCA", "P"}, 
-	{"CCG", "P"}, {"CAT", "H"}, {"CAC", "H"}, {"CAA", "Q"}, 
-	{"CAG", "Q"}, {"CGT", "R"}, {"CGC", "R"}, {"CGA", "R"}, 
-	{"CGG", "R"}, {"ATT", "I"}, {"ATC", "I"}, {"ATA", "I"}, 
-	{"ATG", "M"}, {"ACT", "T"}, {"ACC", "T"}, {"ACA", "T"}, 
-	{"ACG", "T"}, {"AAT", "N"}, {"AAC", "N"}, {"AAA", "K"}, 
-	{"AAG", "K"}, {"AGT", "S"}, {"AGC", "S"}, {"AGA", "R"}, 
-	{"AGG", "R"}, {"GTT", "V"}, {"GTC", "V"}, {"GTA", "V"}, 
-	{"GTG", "V"}, {"GCT", "A"}, {"GCC", "A"}, {"GCA", "A"}, 
-	{"GCG", "A"}, {"GAT", "D"}, {"GAC", "D"}, {"GAA", "E"}, 
-	{"GAG", "E"}, {"GGT", "G"}, {"GGC", "G"}, {"GGA", "G"}, 
-	{"GGG", "G"},
-	// Stop  codon
-	{"TAA", "*"}, {"TAG", "*"}, {"TGA", "*"},
-	// Start codon
-	{"TTG", "s"}, {"CTG", "s"}, {"ATG", "s"}
-};
-
-
-/*
- * @param seq: DNA sequence to translate.
- * @return amino acid sequence. 
- */
-string translate(string seq){
-	size_t codonPos = 0;
-	const size_t codonLen = 3;
-	size_t seqLen = seq.length();
-	string strCodon = "";
-	string AA ="";
-	string AAChain ="";
-	bool stopCodonQ = false;
-	while ((codonPos < seqLen) and !stopCodonQ){
-		strCodon = seq.substr(codonPos, codonLen);
-//		cout << strCodon << " codonPos: " << codonPos << endl;
-		codonPos = codonPos + codonLen;
-		AA = CodonTableStandard[strCodon];
-		if (AA == "*"){
-			stopCodonQ = true;
-		}
-		AAChain = AAChain + AA; //.second;			
-	}
-	return AAChain;
-}
 
 
 int terminate_IGoR_with_error_message(const forward_list<string> error_messages){
@@ -294,6 +245,9 @@ int main(int argc , char* argv[]){
 		int j_right_offset_bound = INT16_MAX;
 		unordered_map<string,pair<int,int>> j_template_bounds_map;
 		bool j_reversed_offsets = false;
+		
+		// Flag to extract CDR3 from aligned sequences.
+		bool bFeature_CDR3 = true;
 
 
 	while(carg_i<argc){
@@ -1956,190 +1910,47 @@ int main(int argc , char* argv[]){
 			}
 			
 			//Get CDR3 from alignments.
-			if(align_v and align_j){
-				// Input 
-				// 1. indexed_seqlist
-				// 2. get UMap_v_CDR3_anchors and UMap_j_CDR3_anchors[j_alig.gene_name];
-				// 3. sorted UMap_indexed_v_alignments[seq_index]
-				// 3. sorted UMap_indexed_j_alignments[seq_index]
-				cout << "(align_v and align_j) is true"<<endl;
-			
-			unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments;
-			try{
-				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
-			}
-			catch(exception& e){
-				return terminate_IGoR_with_error_message("Exception caught while reading V alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --V\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
-			}
+			if (bFeature_CDR3){
+				unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments;
+				try{
+					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading V alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --V\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+				}
 
-			try{
-				sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
-			}
-			catch(exception& e){
-				return terminate_IGoR_with_error_message("Exception caught while reading J alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --J\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
-			}
+				try{
+					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading J alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --J\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+				}
 			
-			
-			
-				cout << "************* CDR3 SORTED ALIGNMENTS ************* " << endl;
 				string cl_path_ref_genome = string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/";
 				string cl_path_aligns     = cl_path + "aligns/" +batchname;
 
 				string flnV_CDR3_anchors = cl_path_ref_genome + "V_gene_CDR3_anchors.csv";
 				string flnJ_CDR3_anchors = cl_path_ref_genome + "J_gene_CDR3_anchors.csv";
 
-				unordered_map<string, size_t> UMap_v_CDR3_anchors = read_gene_anchors_csv(flnV_CDR3_anchors);
-				unordered_map<string, size_t> UMap_j_CDR3_anchors = read_gene_anchors_csv(flnJ_CDR3_anchors);
-
-
 
 				string flnIndexedCDR3      = cl_path_aligns     + "indexed_CDR3.csv";
 				ofstream ofileIndexedCDR3(flnIndexedCDR3);
 				ofileIndexedCDR3 << "seq_index;v_anchor;j_anchor;CDR3nt;CDR3aa"<<endl;
-
-				//===========================================//
-				//                 GET CDR3                  //
-				//===========================================//
-				int    seq_index    = 0;
-				string seq_str      = "";
-
-				string v_gene_name    = "";
-				string v_gene_str     = "";
-
-				string j_gene_name    = "";
-				string j_gene_str     = "";
-
-				int    v_ins_size     = 0;
-				int    v_dels_size    = 0;
-
-				int    j_ins_size     = 0;
-				int    j_dels_size    = 0;
-
-				int cdr3_v_gene_anch;
-				int cdr3_j_gene_anch;
-
-				// Create an unordered_map to get the 
-				unordered_map<string, string> UMap_v_genomic;
-				for (auto it = v_genomic.begin(); it != v_genomic.end(); ++it){
-					UMap_v_genomic[(*it).first] = (*it).second;
-				}
-				unordered_map<string, string> UMap_j_genomic;
-				for (auto it = j_genomic.begin(); it != j_genomic.end(); ++it){
-					UMap_j_genomic[(*it).first] = (*it).second;
-				}
-
-
-				vector<CDR3SeqData> Vec_CDR3SeqData;
+			
+				ExtractFeatures featureCDR3;
+				featureCDR3.load_VJgenomicTemplates(v_genomic, j_genomic);
+				featureCDR3.load_VJanchors(flnV_CDR3_anchors, flnJ_CDR3_anchors);
+				featureCDR3.set_sorted_alignments(&sorted_alignments);
+				
 				// For each sequence get the CDR3
-					for (auto seq_it = indexed_seqlist.begin(); seq_it != indexed_seqlist.end(); ++seq_it){
-					seq_index = (*seq_it).first;
-//					seq_str   = (*seq_it).second;
-					
-					///////////////////////////////////
-					// Get only one alignment for V  //
-					///////////////////////////////////
-					seq_str = (sorted_alignments[seq_index].first );
-					vector<Alignment_data> Vec_V_Alignment_data = (sorted_alignments[seq_index].second )[V_gene];
-					
-					// If no V alignment was found then write an empty CDR3
-					if ( Vec_V_Alignment_data.size() == 0 ){
-						cout << "seq_index = " << seq_index << ", Vec_V_Alignment_data.size() = " << Vec_V_Alignment_data.size() <<endl;
-						ofileIndexedCDR3 << seq_index << ";;;;"<<endl;
-						continue;
-					}
-					
-					Alignment_data v_alig = Vec_V_Alignment_data.front(); //at(0);
-
-					v_gene_name = v_alig.gene_name;
-					v_gene_str  = UMap_v_genomic[v_alig.gene_name];
-					v_ins_size  = distance(v_alig.insertions.begin(), v_alig.insertions.end() );
-					v_dels_size = distance(v_alig.deletions .begin(), v_alig.deletions .end() );
-
-					// Get the anchor from map and correct them.
-					cdr3_v_gene_anch = UMap_v_CDR3_anchors[v_alig.gene_name];
-					int v_ins_correction = std::count_if(
-							v_alig.insertions.begin(), v_alig.insertions.end(), 
-							// Lambda function for condition
-							[cdr3_v_gene_anch](int inss){ 
-										return (inss <= cdr3_v_gene_anch); 
-							}
-					);
-					cdr3_v_gene_anch = cdr3_v_gene_anch + v_ins_correction;
-
-					int cdr3_v_read_anch = cdr3_v_gene_anch + v_alig.offset;
-					int dels_correction = std::count_if(
-							v_alig.deletions.begin(), v_alig.deletions.end(), 
-							// Lambda function for condition
-							[cdr3_v_read_anch](int dels){ 
-										return (dels <= cdr3_v_read_anch); 
-							}
-						);
-					cdr3_v_read_anch = cdr3_v_read_anch + dels_correction; // ins_size before the cdr3 a
-
-
-					///////////////////////////////////
-					// Get only one alignment for J  //
-					///////////////////////////////////
-					vector<Alignment_data> Vec_J_Alignment_data = (sorted_alignments[seq_index].second )[J_gene];
-					
-					// If no J alignment was found then write an empty CDR3
-					if ( Vec_J_Alignment_data.size() == 0 ){
-						cout << "seq_index = " << seq_index << ", Vec_V_Alignment_data.size() = " << Vec_J_Alignment_data.size() <<endl;
-						ofileIndexedCDR3 << seq_index << ";";
-						ofileIndexedCDR3 << cdr3_v_read_anch  << ";;;;"<<endl;
-						continue;
-					}
-					
-					Alignment_data j_alig = Vec_J_Alignment_data.front(); //at(0);
-					
-					j_gene_name = j_alig.gene_name;
-					j_gene_str  = UMap_j_genomic[j_alig.gene_name];
-					j_ins_size  = distance(j_alig.insertions.begin(), j_alig.insertions.end() );
-					j_dels_size = distance(j_alig.deletions .begin(), j_alig.deletions .end() );
-
-					// Get the anchor from map and correct them.
-					cdr3_j_gene_anch = UMap_j_CDR3_anchors[j_alig.gene_name];
-					int j_ins_correction = std::count_if(
-							j_alig.insertions.begin(), j_alig.insertions.end(), 
-							// Lambda function for condition
-							[cdr3_j_gene_anch](int inss){ 
-										return (inss <= cdr3_j_gene_anch); 
-							}
-					);
-					cdr3_j_gene_anch = cdr3_j_gene_anch + j_ins_correction;
-
-					int cdr3_j_read_anch = cdr3_j_gene_anch + j_alig.offset;
-					int j_dels_correction = std::count_if(
-							j_alig.deletions.begin(), j_alig.deletions.end(), 
-							// Lambda function for condition
-							[cdr3_j_read_anch](int dels){ 
-										return (dels <= cdr3_j_read_anch); 
-							}
-						);
-
-					// In order to get the phelanine or triptophan in the sequence +3.
-					cdr3_j_read_anch = cdr3_j_read_anch + j_dels_correction + 3; // ins_size before the cdr3 anchor
-					cout << seq_str.size() << ", "<< cdr3_v_read_anch << ", " << cdr3_j_read_anch << endl;	
-					// --------------- Print in file if anchor is coherent ---------------- //
-					ofileIndexedCDR3 << seq_index << ";";
-					ofileIndexedCDR3 << cdr3_v_read_anch  << ";";
-					ofileIndexedCDR3 << cdr3_j_read_anch  << ";" ;
-					// Anchor is inside proposed alignment.
-					if ( ( cdr3_v_read_anch <= seq_str.size() ) and
-							 ( cdr3_j_read_anch <= seq_str.size() ) and
-							 ( cdr3_v_read_anch <= cdr3_j_read_anch )	){
-						cout << seq_str<<", " <<endl;
-						string strCDR3 = seq_str.substr(cdr3_v_read_anch, cdr3_j_read_anch - cdr3_v_read_anch);
-//						ofileIndexedCDR3 << cdr3_j_read_anch  << ";";
-						ofileIndexedCDR3 << strCDR3 << ";";
-						cout << strCDR3 << ";";
-						ofileIndexedCDR3 << translate(strCDR3);
-					} 
-
-					ofileIndexedCDR3 << endl;
-				}// end for indexed_seqlist
+				for (auto seq_it = indexed_seqlist.begin(); seq_it != indexed_seqlist.end(); ++seq_it){
+					CDR3SeqData cdr3InputSeq;
+					int seq_index = (*seq_it).first;
+					cdr3InputSeq = featureCDR3.generateCDR3( seq_index );
+					ofileIndexedCDR3 << featureCDR3.generateCDR3_csv_line(cdr3InputSeq) << endl;
+				}
 				ofileIndexedCDR3.close();
-			}
+			} // end extractCDR3
 		}//end align
 
 		if(infer xor evaluate){
