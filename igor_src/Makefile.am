@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I ../m4
 
 # Declare program name and install it in $(bindir) directory 
-bin_PROGRAMS = igor #testIgor TestAlign TestCDR3 TestCDR3AnchorReads
+bin_PROGRAMS = igor 
 
 # List all Igor sources
 SOURCES = Aligner.cpp Aligner.h Bestscenarioscounter.cpp Bestscenarioscounter.h CDR3SeqData.h CDR3SeqData.cpp Counter.cpp Counter.h Coverageerrcounter.cpp Coverageerrcounter.h Deletion.cpp Deletion.h Dinuclmarkov.cpp Dinuclmarkov.h Errorscounter.cpp Errorscounter.h Errorrate.cpp Errorrate.h ExtractFeatures.h ExtractFeatures.cpp Genechoice.cpp Genechoice.h GenModel.cpp GenModel.h HypermutationfullNmererrorrate.cpp HypermutationfullNmererrorrate.h Hypermutationglobalerrorrate.cpp Hypermutationglobalerrorrate.h Insertion.cpp Insertion.h IntStr.cpp IntStr.h Model_marginals.cpp Model_marginals.h Model_Parms.cpp Model_Parms.h Pgencounter.cpp Pgencounter.h Rec_Event.cpp Rec_Event.h Singleerrorrate.cpp Singleerrorrate.h Utils.cpp Utils.h
