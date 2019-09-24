@@ -512,7 +512,7 @@ string translate(string seq){
 		if (AA == "*"){
 			stopCodonQ = true;
 		}
-		AAChain = AAChain + AA; //.second;			
+		AAChain +=  AA;			
 	}
 	return AAChain;
 }
