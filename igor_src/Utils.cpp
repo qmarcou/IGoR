@@ -504,7 +504,7 @@ string translate(string seq){
 	string AA ="";
 	string AAChain ="";
 	bool stopCodonQ = false;
-	while ((codonPos < seqLen) and !stopCodonQ){
+	while ((codonPos < seqLen) ){
 		strCodon = seq.substr(codonPos, codonLen);
 //		cout << strCodon << " codonPos: " << codonPos << endl;
 		codonPos = codonPos + codonLen;
