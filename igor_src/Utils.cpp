@@ -492,7 +492,7 @@ UMCodonTable CodonTableStandard = {
 };
 
 
-/*
+/**
  * \param seq: DNA sequence to translate.
  * \return amino acid sequence. 
  */
