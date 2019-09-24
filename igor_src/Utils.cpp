@@ -507,7 +507,7 @@ string translate(string seq){
 	while ((codonPos < seqLen) ){
 		strCodon = seq.substr(codonPos, codonLen);
 //		cout << strCodon << " codonPos: " << codonPos << endl;
-		codonPos = codonPos + codonLen;
+		codonPos += codonPos; 
 		AA = CodonTableStandard[strCodon];
 		if (AA == "*"){
 			stopCodonQ = true;
