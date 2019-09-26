@@ -3,6 +3,10 @@
 .project
 .settings/*
 
+# Ignore Netbeans config files
+nbproject
+
+
 # Ignore the compiled object files
 *.o
 *.gcno

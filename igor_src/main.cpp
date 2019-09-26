@@ -60,7 +60,6 @@ typedef std::string strSeqID;    // fasta description >strSeqID
 typedef std::string strSequence;
 typedef vector< pair<const int, const strSequence> > VectorIndexedSeq;
 typedef pair<strSeqID, strSequence> Indexed_Seq; // A typedef for a doublet of a strSequence and the corresponding sequence index
-typedef vector<PairSeq>  VectorGenomicTemplate;
 
 
 int terminate_IGoR_with_error_message(const forward_list<string> error_messages){
