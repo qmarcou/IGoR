@@ -1,8 +1,25 @@
-
-
-/* 
+/*
  * File:   ExtractFeatures.h
- * Author: alfaceor
+ *
+ *      Author: Carlos Olivares
+ *
+ *  This source code is distributed as part of the IGoR software.
+ *  IGoR (Inference and Generation of Repertoires) is a versatile software to analyze and model immune receptors
+ *  generation, selection, mutation and all other processes.
+ *   Copyright (C) 2017  Quentin Marcou
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -15,8 +32,13 @@
 #include <sstream>
 #include "Utils.h"
 
-
 using namespace std;
+
+/**
+ * \class ExtractFeatures ExtractFeatures.h
+ * \brief Class to extract sequences features (e.g. CDR3) of sequences using alignment and V, J anchors information.
+ * \author C. Olivares
+ */
 class ExtractFeatures {
 public:
     ExtractFeatures();
@@ -33,11 +55,14 @@ public:
     void load_VJgenomicTemplates(vector<pair<string,string>> v_genomic, vector<pair<string,string>> j_genomic);
     void load_VJanchors(string flnV_CDR3_anchors, string flnJ_CDR3_anchors);
     
+    void print_VgenomicTemplates();
+    void print_JgenomicTemplates();
+    
 //    void set_indexed_seqlist(vector<pair<const int, const string>>* pointer);
     void set_sorted_alignments(unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>>* pointer);
     
     
-    CDR3SeqData generateCDR3(int seq_index);
+    CDR3SeqData extractCDR3(int seq_index);
     int getVAnchor4Seq(string seq_str, Alignment_data v_alig);
     int getJAnchor4Seq(string seq_str, Alignment_data j_alig);
     

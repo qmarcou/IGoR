@@ -5,6 +5,7 @@
 
 # Ignore Netbeans config files
 nbproject
+tests
 
 
 # Ignore the compiled object files

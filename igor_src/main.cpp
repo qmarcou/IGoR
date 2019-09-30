@@ -246,7 +246,8 @@ int main(int argc , char* argv[]){
 		bool j_reversed_offsets = false;
 		
 		// Flag to extract CDR3 from aligned sequences.
-		bool bFeature_CDR3 = true;
+		bool b_feature		  = true;
+		bool b_feature_CDR3 = true;
 
 
 	while(carg_i<argc){
@@ -588,6 +589,25 @@ int main(int argc , char* argv[]){
 					// Set the the V and J align thresholds accordingly
 					v_align_thresh_value = 0;
 					j_align_thresh_value = 0;
+				}
+				else if(string(argv[carg_i]) == "--feature"){
+					// Option to extract feature of (nucleotides) sequences
+					b_feature		  = true;
+					while( (carg_i+1<argc)
+							and (string(argv[carg_i+1]).size()>3)
+							and (string(argv[carg_i+1]).substr(0,3) == string("---"))){
+
+						++carg_i;
+						// FIXME: Think on a better name for this subsuboption, could be confusing with the -align --ntCDR3
+						if(string(argv[carg_i]) == "---ntCDR3"){
+							//Read the alignment score threshold
+							++carg_i;
+							b_feature_CDR3 = true;
+						}
+						else{
+							return terminate_IGoR_with_error_message("Unknown --feature parameter\"" + string(argv[carg_i]) + " in -align " );
+						}
+					}
 				}
 				else{
 					return terminate_IGoR_with_error_message("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
@@ -1909,22 +1929,24 @@ int main(int argc , char* argv[]){
 			}
 			
 			//Get CDR3 from alignments.
-			if (bFeature_CDR3){
+			if (b_feature_CDR3){
 				unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments;
+				// If alignments files are not found CDR3 will not be extracted.
 				try{
 					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
 				}
 				catch(exception& e){
-					return terminate_IGoR_with_error_message("Exception caught while reading V alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --V\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+					return terminate_IGoR_with_error_message("Exception caught while reading V alignments before feature extraction. Make sure alignments were carried previously using \"-align --V\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
 				}
 
 				try{
 					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
 				}
 				catch(exception& e){
-					return terminate_IGoR_with_error_message("Exception caught while reading J alignments before inference/evaluation. Make sure alignments were carried previously using \"-align --J\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+					return terminate_IGoR_with_error_message("Exception caught while reading J alignments before feature extraction. Make sure alignments were carried previously using \"-align --J\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
 				}
-			
+				
+				clog<<"Performing CDR3 sequence extraction ...."<<endl;
 				string cl_path_ref_genome = string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/";
 				string cl_path_aligns     = cl_path + "aligns/" +batchname;
 
@@ -1945,7 +1967,7 @@ int main(int argc , char* argv[]){
 				for (auto seq_it = indexed_seqlist.begin(); seq_it != indexed_seqlist.end(); ++seq_it){
 					CDR3SeqData cdr3InputSeq;
 					int seq_index = (*seq_it).first;
-					cdr3InputSeq = featureCDR3.generateCDR3( seq_index );
+					cdr3InputSeq = featureCDR3.extractCDR3( seq_index );
 					ofileIndexedCDR3 << featureCDR3.generateCDR3_csv_line(cdr3InputSeq) << endl;
 				}
 				ofileIndexedCDR3.close();

@@ -62,7 +62,7 @@ void ExtractFeatures::set_sorted_alignments(unordered_map<int,pair<string,unorde
  * \param J_alignment
  * \return CDR3SeqData
  */
-CDR3SeqData ExtractFeatures::generateCDR3(int seq_index){
+CDR3SeqData ExtractFeatures::extractCDR3(int seq_index){
 	string seq_str = (*p_sorted_alignments)[seq_index].first;
 	CDR3SeqData cdr3 = CDR3SeqData();
 	cdr3.seq_index = seq_index;
@@ -185,7 +185,11 @@ int ExtractFeatures::getJAnchor4Seq(string seq_str, Alignment_data j_alig){
 }
 
 
-
+/**
+ * \brief Function to generate a CDR3 string line to be printed on a file.
+ * \param cdr3InputSeq is CDR3SeqData instance 
+ * \return csvline line string to be printed on a file.
+ */
 string ExtractFeatures::generateCDR3_csv_line(CDR3SeqData cdr3InputSeq){
 	// seq_index;v_anchor;j_anchor;CDR3nt;CDR3aa
 	string strCSVdelimiter = ";";
@@ -199,7 +203,6 @@ string ExtractFeatures::generateCDR3_csv_line(CDR3SeqData cdr3InputSeq){
 	bool bNoV = ((cdr3InputSeq.v_anchor < 0 ) or (cdr3InputSeq.v_anchor > seq_str.size() ) );
 	bool bNoJ = ((cdr3InputSeq.j_anchor < 0 ) or (cdr3InputSeq.j_anchor > seq_str.size() ) );
 	if ( bNoV or bNoJ ){
-		cout << ""+sstm.str()<<endl;
 		sstm << strCSVdelimiter;
 		sstm << strCSVdelimiter;
 		sstm << strCSVdelimiter;
