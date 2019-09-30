@@ -52,8 +52,6 @@
 using namespace std;
 
 
-// FIXME: PUT THIS IN ANOTHER FILE
-
 
 // TODO: Possible typedef definitions for code readability.
 typedef std::string strSeqID;    // fasta description >strSeqID
@@ -995,20 +993,6 @@ int main(int argc , char* argv[]){
 					seqs_fileformat = TXT_f;
 					clog<<"TXT extension detected for the input sequence file"<<endl;
 				}
-//				else if(tmp_str == ".fastq"){
-//					seqs_fileformat = FASTQ_f;
-//					clog<<"FASTQ extension detected for the input sequence file"<<endl;
-//					clog<<"Parsing fastq to fasta "<<endl;
-//					string basefilename = input_seqs_file.substr(0, extension_index);
-//					try{
-//					  system("fastaq_to_fasta -i "+input_seqs_file+" -o "+basefilename+".fasta");
-//					}catch(exception& e){
-//					  cout << e.what() <<endl;
-//						return 1;
-//					}
-//					
-//					clog<<"Rerun igor using the new fasta file createded :"<<basefilename <<".fasta"<<endl;
-//				}
 				else{
 					return terminate_IGoR_with_error_message("Unknown file extension \"" + tmp_str + "\" for input sequences file! ");
 				}

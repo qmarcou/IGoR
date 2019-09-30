@@ -8,35 +8,17 @@ SOURCES = Aligner.cpp Aligner.h Bestscenarioscounter.cpp Bestscenarioscounter.h 
 
 igor_SOURCES = $(SOURCES) main.cpp
 
-## testIgor_SOURCES = $(SOURCES) IOParams.cpp IOParams.h testIgor.cpp
-## 
-## TestAlign_SOURCES = $(SOURCES) IOParams.cpp IOParams.h IgorSeq.cpp IgorSeq.h TestAlign.cpp
-## 
-## TestCDR3_SOURCES = $(SOURCES) TestCDR3.cpp
-## 
-## TestCDR3AnchorReads_SOURCES = $(SOURCES) TestCDR3AnchorReads.cpp
 
 # Include GSL subparts and jemalloc without installation
 
 igor_LDADD = ../libs/gsl_sub/libgsl_sub.la ../libs/jemalloc/lib/libjemalloc.a -lpthread -ldl #Need to link pthread since it is not statically linked with jemalloc (for now)
 
-# Test Files
-## testIgor_LDADD = $(igor_LDADD)
-## TestAlign_LDADD = $(igor_LDADD)
-## TestCDR3_LDADD = $(igor_LDADD)
-## TestCDR3AnchorReads_LDADD = $(igor_LDADD)
 
 igor_CXXFLAGS = -I$(srcdir)/../libs/jemalloc/include/jemalloc -I$(srcdir)/../libs/gsl_sub $(OPENMP_CXXFLAGS) -DIGOR_DATA_DIR=\"$(pkgdatadir)\"
 
-## testIgor_CXXFLAGS = $(igor_CXXFLAGS)
-## TestAlign_CXXFLAGS = $(igor_CXXFLAGS)
-## TestCDR3_CXXFLAGS = $(igor_CXXFLAGS)
-## TestCDR3AnchorReads_CXXFLAGS = $(igor_CXXFLAGS)
 
 # Pass IGoR data install directory path through the compiler with -DIGOR_DATA_DIR=\"$(pkgdatadir)\"
 # and not in config.h (as it is best practice according to: https://stackoverflow.com/questions/5867136/autoconf-how-to-get-installation-paths-into-config-h#11317815)
-
-
 
 
 
