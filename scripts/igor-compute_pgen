@@ -12,7 +12,6 @@ igor -set_wd ${tmp_dir} -batch ${randomBatch} -read_seqs ${tmp_seqfile}
 igor -set_wd ${tmp_dir} -batch ${randomBatch} -species ${species} -chain ${chain} -align --all
 igor -set_wd ${tmp_dir} -batch ${randomBatch} -species ${species} -chain ${chain} -evaluate -output --Pgen
 echo ""
-echo "#################    PGEN   #######################"
 #cat ${tmp_dir}/aligns/${randomBatch}_indexed_sequences.csv
 #cat ${tmp_dir}/aligns/${randomBatch}_indexed_CDR3.csv
 cat ${tmp_dir}/${randomBatch}_output/Pgen_counts.csv
