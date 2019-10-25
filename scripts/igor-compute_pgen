@@ -16,5 +16,4 @@ echo ""
 #cat ${tmp_dir}/aligns/${randomBatch}_indexed_CDR3.csv
 cat ${tmp_dir}/${randomBatch}_output/Pgen_counts.csv
 rm -r ${tmp_dir}
-echo "###################################################"
 
