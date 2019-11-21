@@ -73,7 +73,7 @@ public:
 protected:
 	std::string path_to_file;
 	bool last_iter_only;
-	bool fstreams_created;
+	bool fstreams_created = false;
 	//TODO create a unique identifier of the counter? Make something up to prevent to have twice the same counter??
 };
 

@@ -31,7 +31,7 @@ Counter::Counter(string path): Counter(path,false){
 
 }
 
-Counter::Counter(string path , bool last_iter):path_to_file(path),last_iter_only(last_iter),fstreams_created(false){
+Counter::Counter(string path , bool last_iter):path_to_file(path),last_iter_only(last_iter){
 	//Make sure the given path is a folder
 	if (path_to_file[path_to_file.size()-1] != '/'){
 		path_to_file+="/";
