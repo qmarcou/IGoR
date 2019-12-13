@@ -598,7 +598,6 @@ int main(int argc , char* argv[]){
 						++carg_i;
 						// FIXME: Think on a better name for this subsuboption, could be confusing with the -align --ntCDR3
 						if(string(argv[carg_i]) == "---ntCDR3"){
-							//Read the alignment score threshold
 							++carg_i;
 							b_feature_CDR3 = true;
 						}
@@ -2088,5 +2087,4 @@ int main(int argc , char* argv[]){
 	return EXIT_SUCCESS;
 
 }
-
 
