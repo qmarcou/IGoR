@@ -1938,7 +1938,7 @@ int main(int argc , char* argv[]){
 				string flnJ_CDR3_anchors = cl_path_ref_genome + "J_gene_CDR3_anchors.csv";
 
 
-				string flnIndexedCDR3      = cl_path_aligns     + "indexed_CDR3.csv";
+				string flnIndexedCDR3      = cl_path_aligns     + "indexed_CDR3s.csv";
 				ofstream ofileIndexedCDR3(flnIndexedCDR3);
 				ofileIndexedCDR3 << "seq_index;v_anchor;j_anchor;CDR3nt;CDR3aa"<<endl;
 			
@@ -2088,6 +2088,5 @@ int main(int argc , char* argv[]){
 	return EXIT_SUCCESS;
 
 }
-
 
 
