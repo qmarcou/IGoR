@@ -27,22 +27,15 @@
 
 using namespace std;
 
-Counter::Counter(string path): Counter(path,false){
-
-}
-
-Counter::Counter(string path , bool last_iter):path_to_file(path),last_iter_only(last_iter),fstreams_created(false){
-	//Make sure the given path is a folder
-	if (path_to_file[path_to_file.size()-1] != '/'){
-		path_to_file+="/";
-	}
-}
-
 /*
  * By default the counter will be output in /tmp
  * I hope you're using a UNIX based system
  */
-Counter::Counter(): Counter("/tmp/") {
+Counter::Counter(string path /* = "/tmp/"*/, bool last_iter /* = false*/):path_to_file(path),last_iter_only(last_iter),fstreams_created(false){
+	//Make sure the given path is a folder
+	if (path_to_file[path_to_file.size()-1] != '/'){
+		path_to_file+="/";
+	}
 }
 
 Counter::~Counter() {

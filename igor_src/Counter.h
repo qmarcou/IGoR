@@ -46,9 +46,7 @@
  */
 class Counter {
 public:
-	Counter();
-	Counter(std::string);
-	Counter(std::string , bool);
+	Counter(std::string path = "/tmp/", bool last_iter = false);
 	virtual ~Counter();
 
 	virtual std::string type() const =0;
