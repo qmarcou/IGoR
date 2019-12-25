@@ -31,7 +31,7 @@ using namespace std;
  * By default the counter will be output in /tmp
  * I hope you're using a UNIX based system
  */
-Counter::Counter(string path /* = "/tmp/"*/, bool last_iter /* = false*/):path_to_file(path),last_iter_only(last_iter),fstreams_created(false){
+Counter::Counter(const string& path /* = "/tmp/"*/, bool last_iter /* = false*/):path_to_file(path),last_iter_only(last_iter),fstreams_created(false){
 	//Make sure the given path is a folder
 	if (path_to_file[path_to_file.size()-1] != '/'){
 		path_to_file+="/";
