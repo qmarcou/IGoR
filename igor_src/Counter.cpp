@@ -33,8 +33,8 @@ using namespace std;
  */
 Counter::Counter(const string& path /* = "/tmp/"*/, bool last_iter /* = false*/):path_to_file(path),last_iter_only(last_iter),fstreams_created(false){
 	//Make sure the given path is a folder
-	if (path_to_file[path_to_file.size()-1] != '/'){
-		path_to_file+="/";
+	if (path_to_file.back() != '/'){
+		path_to_file.push_back('/');
 	}
 }
 
