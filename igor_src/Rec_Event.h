@@ -98,9 +98,8 @@ struct Event_realization {
  */
 class Rec_Event {
 public:
-	Rec_Event();
-	Rec_Event(Gene_class, Seq_side );
-	Rec_Event(Gene_class, Seq_side ,std::unordered_map<std::string,Event_realization>&);
+	Rec_Event() = default;
+	Rec_Event(Gene_class, Seq_side , const std::unordered_map<std::string,Event_realization>& realizations = {});
 	virtual ~Rec_Event();
 	virtual std::shared_ptr<Rec_Event> copy() = 0;//TODO make it const somehow
 	virtual int size()const;
@@ -190,27 +189,27 @@ public:
 
 protected:
 	std::unordered_map < std::string, Event_realization > event_realizations;
-	int priority;
-	Gene_class event_class;
-	Seq_side event_side ;
-	Rec_Event_name name; //Construct the name in a smart way so that it is unique
+	int priority = 0;
+	Gene_class event_class = Undefined_gene;
+	Seq_side event_side = Undefined_side;
+	Rec_Event_name name = "Undefined_event_name"; //Construct the name in a smart way so that it is unique
 	std::string nickname;
-	int len_min;
-	int len_max;
-	Event_type type;
-	int event_index;
+	int len_min = INT16_MAX;
+	int len_max = INT16_MIN;
+	Event_type type = Undefined_t;
+	int event_index = INT16_MIN;
 	std::forward_list<std::tuple<int,int,int>> memory_and_offsets;//0: event identifier , 1: memory layer , 2: offset
-	bool updated;
+	bool updated = false;
 	bool viterbi_run;
 	bool initialized;
 	size_t event_marginal_size;
-	bool fixed;
-	double event_upper_bound_proba;
-	double scenario_downstream_upper_bound_proba;
-	double scenario_upper_bound_proba; // Used at runtime to store the upper bound probability of the whole scenario
+	bool fixed = false;
+	double event_upper_bound_proba = -1;
+	double scenario_downstream_upper_bound_proba = -1;
+	double scenario_upper_bound_proba = -1; // Used at runtime to store the upper bound probability of the whole scenario
 	std::forward_list<double*> updated_proba_bounds_list;
 	std::vector<int> current_realizations_index_vec;
-	const int* current_realization_index;
+	const int* current_realization_index = nullptr;
 	int current_downstream_proba_memory_layers[6];
 
 
