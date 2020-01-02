@@ -877,6 +877,9 @@ int main(int argc , char* argv[]){
 					shared_ptr<Counter> coverage_counter_ptr(new Coverage_err_counter(cl_path + "output/",chosen_gc,1,false,true));
 					cl_counters_list.emplace(cl_counters_list.size(),coverage_counter_ptr);
 				}
+				else{
+					return terminate_IGoR_with_error_message("Unknown subargument \""+string(argv[carg_i])+"\" to specify outputs");
+				}
 			}
 		}
 
@@ -1078,6 +1081,9 @@ int main(int argc , char* argv[]){
 
 				//TODO infer only \mu for the hypermutation model
 			}
+		}
+		else{
+			return terminate_IGoR_with_error_message("Unknown parameter \""+string(argv[carg_i])+"\" to specify immune chain of interest.");
 		}
 		//Read CDR3 anchors(cystein, tryptophan/phenylalanin indices)
 		try{
