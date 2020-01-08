@@ -1,14 +1,26 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   GeneFeatures.cpp
- * Author: alfaceor
+ * File:   ExtractFeatures.cpp
+ *
+ *      Author: Carlos Olivares
  * 
- * Created on 20 de Setembro de 2019, 12:41
+ *  This source code is distributed as part of the IGoR software.
+ *  IGoR (Inference and Generation of Repertoires) is a versatile software to analyze and model immune receptors
+ *  generation, selection, mutation and all other processes.
+ *   Copyright (C) 2017- Quentin Marcou, 2019 - Carlos Olivares
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
 #include "ExtractFeatures.h"
@@ -45,6 +57,16 @@ void ExtractFeatures::load_VJgenomicTemplates(vector<pair<string,string>> v_geno
 void ExtractFeatures::load_VJanchors(string flnV_CDR3_anchors, string flnJ_CDR3_anchors){
 	UMap_v_CDR3_anchors = read_gene_anchors_csv(flnV_CDR3_anchors);
 	UMap_j_CDR3_anchors = read_gene_anchors_csv(flnJ_CDR3_anchors);
+}
+
+/**
+ * \brief load data files into GeneFeatures functor class
+ * @param v_CDR3_anchors unordered_map of sequence description and position for V genes CDR3 anchors.
+ * @param j_CDR3_anchors unordered_map of sequence description and position for J genes CDR3 anchors.
+ */
+void ExtractFeatures::load_VJanchors(unordered_map<string, size_t>  v_CDR3_anchors, unordered_map<string, size_t>  j_CDR3_anchors){
+	UMap_v_CDR3_anchors = v_CDR3_anchors;
+	UMap_j_CDR3_anchors = j_CDR3_anchors;
 }
 
 //void ExtractFeatures::set_indexed_seqlist(vector<pair<const int,const string> >* pointer){

@@ -1933,8 +1933,8 @@ int main(int argc , char* argv[]){
 				string cl_path_ref_genome = string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/";
 				string cl_path_aligns     = cl_path + "aligns/" +batchname;
 
-				string flnV_CDR3_anchors = cl_path_ref_genome + "V_gene_CDR3_anchors.csv";
-				string flnJ_CDR3_anchors = cl_path_ref_genome + "J_gene_CDR3_anchors.csv";
+				// string flnV_CDR3_anchors = cl_path_ref_genome + "V_gene_CDR3_anchors.csv";
+				// string flnJ_CDR3_anchors = cl_path_ref_genome + "J_gene_CDR3_anchors.csv";
 
 
 				string flnIndexedCDR3      = cl_path_aligns     + "indexed_CDR3s.csv";
@@ -1943,7 +1943,7 @@ int main(int argc , char* argv[]){
 			
 				ExtractFeatures featureCDR3;
 				featureCDR3.load_VJgenomicTemplates(v_genomic, j_genomic);
-				featureCDR3.load_VJanchors(flnV_CDR3_anchors, flnJ_CDR3_anchors);
+				featureCDR3.load_VJanchors(v_CDR3_anchors, j_CDR3_anchors);
 				featureCDR3.set_sorted_alignments(&sorted_alignments);
 				
 				// For each sequence get the CDR3

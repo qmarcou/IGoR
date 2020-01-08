@@ -2,11 +2,11 @@
  * File:   ExtractFeatures.h
  *
  *      Author: Carlos Olivares
- *
+ * 
  *  This source code is distributed as part of the IGoR software.
  *  IGoR (Inference and Generation of Repertoires) is a versatile software to analyze and model immune receptors
  *  generation, selection, mutation and all other processes.
- *   Copyright (C) 2017  Quentin Marcou
+ *   Copyright (C) 2017- Quentin Marcou, 2019 - Carlos Olivares
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ public:
     
     void load_VJgenomicTemplates(vector<pair<string,string>> v_genomic, vector<pair<string,string>> j_genomic);
     void load_VJanchors(string flnV_CDR3_anchors, string flnJ_CDR3_anchors);
+    void load_VJanchors(unordered_map<string, size_t>  flnV_CDR3_anchors, unordered_map<string, size_t>  flnJ_CDR3_anchors);
     
     void print_VgenomicTemplates();
     void print_JgenomicTemplates();

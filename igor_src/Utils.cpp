@@ -504,15 +504,20 @@ string translate(string seq){
 	string AA ="";
 	string AAChain ="";
 	bool stopCodonQ = false;
-	while ((codonPos < seqLen) ){
-		strCodon = seq.substr(codonPos, codonLen);
-//		cout << strCodon << " codonPos: " << codonPos << endl;
-		codonPos += codonLen; 
-		AA = CodonTableStandard[strCodon];
-		if (AA == "*"){
-			stopCodonQ = true;
+	if (seqLen % codonLen == 0){
+			while ((codonPos < seqLen) ){
+			strCodon = seq.substr(codonPos, codonLen);
+	//		cout << strCodon << " codonPos: " << codonPos << endl;
+			codonPos += codonLen; 
+			AA = CodonTableStandard[strCodon];
+			if (AA == "*"){
+				stopCodonQ = true;
+			}
+			AAChain +=  AA;			
 		}
-		AAChain +=  AA;			
+		return AAChain;
+	}else{
+		// FIXME: Add a message? or leave it blank?
+		return AAChain;
 	}
-	return AAChain;
 }

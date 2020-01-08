@@ -4,7 +4,7 @@ Bash scripts
 
 A set of bash scripts for common tasks using igor.
 We can use igor-compute_pgen to calculate the Pgen of
-an specific sequence.
+a specific sequence.
 
 [source,shell]
 ----

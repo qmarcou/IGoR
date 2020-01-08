@@ -48,12 +48,14 @@ sequence the following fields are given:
 |seq_index |The sequence index the alignment corresponds to in the
 _indexed_sequences.csv_ file.
 
-|v_anchor | Position of the V anchor relative to the read sequence. 
+|v_anchor | Position of the V anchor (first nucleotide of 2nd-CYS codon) relative to the read sequence. 
 
-|j_anchor | Position of the J anchor relative to the read sequence. 
+|j_anchor | Position of the J anchor (last nucleotide of J-PHE or J-TRP codon) relative to the read sequence. 
 
 |CDR3nt | Nucleotide CDR3 sequence of the indexed sequence.
 
 |CDR3aa | Amino acids CDR3 sequence of the indexed sequence.
+
+Anchors position are 0 based indices relative to the read sequence.
 
 |=======================================================================
