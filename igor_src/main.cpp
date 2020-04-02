@@ -834,18 +834,18 @@ int main(int argc , char* argv[]){
 			//Provide a boolean for the choice of a chain type (thus a set of genomic templates and model)
 			chain_provided = true;
 			++carg_i;
-			if( (string(argv[carg_i]) == "alpha")
-					or (string(argv[carg_i]) == "beta")
+			if( (string(argv[carg_i]) == "alpha") or (string(argv[carg_i]) == "TRA")
+					or (string(argv[carg_i]) == "beta") or (string(argv[carg_i]) == "TRB")
 					or (string(argv[carg_i]) == "light")
 					or (string(argv[carg_i]) == "heavy_naive")
 					or (string(argv[carg_i]) == "heavy_memory")
-					or (string(argv[carg_i]) == "IGL")
-					or (string(argv[carg_i]) == "IGK")){
+					or (string(argv[carg_i]) == "lambda") or (string(argv[carg_i]) == "IGL")
+					or (string(argv[carg_i]) == "kappa") or (string(argv[carg_i]) == "IGK")){
 				chain_arg_str = string(argv[carg_i]);
 				clog<<"Chain parameter set to: "<<chain_arg_str<<endl;
 			}
 			else{
-				return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: alpha, beta, heavy_naive , heavy_memory , light, IGL, IGK");
+				return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: TRA (or alpha), TRB (or beta), heavy_naive , heavy_memory , light, IGL (or lambda), IGK (or kappa)");
 			}
 		}
 
@@ -1042,7 +1042,7 @@ int main(int argc , char* argv[]){
 
 
 	if(chain_provided){
-		if(chain_arg_str == "alpha"){
+		if(chain_arg_str == "alpha" or chain_arg_str == "TRA"){
 			has_D = false;
 			chain_path_str = "tcr_alpha";
 			try{
@@ -1059,7 +1059,7 @@ int main(int argc , char* argv[]){
 				return terminate_IGoR_with_error_message("Exception caught while reading TRA J genomic templates.",  e);
 			}
 		}
-		else if(chain_arg_str == "beta"){
+		else if(chain_arg_str == "beta" or chain_arg_str == "TRB"){
 			has_D = true;
 			chain_path_str = "tcr_beta";
 			try{
@@ -1122,7 +1122,8 @@ int main(int argc , char* argv[]){
 
 				//TODO infer only \mu for the hypermutation model
 			}
-		}else if(chain_arg_str == "IGL"){
+		}
+		else if(chain_arg_str == "lambda" or chain_arg_str == "IGL"){
 			has_D = false;
 			chain_path_str = "IGL";
 			try{
@@ -1138,7 +1139,8 @@ int main(int argc , char* argv[]){
 			catch(exception& e){
 				return terminate_IGoR_with_error_message("Exception caught while reading IGL J genomic templates.",  e);
 			}
-		}else if(chain_arg_str == "IGK"){
+		}
+		else if(chain_arg_str == "kappa" or chain_arg_str == "IGK"){
 			has_D = false;
 			chain_path_str = "IGK";
 			try{
