@@ -1209,7 +1209,7 @@ installed on your system.</strong></p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">human</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">alpha, beta, heavy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">alpha, beta, heavy, IGL, IGK</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">mouse</p></td>
@@ -1429,7 +1429,7 @@ for details.</em></p></td>
 <div class="paragraph">
 <p>A set of bash scripts for common tasks using igor.
 We can use igor-compute_pgen to calculate the Pgen of
-an specific sequence.</p>
+a specific sequence.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1665,11 +1665,11 @@ sequence the following fields are given:</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">v_anchor</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Position of the V anchor relative to the read sequence.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Position of the V anchor (first nucleotide of 2nd-CYS codon) relative to the read sequence.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">j_anchor</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Position of the J anchor relative to the read sequence.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Position of the J anchor (last nucleotide of J-PHE or J-TRP codon) relative to the read sequence.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CDR3nt</p></td>
@@ -1677,7 +1677,8 @@ sequence the following fields are given:</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CDR3aa</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Amino acids CDR3 sequence of the indexed sequence.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Amino acids CDR3 sequence of the indexed sequence.
+</p><p class="tableblock">Anchors position are 0 based indices relative to the read sequence.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2310,7 +2311,7 @@ please file your pull request on the <code>dev</code> branch.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-30 11:13:50 CEST
+Last updated 2019-09-19 12:05:53 CEST
 </div>
 </div>
 </body>
