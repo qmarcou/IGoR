@@ -1,6 +1,6 @@
 [cols="<,<",options="header",]
 |=======================
 |Species |Chains
-|human |alpha, beta, heavy
+|human |alpha, beta, heavy, IGL, IGK
 |mouse |beta
 |=======================

@@ -838,12 +838,14 @@ int main(int argc , char* argv[]){
 					or (string(argv[carg_i]) == "beta")
 					or (string(argv[carg_i]) == "light")
 					or (string(argv[carg_i]) == "heavy_naive")
-					or (string(argv[carg_i]) == "heavy_memory")){
+					or (string(argv[carg_i]) == "heavy_memory")
+					or (string(argv[carg_i]) == "IGL")
+					or (string(argv[carg_i]) == "IGK")){
 				chain_arg_str = string(argv[carg_i]);
 				clog<<"Chain parameter set to: "<<chain_arg_str<<endl;
 			}
 			else{
-				return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: alpha, beta, heavy_naive , heavy_memory , light");
+				return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: alpha, beta, heavy_naive , heavy_memory , light, IGL, IGK");
 			}
 		}
 
@@ -1010,7 +1012,7 @@ int main(int argc , char* argv[]){
 			}
 		}
 
-		//If the argument does not correspond to any previous section throw an exception
+		//If the argument doesbeta not correspond to any previous section throw an exception
 		else{
 			return terminate_IGoR_with_error_message("Unknown IGoR command line argument \""+string(argv[carg_i])+"\" ");
 		}
@@ -1119,6 +1121,38 @@ int main(int argc , char* argv[]){
 				//Memory
 
 				//TODO infer only \mu for the hypermutation model
+			}
+		}else if(chain_arg_str == "IGL"){
+			has_D = false;
+			chain_path_str = "IGL";
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGL V genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGL J genomic templates.",  e);
+			}
+		}else if(chain_arg_str == "IGK"){
+			has_D = false;
+			chain_path_str = "IGK";
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGK V genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGK J genomic templates.",  e);
 			}
 		}
 		//Read CDR3 anchors(cystein, tryptophan/phenylalanin indices)
