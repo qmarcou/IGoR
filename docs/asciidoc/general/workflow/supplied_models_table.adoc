@@ -1,6 +1,6 @@
 [cols="<,<",options="header",]
 |=======================
 |Species |Chains
-|human |TRA (or alpha), TRB (or beta), heavy, IGL (or lambda), IGK (or kappa)
+|human |TRA (or alpha), TRB (or beta), IGH (or heavy chain), IGL (or lambda light chain), IGK (or kappa light chain)
 |mouse |TRB (or beta)
 |=======================
