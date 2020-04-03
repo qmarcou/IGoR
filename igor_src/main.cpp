@@ -270,8 +270,8 @@ int main(int argc , char* argv[]){
 		}
 		
 		//Command line argument asking for igor datadir
-		if(string(argv[carg_i]) == string("-datadir")){
-			// Display IGoR's version
+		if(string(argv[carg_i]) == string("-getdatadir")){
+			// Print IGoR's data directory path
 			cout<<IGOR_DATA_DIR<<endl;
 			// End the program without error
 			return 0;
@@ -2131,4 +2131,3 @@ int main(int argc , char* argv[]){
 	return EXIT_SUCCESS;
 
 }
-
