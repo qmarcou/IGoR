@@ -4,18 +4,21 @@ brevity.  Much more detail can be found in the git revision history:
 
     https://github.com/qmarcou/IGoR
 
-* 1.4.0 (April 2, 2020)
+* 1.4.0 (April 11, 2020)
 
   A brief description of the release content's
 
   New features:
-  - Add new file with CDR3 segments 
-  - Add new option -getdatadir to output the path of default models directory
-  - New IGL and IGK models for humans
+  - Add feature extracting CDR3s based on alignments (by @alfaceor)
+  - New IGL and IGK models for humans (by @alfaceor)
+
+  Bug fixes:
+  - fix out of bound access for Dinucleotide markov model internal probabilities (by @Thopic)
 
   Miscellaneous :
-  - New script igor-compute_pgen to calculate pgen for a single sequence
-
+  - New script igor-compute_pgen to calculate pgen for a single sequence (by @alfaceor)
+  - Add error messages for unknown supplied chain or output subargument (by @qmarcou)
+  - Add new option -getdatadir to output the path of default models directory (by @alfaceor)
 
 * 1.3.0 (August 4, 2018)
 
