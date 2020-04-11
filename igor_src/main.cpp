@@ -45,8 +45,20 @@
 #include <chrono>
 #include <set>
 
+#include <string>
+#include "CDR3SeqData.h"
+#include "ExtractFeatures.h"
 
 using namespace std;
+
+
+
+// TODO: Possible typedef definitions for code readability.
+typedef std::string strSeqID;    // fasta description >strSeqID
+typedef std::string strSequence;
+typedef vector< pair<const int, const strSequence> > VectorIndexedSeq;
+typedef pair<strSeqID, strSequence> Indexed_Seq; // A typedef for a doublet of a strSequence and the corresponding sequence index
+
 
 int terminate_IGoR_with_error_message(const forward_list<string> error_messages){
 	string igor_error_prefix = "[IGoR] ERROR: ";
@@ -231,6 +243,10 @@ int main(int argc , char* argv[]){
 		unordered_map<string,pair<int,int>> j_template_bounds_map;
 		bool j_reversed_offsets = false;
 
+		// Flag to extract CDR3 from aligned sequences.
+		bool b_feature		  = true;
+		bool b_feature_CDR3 = true;
+
 
 	while(carg_i<argc){
 
@@ -249,6 +265,14 @@ int main(int argc , char* argv[]){
 			// Display IGoR's version
 			cout<<"IGoR version "<<PACKAGE_VERSION<<endl;
 			clog<<"Visit "<<PACKAGE_URL<<" to check the latest version!"<<endl;
+			// End the program without error
+			return 0;
+		}
+
+		//Command line argument asking for igor datadir
+		if(string(argv[carg_i]) == string("-getdatadir")){
+			// Print IGoR's data directory path
+			cout<<IGOR_DATA_DIR<<endl;
 			// End the program without error
 			return 0;
 		}
@@ -572,6 +596,24 @@ int main(int argc , char* argv[]){
 					v_align_thresh_value = 0;
 					j_align_thresh_value = 0;
 				}
+				else if(string(argv[carg_i]) == "--feature"){
+					// Option to extract feature of (nucleotides) sequences
+					b_feature		  = true;
+					while( (carg_i+1<argc)
+							and (string(argv[carg_i+1]).size()>3)
+							and (string(argv[carg_i+1]).substr(0,3) == string("---"))){
+
+						++carg_i;
+						// FIXME: Think on a better name for this subsuboption, could be confusing with the -align --ntCDR3
+						if(string(argv[carg_i]) == "---ntCDR3"){
+							++carg_i;
+							b_feature_CDR3 = true;
+						}
+						else{
+							return terminate_IGoR_with_error_message("Unknown --feature parameter\"" + string(argv[carg_i]) + " in -align " );
+						}
+					}
+				}
 				else{
 					return terminate_IGoR_with_error_message("Unknown gene specification\"" + string(argv[carg_i]) + "\"for -align");
 				}
@@ -792,16 +834,18 @@ int main(int argc , char* argv[]){
 			//Provide a boolean for the choice of a chain type (thus a set of genomic templates and model)
 			chain_provided = true;
 			++carg_i;
-			if( (string(argv[carg_i]) == "alpha")
-					or (string(argv[carg_i]) == "beta")
+			if( (string(argv[carg_i]) == "alpha") or (string(argv[carg_i]) == "TRA")
+					or (string(argv[carg_i]) == "beta") or (string(argv[carg_i]) == "TRB")
 					or (string(argv[carg_i]) == "light")
 					or (string(argv[carg_i]) == "heavy_naive")
-					or (string(argv[carg_i]) == "heavy_memory")){
+					or (string(argv[carg_i]) == "heavy_memory")
+					or (string(argv[carg_i]) == "lambda") or (string(argv[carg_i]) == "IGL")
+					or (string(argv[carg_i]) == "kappa") or (string(argv[carg_i]) == "IGK")){
 				chain_arg_str = string(argv[carg_i]);
 				clog<<"Chain parameter set to: "<<chain_arg_str<<endl;
 			}
 			else{
-				return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: alpha, beta, heavy_naive , heavy_memory , light");
+				return terminate_IGoR_with_error_message("Unknown argument \""+string(argv[carg_i])+"\" to specify the chain choice!\n Supported arguments are: TRA (or alpha), TRB (or beta), heavy_naive , heavy_memory , light, IGL (or lambda), IGK (or kappa)");
 			}
 		}
 
@@ -971,7 +1015,7 @@ int main(int argc , char* argv[]){
 			}
 		}
 
-		//If the argument does not correspond to any previous section throw an exception
+		//If the argument doesbeta not correspond to any previous section throw an exception
 		else{
 			return terminate_IGoR_with_error_message("Unknown IGoR command line argument \""+string(argv[carg_i])+"\" ");
 		}
@@ -1001,7 +1045,7 @@ int main(int argc , char* argv[]){
 
 
 	if(chain_provided){
-		if(chain_arg_str == "alpha"){
+		if(chain_arg_str == "alpha" or chain_arg_str == "TRA"){
 			has_D = false;
 			chain_path_str = "tcr_alpha";
 			try{
@@ -1018,7 +1062,7 @@ int main(int argc , char* argv[]){
 				return terminate_IGoR_with_error_message("Exception caught while reading TRA J genomic templates.",  e);
 			}
 		}
-		else if(chain_arg_str == "beta"){
+		else if(chain_arg_str == "beta" or chain_arg_str == "TRB"){
 			has_D = true;
 			chain_path_str = "tcr_beta";
 			try{
@@ -1082,9 +1126,44 @@ int main(int argc , char* argv[]){
 				//TODO infer only \mu for the hypermutation model
 			}
 		}
+		else if(chain_arg_str == "lambda" or chain_arg_str == "IGL"){
+			has_D = false;
+			chain_path_str = "IGL";
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGL V genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGL J genomic templates.",  e);
+			}
+		}
+		else if(chain_arg_str == "kappa" or chain_arg_str == "IGK"){
+			has_D = false;
+			chain_path_str = "IGK";
+			try{
+				v_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicVs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGK V genomic templates.",  e);
+			}
+
+			try{
+				j_genomic = read_genomic_fasta(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/genomicJs.fasta");
+			}
+			catch(exception& e){
+				return terminate_IGoR_with_error_message("Exception caught while reading IGK J genomic templates.",  e);
+			}
+		}
 		else{
 			return terminate_IGoR_with_error_message("Unknown parameter \""+string(argv[carg_i])+"\" to specify immune chain of interest.");
 		}
+		
 		//Read CDR3 anchors(cystein, tryptophan/phenylalanin indices)
 		try{
 			v_CDR3_anchors = read_gene_anchors_csv(string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/V_gene_CDR3_anchors.csv");
@@ -1883,7 +1962,51 @@ int main(int argc , char* argv[]){
 				}
 			}
 
-		}
+			//Get CDR3 from alignments.
+			if (b_feature_CDR3){
+				unordered_map<int,pair<string,unordered_map<Gene_class,vector<Alignment_data>>>> sorted_alignments;
+				// If alignments files are not found CDR3 will not be extracted.
+				try{
+					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + v_align_filename, V_gene , 55 , false , indexed_seqlist  );
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading V alignments before feature extraction. Make sure alignments were carried previously using \"-align --V\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+				}
+
+				try{
+					sorted_alignments = read_alignments_seq_csv_score_range(cl_path + "aligns/" +  batchname + j_align_filename, J_gene , 10 , false , indexed_seqlist , sorted_alignments);
+				}
+				catch(exception& e){
+					return terminate_IGoR_with_error_message("Exception caught while reading J alignments before feature extraction. Make sure alignments were carried previously using \"-align --J\" or \"-align --all\" with similar path parameters (working directory, batchname, ...)",e);
+				}
+
+				clog<<"Performing CDR3 sequence extraction ...."<<endl;
+				string cl_path_ref_genome = string(IGOR_DATA_DIR) + "/models/"+species_str+"/"+chain_path_str+"/ref_genome/";
+				string cl_path_aligns     = cl_path + "aligns/" +batchname;
+
+				// string flnV_CDR3_anchors = cl_path_ref_genome + "V_gene_CDR3_anchors.csv";
+				// string flnJ_CDR3_anchors = cl_path_ref_genome + "J_gene_CDR3_anchors.csv";
+
+
+				string flnIndexedCDR3      = cl_path_aligns     + "indexed_CDR3s.csv";
+				ofstream ofileIndexedCDR3(flnIndexedCDR3);
+				ofileIndexedCDR3 << "seq_index;v_anchor;j_anchor;CDR3nt;CDR3aa"<<endl;
+
+				ExtractFeatures featureCDR3;
+				featureCDR3.load_VJgenomicTemplates(v_genomic, j_genomic);
+				featureCDR3.load_VJanchors(v_CDR3_anchors, j_CDR3_anchors);
+				featureCDR3.set_sorted_alignments(&sorted_alignments);
+
+				// For each sequence get the CDR3
+				for (auto seq_it = indexed_seqlist.begin(); seq_it != indexed_seqlist.end(); ++seq_it){
+					CDR3SeqData cdr3InputSeq;
+					int seq_index = (*seq_it).first;
+					cdr3InputSeq = featureCDR3.extractCDR3( seq_index );
+					ofileIndexedCDR3 << featureCDR3.generateCDR3_csv_line(cdr3InputSeq) << endl;
+				}
+				ofileIndexedCDR3.close();
+			} // end extractCDR3
+		}//end align
 
 		if(infer xor evaluate){
 
@@ -1948,7 +2071,7 @@ int main(int argc , char* argv[]){
 		}
 		else if(infer and evaluate){
 			return terminate_IGoR_with_error_message("Cannot infer and evaluate in a single command, please split in two commands (otherwise the model used to evaluate is ambiguous)");
-		}
+		} //end infer / evaluate
 
 		if(generate){
 
@@ -2015,6 +2138,3 @@ int main(int argc , char* argv[]){
 	return EXIT_SUCCESS;
 
 }
-
-
-

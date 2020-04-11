@@ -15,3 +15,6 @@ General
 ~~~~~~~
 
 include::general_command_lines.adoc[]
+
+include::scripts.adoc[]
+

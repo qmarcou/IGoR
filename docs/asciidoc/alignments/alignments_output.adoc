@@ -37,3 +37,25 @@ the genomic template)
 |3_p_align_offset |Offset of the last nucleotide of the SW alignemnt
 (relative to the read)
 |=======================================================================
+
+
+
+The CDR3 files are semicolon separated files. For each IGoR indexed 
+sequence the following fields are given:
+[width="99%",cols="<32%,<68%",options="header",]
+|=======================================================================
+|Field |Description
+|seq_index |The sequence index the alignment corresponds to in the
+_indexed_sequences.csv_ file.
+
+|v_anchor | Position of the V anchor (first nucleotide of 2nd-CYS codon) relative to the read sequence. 
+
+|j_anchor | Position of the J anchor (last nucleotide of J-PHE or J-TRP codon) relative to the read sequence. 
+
+|CDR3nt | Nucleotide CDR3 sequence of the indexed sequence.
+
+|CDR3aa | Amino acids CDR3 sequence of the indexed sequence.
+
+|=======================================================================
+
+TIP: Anchors positions are 0 based indices relative to the read sequence.

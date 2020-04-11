@@ -4,6 +4,19 @@ brevity.  Much more detail can be found in the git revision history:
 
     https://github.com/qmarcou/IGoR
 
+* 1.4.0 (April 2, 2020)
+
+  A brief description of the release content's
+
+  New features:
+  - Add new file with CDR3 segments 
+  - Add new option -getdatadir to output the path of default models directory
+  - New IGL and IGK models for humans
+
+  Miscellaneous :
+  - New script igor-compute_pgen to calculate pgen for a single sequence
+
+
 * 1.3.0 (August 4, 2018)
 
   A brief description of the release content's

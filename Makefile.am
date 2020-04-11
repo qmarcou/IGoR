@@ -16,6 +16,7 @@ man_MANS = igor.1
 bin_SCRIPTS = \
   scripts/igor-compute_pgen
 
+
 install-data-local:
 	mkdir -p $(DESTDIR)$(pkgdatadir)/models
 	cp -r models/* $(DESTDIR)$(pkgdatadir)/models

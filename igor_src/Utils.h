@@ -42,6 +42,8 @@
 #include<sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <unordered_map>
+
 
 class Rec_Event;
 
@@ -51,7 +53,7 @@ enum Event_safety{VD_safe = 0  , DJ_safe = 1  , VJ_safe = 2 };
 enum Seq_side{ Five_prime =0 , Three_prime = 1 , Undefined_side = 2 };
 enum Seq_type {V_gene_seq = 0 , VD_ins_seq = 1 , D_gene_seq = 2 , DJ_ins_seq = 3 , J_gene_seq = 4 , VJ_ins_seq = 5};
 enum Gene_class{V_gene=0 , VD_genes=1 , D_gene=2 , DJ_genes=3 , J_gene=4 , VJ_genes=5 , VDJ_genes=6 ,Undefined_gene=7 };
-enum Fileformat{CSV_f,FASTA_f,TXT_f};
+enum Fileformat{CSV_f,FASTA_f,TXT_f, FASTQ_f};
 enum Int_nt { int_A = 0 , int_C = 1 , int_G = 2 , int_T = 3 , int_R = 4 , int_Y = 5 , int_K = 6 , int_M = 7 , int_S = 8 ,
 				int_W = 9 , int_B = 10 , int_D = 11 , int_H = 12 , int_V = 13 , int_N = 14};
 
@@ -666,5 +668,11 @@ void show_progress_bar(std::ostream&,double, std::string prefix_message = "", si
 void close_progress_bar(std::ostream&, std::string prefix_message = "", size_t progress_bar_size = 70);
 uint64_t draw_random_64bits_seed();
 
+
+typedef std::unordered_map<std::string,std::string> UMCodonTable;
+
+
+
+std::string translate(std::string seq);
 
 #endif /* UTILS_H_ */

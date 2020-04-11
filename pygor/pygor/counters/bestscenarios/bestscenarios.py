@@ -65,6 +65,11 @@ def scenarios_indices2values(best_scenarios, input_genmodel,
             best_scenarios_real[event.name] = tmp_real_indices.apply(
                 lambda x: real_vect[x])
 
+            # Mapping the arrays to list to fix CSV file exporting issues
+            if event.event_type == "DinucMarkov":
+                best_scenarios_real[event.name] = \
+                    list(map(list, best_scenarios_real[event.name]))
+
             # Return possible errors and mismatches as a list of positions
             if best_scenarios_real.columns.contains("Errors"):
                 best_scenarios_real["Errors"] = best_scenarios[
