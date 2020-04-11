@@ -33,7 +33,7 @@ if [ $# == 1 ]; then
 	mv ./pygor/tmpfile ./pygor/setup.py
 
     #Update HTML documentation for github pages website
-    asciidoctor --doctype=article --backend=html --destination-dir=./docs/ --out-file=index.html ./docs/asciidoc/IGoR_documentation.adoc
+    ./build_igor_asciidoc.sh
 
 	#Commit
     echo "Do you wish to commit the changes made during release creation?"

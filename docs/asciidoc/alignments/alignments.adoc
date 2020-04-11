@@ -13,6 +13,11 @@ the alignment on the other side until the end of the read or of the
 genomic template). D is aligned using a classical Smith-Waterman local
 alignment approach allowing gene deletions on both sides.
 
+WARNING: Alignments represent a critical step for a precise probabilistic 
+characterization of your sequences. Make sure you use all the information you 
+have on your sequences (e.g use the knowledge of your primers positions to 
+provide template specific alignment offsets) for optimal result. 
+
 include::alignment_commands.adoc[]
 
 include::alignments_output.adoc[]

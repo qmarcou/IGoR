@@ -1,0 +1,19 @@
+[[scripts]]
+Bash scripts
+^^^^^^^^^^^^
+
+A set of bash scripts for common tasks using igor.
+We can use igor-compute_pgen to calculate the Pgen of
+a specific sequence.
+
+[source,shell]
+----
+igor-compute_pgen <specie> <chain> <ntsequence>
+----
+Example
+
+[source,shell]
+----
+igor-compute_pgen human beta actcagctttgtatttctgtgccagcagcgtagattgggacagggggcctcctacgagcagtacgtcgggccg
+----
+

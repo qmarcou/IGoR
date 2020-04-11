@@ -1,0 +1,21 @@
+#!/bin/bash
+args=("$@")
+species=${args[0]} #human
+chain=${args[1]}  #beta
+seque=${args[2]}
+export tmp_dir=$(mktemp -d)
+export tmp_seqfile=$(mktemp ${tmp_dir}/igorSeq.XXXXXXXXXXXXXXXXXXXXXX.txt)
+echo ${seque} > ${tmp_seqfile}
+export randomBatch=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c10`
+echo ${species}" "${chain}" "${tmp_dir}" "${tmp_seqfile}
+igor -set_wd ${tmp_dir} -batch ${randomBatch} -read_seqs ${tmp_seqfile}
+igor -set_wd ${tmp_dir} -batch ${randomBatch} -species ${species} -chain ${chain} -align --all
+igor -set_wd ${tmp_dir} -batch ${randomBatch} -species ${species} -chain ${chain} -evaluate -output --Pgen
+#cat ${tmp_dir}/aligns/${randomBatch}_indexed_sequences.csv
+#cat ${tmp_dir}/aligns/${randomBatch}_indexed_CDR3.csv
+pgenFile=${tmp_dir}/${randomBatch}_output/Pgen_counts.csv
+#cat ${pgenFile}
+pgenValue=`awk -F ';' 'FNR==2{print $2}' ${pgenFile}`
+echo ${pgenValue}
+rm -r ${tmp_dir}
+

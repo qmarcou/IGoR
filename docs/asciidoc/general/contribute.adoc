@@ -8,3 +8,12 @@ usability, bug reports and new features you would like to see
 get in touch if you would like to do something new with your data and
 would like some more guidance on the code structure
 
+If you would like to share some improvements on IGoR's code please file a pull
+request according to this logic:
+
+* If you'd like to propose a change in the documentation of existing functions 
+to provide clearer insights please file your pull request on the `master` branch.
+* If you'd like to propose a bug fix for a function already present in a release
+ file your pull request on the `master` branch.
+* If you'd like to propose a new functionality and its associated documentation 
+please file your pull request on the `dev` branch. 

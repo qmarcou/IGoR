@@ -12,6 +12,11 @@ demo_DATA = demo/genomicVs_with_primers.fasta demo/genomicDs.fasta demo/genomicJ
 #Install the generated man pages
 man_MANS = igor.1
 
+# Scripts
+bin_SCRIPTS = \
+  scripts/igor-compute_pgen
+
+
 install-data-local:
 	mkdir -p $(DESTDIR)$(pkgdatadir)/models
 	cp -r models/* $(DESTDIR)$(pkgdatadir)/models
