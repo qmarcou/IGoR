@@ -56,6 +56,6 @@ _indexed_sequences.csv_ file.
 
 |CDR3aa | Amino acids CDR3 sequence of the indexed sequence.
 
-Anchors position are 0 based indices relative to the read sequence.
-
 |=======================================================================
+
+TIP: Anchors positions are 0 based indices relative to the read sequence.
