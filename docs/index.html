@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 1.5.5">
+<meta name="generator" content="Asciidoctor 1.5.8">
 <meta name="author" content="Quentin Marcou">
 <title>IGoR (Inference and Generation Of Repertoires) Documentation</title>
 <style>
@@ -736,9 +736,73 @@ pre.pygments.highlight { background-color: rgba(16, 195, 196, 0.05); }
 .pygments .tok-c { color: #999 !important; }
 
 </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
-/* Pygments styles disabled. Pygments is not available. */
+.listingblock .pygments .hll { background-color: #ffffcc }
+.listingblock .pygments, .listingblock .pygments code { background: #f8f8f8; }
+.listingblock .pygments .tok-c { color: #008800; font-style: italic } /* Comment */
+.listingblock .pygments .tok-err { border: 1px solid #FF0000 } /* Error */
+.listingblock .pygments .tok-k { color: #AA22FF; font-weight: bold } /* Keyword */
+.listingblock .pygments .tok-o { color: #666666 } /* Operator */
+.listingblock .pygments .tok-ch { color: #008800; font-style: italic } /* Comment.Hashbang */
+.listingblock .pygments .tok-cm { color: #008800; font-style: italic } /* Comment.Multiline */
+.listingblock .pygments .tok-cp { color: #008800 } /* Comment.Preproc */
+.listingblock .pygments .tok-cpf { color: #008800; font-style: italic } /* Comment.PreprocFile */
+.listingblock .pygments .tok-c1 { color: #008800; font-style: italic } /* Comment.Single */
+.listingblock .pygments .tok-cs { color: #008800; font-weight: bold } /* Comment.Special */
+.listingblock .pygments .tok-gd { color: #A00000 } /* Generic.Deleted */
+.listingblock .pygments .tok-ge { font-style: italic } /* Generic.Emph */
+.listingblock .pygments .tok-gr { color: #FF0000 } /* Generic.Error */
+.listingblock .pygments .tok-gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.listingblock .pygments .tok-gi { color: #00A000 } /* Generic.Inserted */
+.listingblock .pygments .tok-go { color: #888888 } /* Generic.Output */
+.listingblock .pygments .tok-gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.listingblock .pygments .tok-gs { font-weight: bold } /* Generic.Strong */
+.listingblock .pygments .tok-gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.listingblock .pygments .tok-gt { color: #0044DD } /* Generic.Traceback */
+.listingblock .pygments .tok-kc { color: #AA22FF; font-weight: bold } /* Keyword.Constant */
+.listingblock .pygments .tok-kd { color: #AA22FF; font-weight: bold } /* Keyword.Declaration */
+.listingblock .pygments .tok-kn { color: #AA22FF; font-weight: bold } /* Keyword.Namespace */
+.listingblock .pygments .tok-kp { color: #AA22FF } /* Keyword.Pseudo */
+.listingblock .pygments .tok-kr { color: #AA22FF; font-weight: bold } /* Keyword.Reserved */
+.listingblock .pygments .tok-kt { color: #00BB00; font-weight: bold } /* Keyword.Type */
+.listingblock .pygments .tok-m { color: #666666 } /* Literal.Number */
+.listingblock .pygments .tok-s { color: #BB4444 } /* Literal.String */
+.listingblock .pygments .tok-na { color: #BB4444 } /* Name.Attribute */
+.listingblock .pygments .tok-nb { color: #AA22FF } /* Name.Builtin */
+.listingblock .pygments .tok-nc { color: #0000FF } /* Name.Class */
+.listingblock .pygments .tok-no { color: #880000 } /* Name.Constant */
+.listingblock .pygments .tok-nd { color: #AA22FF } /* Name.Decorator */
+.listingblock .pygments .tok-ni { color: #999999; font-weight: bold } /* Name.Entity */
+.listingblock .pygments .tok-ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.listingblock .pygments .tok-nf { color: #00A000 } /* Name.Function */
+.listingblock .pygments .tok-nl { color: #A0A000 } /* Name.Label */
+.listingblock .pygments .tok-nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.listingblock .pygments .tok-nt { color: #008000; font-weight: bold } /* Name.Tag */
+.listingblock .pygments .tok-nv { color: #B8860B } /* Name.Variable */
+.listingblock .pygments .tok-ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.listingblock .pygments .tok-w { color: #bbbbbb } /* Text.Whitespace */
+.listingblock .pygments .tok-mb { color: #666666 } /* Literal.Number.Bin */
+.listingblock .pygments .tok-mf { color: #666666 } /* Literal.Number.Float */
+.listingblock .pygments .tok-mh { color: #666666 } /* Literal.Number.Hex */
+.listingblock .pygments .tok-mi { color: #666666 } /* Literal.Number.Integer */
+.listingblock .pygments .tok-mo { color: #666666 } /* Literal.Number.Oct */
+.listingblock .pygments .tok-sb { color: #BB4444 } /* Literal.String.Backtick */
+.listingblock .pygments .tok-sc { color: #BB4444 } /* Literal.String.Char */
+.listingblock .pygments .tok-sd { color: #BB4444; font-style: italic } /* Literal.String.Doc */
+.listingblock .pygments .tok-s2 { color: #BB4444 } /* Literal.String.Double */
+.listingblock .pygments .tok-se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.listingblock .pygments .tok-sh { color: #BB4444 } /* Literal.String.Heredoc */
+.listingblock .pygments .tok-si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.listingblock .pygments .tok-sx { color: #008000 } /* Literal.String.Other */
+.listingblock .pygments .tok-sr { color: #BB6688 } /* Literal.String.Regex */
+.listingblock .pygments .tok-s1 { color: #BB4444 } /* Literal.String.Single */
+.listingblock .pygments .tok-ss { color: #B8860B } /* Literal.String.Symbol */
+.listingblock .pygments .tok-bp { color: #AA22FF } /* Name.Builtin.Pseudo */
+.listingblock .pygments .tok-vc { color: #B8860B } /* Name.Variable.Class */
+.listingblock .pygments .tok-vg { color: #B8860B } /* Name.Variable.Global */
+.listingblock .pygments .tok-vi { color: #B8860B } /* Name.Variable.Instance */
+.listingblock .pygments .tok-il { color: #666666 } /* Literal.Number.Integer.Long */
 </style>
 </head>
 <body class="article toc2 toc-left">
@@ -861,7 +925,7 @@ BCR receptors features using modern parallel architectures.</p>
 <h2 id="version">Version</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Latest released version: 1.3.0</p>
+<p>Latest released version: 1.4.0</p>
 </div>
 </div>
 </div>
@@ -982,7 +1046,7 @@ using ./configure -h.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">./configure  <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>./configure  <i class="conum" data-value="1"></i><b>(1)</b>
 make  <i class="conum" data-value="2"></i><b>(2)</b>
 make install  <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
 </div>
@@ -1039,7 +1103,7 @@ version corresponding to your MacOS version.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">sudo port selfupdate #Update macports database
+<pre class="pygments highlight"><code data-lang="shell"><span></span>sudo port selfupdate #Update macports database
 sudo port install gcc6 #install gcc version 6</code></pre>
 </div>
 </div>
@@ -1051,7 +1115,7 @@ following commands:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">port select --list gcc #Will list the versions of gcc available on your system
+<pre class="pygments highlight"><code data-lang="shell"><span></span>port select --list gcc #Will list the versions of gcc available on your system
 sudo port select --set gcc mp-gcc6 #set the one you wish to have as default call upon using the gcc command</code></pre>
 </div>
 </div>
@@ -1064,7 +1128,7 @@ installed <a href="https://brew.sh/">here</a>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">brew install gcc</code></pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>brew install gcc</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1195,7 +1259,7 @@ installed on your system.</strong></p>
 <div class="paragraph">
 <p>Available options are listed below:</p>
 </div>
-<table class="tableblock frame-all grid-all spread">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1209,7 +1273,7 @@ installed on your system.</strong></p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">human</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">TRA (or alpha), TRB (or beta), heavy, IGL (or lambda), IGK (or kappa)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TRA (or alpha), TRB (or beta), IGH (or heavy chain), IGL (or lambda light chain), IGK (or kappa light chain)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">mouse</p></td>
@@ -1278,8 +1342,8 @@ time (seconds)</th>
 <h2 id="command-line-tools">Command line tools</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Although the full flexibility of IGoR is reachable through C[]+ highlevel
-functions (see the &lt;&lt;c,C+ section&gt;&gt;) we provide some command line options to
+<p>Although the full flexibility of IGoR is reachable through C++ highlevel
+functions (see the <a href="#c">C++ section</a>) we provide some command line options to
 perform most frequent tasks on immune receptor sequences.</p>
 </div>
 <div class="paragraph">
@@ -1433,7 +1497,7 @@ a specific sequence.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">igor-compute_pgen &lt;specie&gt; &lt;chain&gt; &lt;ntsequence&gt;</code></pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>igor-compute_pgen &lt;specie&gt; &lt;chain&gt; &lt;ntsequence&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1441,7 +1505,7 @@ a specific sequence.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">igor-compute_pgen human beta actcagctttgtatttctgtgccagcagcgtagattgggacagggggcctcctacgagcagtacgtcgggccg</code></pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>igor-compute_pgen human beta actcagctttgtatttctgtgccagcagcgtagattgggacagggggcctcctacgagcagtacgtcgggccg</code></pre>
 </div>
 </div>
 </div>
@@ -1677,11 +1741,22 @@ sequence the following fields are given:</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CDR3aa</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Amino acids CDR3 sequence of the indexed sequence.
-</p><p class="tableblock">Anchors position are 0 based indices relative to the read sequence.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Amino acids CDR3 sequence of the indexed sequence.</p></td>
 </tr>
 </tbody>
 </table>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Anchors positions are 0 based indices relative to the read sequence.
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -2117,7 +2192,7 @@ default a random seed is obtained from the system.</p></td>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">igor -run_demo</code></pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>igor -run_demo</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2127,13 +2202,14 @@ directory containing the executable.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working directory
+<pre class="pygments highlight"><code data-lang="shell"><span></span>
+WDPATH=/path/to/your/working/directory #Let&#39;s define a shorthand for the working directory
 
 #We first read the sequences contained in a text file inside the demo folder
 #This will create the align folder in the working directory and the mydemo_indexed_seqs.csv file.
 igor -set_wd $WDPATH -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt
 
-#Now let's align the sequences against the provided human beta chain genomic templates with default parameters
+#Now let&#39;s align the sequences against the provided human beta chain genomic templates with default parameters
 #This will create foo_V_alignments.csv, foo_D_alignments.csv and foo_J_alignments.csv files inside the align folder.
 igor -set_wd $WDPATH -batch foo -species human -chain beta -align --all
 
@@ -2153,7 +2229,7 @@ with a lighter syntax:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">WDPATH=/path/to/your/working/directory #Let's define a shorthand for the working directory
+<pre class="pygments highlight"><code data-lang="shell"><span></span>WDPATH=/path/to/your/working/directory #Let&#39;s define a shorthand for the working directory
 MYCOMMANDS=./igor -set_wd $WDPATH
 
 $MYCOMMANDS -batch foo -read_seqs ../demo/murugan_naive1_noncoding_demo_seqs.txt #Read seqs
@@ -2220,10 +2296,10 @@ PDF. For any question please contact us.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="cpp">else{
-	//Write your custom procedure here
+<pre class="pygments highlight"><code data-lang="cpp"><span></span><span class="tok-k">else</span><span class="tok-p">{</span>
+	<span class="tok-c1">//Write your custom procedure here</span>
        <i class="conum" data-value="1"></i><b>(1)</b>
-}</code></pre>
+<span class="tok-p">}</span></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -2311,7 +2387,7 @@ please file your pull request on the <code>dev</code> branch.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-19 12:05:53 CEST
+Last updated 2020-04-11 20:15:19 +0200
 </div>
 </div>
 </body>
