@@ -31,14 +31,7 @@ using namespace std;
 
 //std::ofstream log_file(std::string("/media/quentin/419a9e2c-2635-471b-baa0-58a693d04d87/data/tcr_murugan/one_seq_comp/logs.txt"));
 
-Rec_Event::Rec_Event(Gene_class gene , Seq_side side ): priority(0) , event_class(gene) , event_side(side) , name("Undefined_event_name") ,len_min(INT16_MAX) , len_max(INT16_MIN) , type(Undefined_t), event_index(INT16_MIN) , updated(false),fixed(false) , current_realizations_index_vec(vector<int>()) , scenario_downstream_upper_bound_proba(-1),event_upper_bound_proba(-1),scenario_upper_bound_proba(-1),current_realization_index(nullptr){} //FIXME why does this exist? anyway fix initilization
-
-
-Rec_Event::Rec_Event(Gene_class gene , Seq_side side , unordered_map<string , Event_realization>& realizations): Rec_Event(gene,side)  {
-	this->event_realizations = realizations;
-}
-
-Rec_Event::Rec_Event(): Rec_Event( Undefined_gene , Undefined_side ) {}
+Rec_Event::Rec_Event(Gene_class gene , Seq_side side , const unordered_map<string,Event_realization>& realizations): event_class(gene) , event_side(side), event_realizations(realizations){}
 
 
 
