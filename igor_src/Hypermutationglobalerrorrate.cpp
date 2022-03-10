@@ -578,7 +578,7 @@ double Hypermutation_global_errorrate::compare_sequences_error_prob (double scen
 
 			is_visible_nt = false;
 			tmp_corr_len = -(**vgene_offset_p) - (mutation_Nmer_size-1)/2;
-			tmp_len_util = seq_offsets.at(J_gene_seq,Five_prime)-(mutation_Nmer_size-1)/2; //Start using the information of the (N-1)/2 inserted (or D) nucleotides before the J
+			tmp_len_util = seq_offsets.at(V_gene_seq,Five_prime)-(mutation_Nmer_size-1)/2; //Start using the information of the (N-1)/2 inserted (or D) nucleotides before the J
 
 			//Fill in the first Nmer queue (=surroundings of the first V nucleotide)
 			for(i=0 ; i!=mutation_Nmer_size ; ++i){
