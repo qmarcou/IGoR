@@ -139,6 +139,7 @@ public:
 		for(int i = 0 ; i != rows*cols ; i++){
 			this->array_p[i] = other.array_p[i];
 		}
+		return *this;
 	}
 
 	T& operator()(const int& i ,const int& j ){
