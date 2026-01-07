@@ -1,3 +1,12 @@
+📣 Announcement (07/01/2025) 📣
+
+IGoR's development has been on stale for the past few years. At last a new development sprint will be carried this year to rehaul IGoR's install, improve python bindings, improve maintenability, fix bugs and introduce new features and models.
+
+As a first step, this legacy 1.4 version can now be installed via `conda` using the following command:
+```bash
+conda install -c nniclausse -c conda-forge igor
+```
+
 IGoR: Inference and Generation Of Repertoires
 =============================================
 
@@ -9,6 +18,8 @@ recombination related processes for TCR or BCR sequencing data using
 IGoR's exhaustive *_documentation can be found http://qmarcou.github.io/IGoR[here]_*!
 
 Download the latest release https://github.com/qmarcou/IGoR/releases[here].
+
+
 
 [[quick-summary]]
 Quick summary
