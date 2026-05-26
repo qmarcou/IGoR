@@ -26,6 +26,9 @@
 
 #include <igor/Core/Aligner.h>
 
+#include <cctype>
+#include <unordered_set>
+
 using namespace std;
 
 Aligner::Aligner()
@@ -748,6 +751,148 @@ void write_single_seq_alignment(ofstream &outfile, int seq_index, forward_list<A
     }
 }
 
+std::vector<std::pair<int, char>> parse_cigar(const std::string &cigar)
+{
+    std::vector<std::pair<int, char>> ops;
+    if (cigar.empty()) {
+        throw invalid_argument("empty CIGAR string");
+    }
+    size_t i = 0;
+    while (i < cigar.size()) {
+        if (!isdigit(static_cast<unsigned char>(cigar[i]))) {
+            throw invalid_argument("CIGAR count expected");
+        }
+        long count = 0;
+        while (i < cigar.size() && isdigit(static_cast<unsigned char>(cigar[i]))) {
+            count = count * 10 + (cigar[i] - '0');
+            ++i;
+        }
+        if (count <= 0 || i == cigar.size()) {
+            throw invalid_argument("invalid CIGAR count");
+        }
+        char op = cigar[i++];
+        const string valid_ops = "=XIDNSHPM";
+        if (valid_ops.find(op) == string::npos) {
+            throw invalid_argument("invalid CIGAR operation");
+        }
+        ops.push_back(make_pair(static_cast<int>(count), op));
+    }
+    return ops;
+}
+
+static void append_cigar_op(vector<pair<int, char>> &ops, char op)
+{
+    if (!ops.empty() && ops.back().second == op) {
+        ++ops.back().first;
+    } else {
+        ops.push_back(make_pair(1, op));
+    }
+}
+
+std::string alignment_data_to_cigar(const Alignment_data &aln)
+{
+    vector<int> insertions(aln.insertions.begin(), aln.insertions.end());
+    vector<int> deletions(aln.deletions.begin(), aln.deletions.end());
+    sort(insertions.begin(), insertions.end());
+    sort(deletions.begin(), deletions.end());
+    unordered_set<int> mismatches(aln.mismatches.begin(), aln.mismatches.end());
+
+    size_t ins_i = 0;
+    size_t del_i = 0;
+    int t = static_cast<int>(aln.five_p_offset);
+    int g = static_cast<int>(aln.five_p_offset) - aln.offset;
+    const int t_end = static_cast<int>(aln.three_p_offset);
+    vector<pair<int, char>> ops;
+
+    while (t <= t_end) {
+        while (del_i < deletions.size() && deletions[del_i] == g) {
+            append_cigar_op(ops, 'D');
+            ++g;
+            ++del_i;
+        }
+        if (ins_i < insertions.size() && insertions[ins_i] == t) {
+            append_cigar_op(ops, 'I');
+            ++t;
+            ++ins_i;
+        } else {
+            append_cigar_op(ops, mismatches.count(t) ? 'X' : '=');
+            ++t;
+            ++g;
+        }
+    }
+    while (del_i < deletions.size() && deletions[del_i] == g) {
+        append_cigar_op(ops, 'D');
+        ++g;
+        ++del_i;
+    }
+
+    string cigar_out;
+    for (const auto &op : ops) {
+        cigar_out += to_string(op.first);
+        cigar_out += op.second;
+    }
+    return cigar_out;
+}
+
+Alignment_data alignment_data_from_cigar(const std::string &gene_name, const std::string &cigar, int seq_start_1based,
+                                         int seq_end_1based, int ref_start_1based, int /*ref_end_1based*/,
+                                         double score)
+{
+    int offset = seq_start_1based - ref_start_1based;
+    size_t five_p_offset = static_cast<size_t>(seq_start_1based - 1);
+    size_t three_p_offset = static_cast<size_t>(seq_end_1based - 1);
+    int t = seq_start_1based - 1;
+    int g = ref_start_1based - 1;
+    size_t align_length = 0;
+    forward_list<int> insertions;
+    forward_list<int> deletions;
+    vector<int> mismatches;
+
+    for (const auto &entry : parse_cigar(cigar)) {
+        int count = entry.first;
+        char op = entry.second;
+        for (int i = 0; i < count; ++i) {
+            switch (op) {
+            case '=':
+            case 'M':
+                ++t;
+                ++g;
+                break;
+            case 'X':
+                mismatches.push_back(t);
+                ++t;
+                ++g;
+                break;
+            case 'I':
+                insertions.push_front(t++);
+                break;
+            case 'D':
+                deletions.push_front(g++);
+                break;
+            case 'N':
+                deletions.push_front(g++);
+                break;
+            case 'S':
+                ++t;
+                break;
+            case 'H':
+            case 'P':
+                break;
+            default:
+                throw invalid_argument("unsupported CIGAR operation");
+            }
+            ++align_length;
+        }
+    }
+    return Alignment_data(gene_name, offset, five_p_offset, three_p_offset, align_length, insertions, deletions,
+                          mismatches, score);
+}
+
+int alignment_data_sequence_start(const Alignment_data &aln) { return static_cast<int>(aln.five_p_offset) + 1; }
+int alignment_data_sequence_end(const Alignment_data &aln) { return static_cast<int>(aln.three_p_offset) + 1; }
+int alignment_data_germline_start(const Alignment_data &aln) { return static_cast<int>(aln.five_p_offset) - aln.offset + 1; }
+int alignment_data_germline_end(const Alignment_data &aln) { return static_cast<int>(aln.three_p_offset) - aln.offset + 1; }
+
 /*
  * This method reads the indexed sequences from a given file(@filename)
  * The structure of the file is assumed to be the same as the one created by the Aligner::write_indexed_seq_csv method
@@ -889,14 +1034,69 @@ unordered_map<int, vector<Alignment_data>> read_alignments_seq_csv(const string 
                     mismatches.push_back(stoi(mismatch_substr));
                 }
             }
-
-            //FIXME read alignment length
         }
 
-        indexed_alignments[index].push_back(
-                Alignment_data(gene_name, offset, INT16_MIN, insertions, deletions, mismatches, score));
+        size_t align_length = 0;
+        size_t five_p_offset = 0;
+        size_t three_p_offset = 0;
+        if (mism_sep != string::npos) {
+            size_t len_sep = line_str.find(';', mism_sep + 1);
+            if (len_sep == string::npos) {
+                string len_substr = line_str.substr(mism_sep + 1);
+                if (!len_substr.empty()) {
+                    align_length = static_cast<size_t>(stoul(len_substr));
+                    five_p_offset = static_cast<size_t>(max(0, offset));
+                    size_t deletion_count = distance(deletions.begin(), deletions.end());
+                    three_p_offset = (align_length > deletion_count)
+                                             ? five_p_offset + align_length - 1 - deletion_count
+                                             : five_p_offset;
+                }
+            } else {
+                string len_substr = line_str.substr(mism_sep + 1, len_sep - mism_sep - 1);
+                if (!len_substr.empty()) {
+                    align_length = static_cast<size_t>(stoul(len_substr));
+                }
+                size_t five_sep = line_str.find(';', len_sep + 1);
+                if (five_sep == string::npos) {
+                    five_p_offset = static_cast<size_t>(max(0, offset));
+                    size_t deletion_count = distance(deletions.begin(), deletions.end());
+                    three_p_offset = (align_length > deletion_count)
+                                             ? five_p_offset + align_length - 1 - deletion_count
+                                             : five_p_offset;
+                } else {
+                    string five_substr = line_str.substr(len_sep + 1, five_sep - len_sep - 1);
+                    string three_substr = line_str.substr(five_sep + 1);
+                    five_p_offset = five_substr.empty() ? static_cast<size_t>(max(0, offset))
+                                                        : static_cast<size_t>(stoul(five_substr));
+                    if (!three_substr.empty()) {
+                        three_p_offset = static_cast<size_t>(stoul(three_substr));
+                    } else {
+                        size_t deletion_count = distance(deletions.begin(), deletions.end());
+                        three_p_offset = (align_length > deletion_count)
+                                                 ? five_p_offset + align_length - 1 - deletion_count
+                                                 : five_p_offset;
+                    }
+                }
+            }
+        }
+
+        indexed_alignments[index].push_back(Alignment_data(gene_name, offset, five_p_offset, three_p_offset,
+                                                           align_length, insertions, deletions, mismatches, score));
     }
     return indexed_alignments;
+}
+
+unordered_map<int, forward_list<Alignment_data>> Aligner::read_alignments_seq_csv(string filename, double score_threshold,
+                                                                                 bool allow_in_dels)
+{
+    unordered_map<int, vector<Alignment_data>> parsed = ::read_alignments_seq_csv(filename, score_threshold, allow_in_dels);
+    unordered_map<int, forward_list<Alignment_data>> converted;
+    for (const auto &entry : parsed) {
+        for (auto it = entry.second.rbegin(); it != entry.second.rend(); ++it) {
+            converted[entry.first].push_front(*it);
+        }
+    }
+    return converted;
 }
 
 unordered_map<int, pair<string, unordered_map<Gene_class, vector<Alignment_data>>>>

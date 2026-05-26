@@ -147,6 +147,15 @@ endif()
 
 option(BUILD_DOC_DOXYGEN "Build Doxygen Documentation." false)
 option(ENABLE_COVERAGE "Enable code coverage." false)
+option(IGOR_WITH_SEQAN2 "Enable SeqAn2 banded alignment backend" OFF)
+option(IGOR_SEQAN2_SIMD "Compile SeqAn2 with SIMD vectorization (requires -msse4 or -mavx2)" OFF)
+
+if(IGOR_WITH_SEQAN2)
+  if(DEFINED ENV{CONDA_PREFIX})
+    list(APPEND CMAKE_MODULE_PATH "$ENV{CONDA_PREFIX}/share/seqan/cmake")
+  endif()
+  find_package(SeqAn REQUIRED)
+endif()
 
 if(ENABLE_COVERAGE)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

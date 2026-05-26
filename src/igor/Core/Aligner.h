@@ -208,6 +208,16 @@ private:
     std::unordered_map<std::string, std::pair<int, int>> build_genomic_bounds_map(int, int) const;
 };
 
+CORE_EXPORT std::vector<std::pair<int, char>> parse_cigar(const std::string &cigar);
+CORE_EXPORT std::string alignment_data_to_cigar(const Alignment_data &aln);
+CORE_EXPORT Alignment_data alignment_data_from_cigar(const std::string &gene_name, const std::string &cigar,
+                                                     int seq_start_1based, int seq_end_1based,
+                                                     int ref_start_1based, int ref_end_1based, double score);
+CORE_EXPORT int alignment_data_sequence_start(const Alignment_data &aln);
+CORE_EXPORT int alignment_data_sequence_end(const Alignment_data &aln);
+CORE_EXPORT int alignment_data_germline_start(const Alignment_data &aln);
+CORE_EXPORT int alignment_data_germline_end(const Alignment_data &aln);
+
 CORE_EXPORT std::unordered_map<int, std::pair<std::string, std::unordered_map<Gene_class, std::vector<Alignment_data>>>>
 read_alignments_seq_csv(const std::string &, Gene_class, double, bool,
                         const std::vector<std::pair<const int, const std::string>> &);

@@ -6,6 +6,7 @@ find_package(Catch2 3 REQUIRED)
 
 # Add test sources
 file(GLOB TEST_SOURCES "*.cpp")
+list(REMOVE_ITEM TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/bench_seqan2_vs_igor.cpp")
 
 add_executable(igor_tests ${TEST_SOURCES})
 
@@ -24,3 +25,7 @@ include(Catch)
 catch_discover_tests(igor_tests
     PROPERTIES TIMEOUT 3600  # generation test with 1M sequences needs headroom
 )
+
+add_executable(bench_seqan2_vs_igor bench_seqan2_vs_igor.cpp)
+target_link_libraries(bench_seqan2_vs_igor PRIVATE igor::Core)
+target_compile_definitions(bench_seqan2_vs_igor PRIVATE IGOR_SOURCE_DIR="${CMAKE_SOURCE_DIR}")

@@ -62,6 +62,8 @@ target_sources(${PROJECT_NAME}
     FILES
       AccumulationContext.h
       Aligner.h
+      AlignmentPreset.h
+      SeqAn2Aligner.h
       Bestscenarioscounter.h
       CDR3SeqData.h
       Counter.h
@@ -117,6 +119,16 @@ endif()
 
 if(WIN32)
 	target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+endif()
+
+if(IGOR_WITH_SEQAN2)
+  target_sources(${PROJECT_NAME} PRIVATE SeqAn2Aligner.cpp)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${SEQAN_INCLUDE_DIRS})
+  target_compile_definitions(${PROJECT_NAME} PUBLIC IGOR_WITH_SEQAN2 ${SEQAN_DEFINITIONS})
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${SEQAN_LIBRARIES})
+  if(IGOR_SEQAN2_SIMD)
+    target_compile_options(${PROJECT_NAME} PRIVATE -msse4)
+  endif()
 endif()
 
 ## ###################################################################

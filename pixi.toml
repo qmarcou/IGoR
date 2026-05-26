@@ -1,6 +1,6 @@
 [workspace]
 authors = ["Erwan Demairy <Erwan.Demairy@inria.fr>"]
-channels = ["conda-forge"]
+channels = ["conda-forge", "bioconda"]
 preview = ["pixi-build"]
 name = "igor"
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
@@ -20,6 +20,12 @@ clang-tools = ">=19.1.7,<22"
 
 [target.linux.dependencies]
 valgrind = "*"
+
+[feature.seqan2.dependencies]
+seqan = ">=2.4.0"
+
+[environments]
+seqan2 = { features = ["seqan2"], solve-group = "default" }
 
 [tasks]
 clean = "rm -fr build && rm -fr build_cov"
